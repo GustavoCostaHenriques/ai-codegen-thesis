@@ -1,0 +1,118 @@
+%%
+%% This is file `sample-sigchi.tex',
+%% generated with the docstrip utility.
+%% but modified by the faculty @ DI/FCUL
+%% The original source files were:
+%%
+%% samples.dtx  (with options: `sigchi')
+%% 
+%% IMPORTANT NOTICE:
+%% 
+%% For the copyright see the source file.
+%% 
+%% Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-sigchi.tex.
+%% 
+%% For distribution of the original source see the terms
+%% for copying and modification in the file samples.dtx.
+%% 
+%% This generated file may be distributed as long as the
+%% original source files, as listed above, are part of the
+%% same distribution. (The sources need not necessarily be
+%% in the same archive or directory.)
+%%
+%% The first command in your LaTeX source must be the \documentclass command.
+\documentclass[sigplan]{acmart}
+\settopmatter{printacmref=false} % Removes citation information below abstract
+\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{array}
+\usepackage{multirow}
+
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+\title{Title of Your Project} 
+
+\author{Your Name - Your Number}
+\affiliation{%
+ \institution{
+  Estudo Orientado \\ 
+  Mestrado em \{nome do Mestrado\} \\ 
+  Faculdade de Ciências, Universidade de Lisboa}
+ }
+\email{youremail@fc.ul.pt}
+
+
+\begin{abstract}
+In about 10 lines, summarise the document's key elements.
+\end{abstract}
+
+
+%%
+%% Keywords. The author(s) should pick words that accurately describe
+%% the work being presented. Separate the keywords with commas.
+\keywords{5 keywords}
+
+\pagestyle{plain} % removes running headers
+
+%%
+%% This command processes the author and affiliation and title
+%% information and builds the first part of the formatted document.
+\maketitle
+\section{Introduction}
+
+The introduction should present an overview of the project and describe the organisation of the document. The subsections presented below are suggestions for organising this chapter. \\
+
+\noindent\textbf{Context.} What is the scientific/technological context of the topic of your project? \\
+
+\noindent \textbf{Problem.} What is the original problem your addressed in your project?\\
+
+\noindent\textbf{Motivation.} Why is this problem important and relevant? What justifies your project? How is your work on this problem different from what was already done (if something was done)? \\
+
+\noindent\textbf{Goals.} What are the main goals of your project?\\
+
+\noindent\textbf{Outline.} How is the rest of the document structured? \\The remainder of this document is organised as follows. Section \ref{sec:background} presents bla bla bla. ...
+
+\section{Background} \label{sec:background}
+
+In this section, you should describe the scientific or technological context of your project. Provide enough information so that a reader unfamiliar with the topic can understand the problem you are addressing and the rationale for your project. This may include relevant concepts and definitions in the area, particularly those that will be used throughout this document.
+
+\section{Related Work} \label{sec:relatedwork}
+
+This section should present the state of the art on the topic of your project. It should discuss relevant related work and existing solutions, highlighting their main contributions as well as their limitations, and identifying the gaps or opportunities that motivate your project.
+
+Preparing this section will require you to include references to academic papers, books, and possibly online resources. The next paragraph exemplifies how to do it.
+
+\medskip
+
+In this work, you are expected to follow the guidelines on document preparation presented in Lamport’s book on \LaTeX~\cite{lamport1994latex}. For editing, you may use tools such as the online platform Overleaf~\cite{overleaf}. There is also a good chance that your project will build upon some of Lamport’s many scientific contributions, such as the concept of logical clocks~\cite{lamport1978clocks}.
+
+\section{«Other Section(s) as Appropriate»} \label{sec:work1}
+
+The report should include one or more sections providing a detailed description of the problem you are addressing in the project and your plan to tackle it. Use appropriate section titles for what is presented. 
+
+You should explain the methods you are planning to use, or have already started to apply, in your project. 
+%
+This discussion should be grounded in the related work, your own understanding of the problem, and, when available, preliminary results.
+
+In case you already have some preliminary results, consider to include a section devoted to them. This section should  describe the work already carried out, what data has already been collected, what analysis and designs have already been done, what methods have been used, what programs and/or preliminary results already exist, etc.
+
+\section{Forthcoming Work and Conclusions} \label{sec:conclusions}
+
+This section should include subsections describing the work to be carried out during the remainder of the school year and its objectives. 
+%
+It should also present a chronological plan for the completion of the project. 
+%
+Finally, include a concluding subsection that summarizes the contributions already made, provides a preliminary self-assessment of the progress achieved so far, and discusses the main difficulties encountered.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% The next two lines define the bibliography style to be used, and
+%% the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{sample-base}
+
+\end{document}
