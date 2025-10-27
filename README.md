@@ -1,1 +1,1 @@
-# ai-codegen.thesis
+# ai-codegen-thesis
