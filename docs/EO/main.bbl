@@ -2,27 +2,26 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{3}
+\begin{thebibliography}{6}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
 %%% customized versions of any of these macros before the \bibliography
 %%% command.  Each of them MUST provide its own final punctuation,
-%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% except for \shownote{} and \showURL{}.  The latter two
 %%% do not use final punctuation, in order to avoid confusing it with
 %%% the Web address.
 %%%
 %%% To suppress output of a particular field, define its macro to expand
 %%% to an empty string, or better, \unskip, like this:
 %%%
-%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
 %%%
-%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
 %%%
 %%% ====================================================================
 
 \ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
-\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
 \ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
 \ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
 \ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
@@ -37,40 +36,94 @@
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
 
-\bibitem[Lamport(1978)]%
-        {lamport1978clocks}
-\bibfield{author}{\bibinfo{person}{Leslie Lamport}.}
-  \bibinfo{year}{1978}\natexlab{}.
-\newblock \showarticletitle{Time, Clocks, and the Ordering of Events in a
-  Distributed System}.
-\newblock \bibinfo{journal}{\emph{Commun. {ACM}}} \bibinfo{volume}{21},
-  \bibinfo{number}{7} (\bibinfo{year}{1978}), \bibinfo{pages}{558--565}.
+\bibitem[Devlin et~al\mbox{.}({[n.\,d.]})]%
+        {BERT}
+\bibfield{author}{\bibinfo{person}{Jacob Devlin}, \bibinfo{person}{Ming-Wei
+  Chang}, \bibinfo{person}{Kenton Lee}, \bibinfo{person}{Kristina~Toutanova
+  Google}, {and} \bibinfo{person}{A~I Language}.}
+  \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{BERT: Pre-training of Deep Bidirectional
+  Transformers for Language Understanding}}.
+\newblock \bibinfo{type}{{T}echnical {R}eport}. \bibinfo{pages}{4171--4186}
+  pages.
 \newblock
 \urldef\tempurl%
-\url{https://doi.org/10.1145/359545.359563}
-\showDOI{\tempurl}
+\url{https://github.com/tensorflow/tensor2tensor}
+\showURL{%
+\tempurl}
 
 
-\bibitem[Lamport(1994)]%
-        {lamport1994latex}
-\bibfield{author}{\bibinfo{person}{Leslie Lamport}.}
-  \bibinfo{year}{1994}\natexlab{}.
-\newblock \bibinfo{booktitle}{\emph{LaTeX - {A} Document Preparation System:
-  User's Guide and Reference Manual, Second Edition}}.
-\newblock \bibinfo{publisher}{Pearson / Prentice Hall}.
+\bibitem[Huynh and Lin(2025)]%
+        {LLMSurvey}
+\bibfield{author}{\bibinfo{person}{Nam Huynh} {and} \bibinfo{person}{Beiyu
+  Lin}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Large Language Models for Code Generation: A
+  Comprehensive Survey of Challenges, Techniques, Evaluation, and
+  Applications}.
+\newblock  (\bibinfo{date}{4} \bibinfo{year}{2025}).
 \newblock
-\showISBNx{978-0-201-52983-8}
+\urldef\tempurl%
+\url{http://arxiv.org/abs/2503.01245}
+\showURL{%
+\tempurl}
 
 
-\bibitem[{Overleaf}(2025)]%
-        {overleaf}
-\bibfield{author}{\bibinfo{person}{{Overleaf}}.}
-  \bibinfo{year}{2025}\natexlab{}.
-\newblock \bibinfo{title}{Overleaf Online \LaTeX{} Editor}.
-\newblock \bibinfo{howpublished}{\url{https://www.overleaf.com}}.
+\bibitem[Mastropaolo et~al\mbox{.}(2023)]%
+        {CopilotStudy}
+\bibfield{author}{\bibinfo{person}{Antonio Mastropaolo}, \bibinfo{person}{Luca
+  Pascarella}, \bibinfo{person}{Emanuela Guglielmi}, \bibinfo{person}{Matteo
+  Ciniselli}, \bibinfo{person}{Simone Scalabrino}, \bibinfo{person}{Rocco
+  Oliveto}, {and} \bibinfo{person}{Gabriele Bavota}.}
+  \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{On the Robustness of Code Generation Techniques: An
+  Empirical Study on GitHub Copilot}.
+\newblock  (\bibinfo{date}{2} \bibinfo{year}{2023}).
 \newblock
+\urldef\tempurl%
+\url{http://arxiv.org/abs/2302.00438}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Nettur et~al\mbox{.}({[n.\,d.]})]%
+        {CopilotRole}
+\bibfield{author}{\bibinfo{person}{Suresh~Babu Nettur},
+  \bibinfo{person}{Shanthi Karpurapu}, \bibinfo{person}{Unnati Nettur},
+  \bibinfo{person}{Likhit~Sagar Gajja}, \bibinfo{person}{Sravanthy Myneni},
+  {and} \bibinfo{person}{Akhil Dusi}.} \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The Role of GitHub Copilot on Software
+  Development: A Perspec-tive on Productivity, Security, Best Practices and
+  Future Directions}}.
+\newblock \bibinfo{type}{{T}echnical {R}eport}.
 \newblock
-\shownote{Accessed: 2025-09-05}.
+
+
+\bibitem[Openai et~al\mbox{.}({[n.\,d.]})]%
+        {GPT-1}
+\bibfield{author}{\bibinfo{person}{Alec~Radford Openai},
+  \bibinfo{person}{Karthik~Narasimhan Openai}, \bibinfo{person}{Tim~Salimans
+  Openai}, {and} \bibinfo{person}{Ilya~Sutskever Openai}.}
+  \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Improving Language Understanding by
+  Generative Pre-Training}}.
+\newblock \bibinfo{type}{{T}echnical {R}eport}.
+\newblock
+\urldef\tempurl%
+\url{https://gluebenchmark.com/leaderboard}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Vaswani et~al\mbox{.}({[n.\,d.]})]%
+        {Transformer}
+\bibfield{author}{\bibinfo{person}{Ashish Vaswani}, \bibinfo{person}{Google
+  Brain}, \bibinfo{person}{Noam Shazeer}, \bibinfo{person}{Niki Parmar},
+  \bibinfo{person}{Jakob Uszkoreit}, \bibinfo{person}{Llion Jones},
+  \bibinfo{person}{Aidan~N Gomez}, \bibinfo{person}{Łukasz Kaiser}, {and}
+  \bibinfo{person}{Illia Polosukhin}.} \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Attention Is All You Need}}.
+\newblock \bibinfo{type}{{T}echnical {R}eport}.
+\newblock
 
 
 \end{thebibliography}
