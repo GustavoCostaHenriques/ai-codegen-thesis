@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  3 NOV 2025 22:29
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  4 NOV 2025 20:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1090,34 +1090,22 @@ LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/n' will be
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/it' will be
 (Font)              scaled to size 10.0pt on input line 61.
 
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 71--72
+Underfull \hbox (badness 10000) in paragraph at lines 66--66
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 74--75
+Underfull \hbox (badness 10000) in paragraph at lines 69--69
 
  []
 
 
-Class acmart Warning: \vspace should only be used to provide space above/below 
-surrounding objects on input line 88.
-
-LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.3pt on input line 90.
-
-Package natbib Warning: Citation `lamport1994latex' on page 1 undefined on inpu
-t line 90.
 
 
-Package natbib Warning: Citation `overleaf' on page 1 undefined on input line 9
-0.
-
-
-Package natbib Warning: Citation `lamport1978clocks' on page 1 undefined on inp
-ut line 90.
+Overfull \hbox (7.14813pt too wide) in paragraph at lines 72--72
+[]\T1/LinuxLibertineT-TLF/m/n/10 (-20) Como foram ap-re-sen-ta-dos pro-gres-sos
+ sub-stan-ci-ais no campo
+ []
 
 
 
@@ -1128,14 +1116,35 @@ ine/lbtn_76gpa5.enc}{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc
 /dvips/libertine/lbtn_25tcsq.enc}
 
 {C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbt
-n_ki75ao.enc}] (main.bbl
+n_ki75ao.enc}]
+
+Class acmart Warning: \vspace should only be used to provide space above/below 
+surrounding objects on input line 89.
+
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 7.3pt on input line 91.
+
+Package natbib Warning: Citation `lamport1994latex' on page 2 undefined on inpu
+t line 91.
+
+
+Package natbib Warning: Citation `overleaf' on page 2 undefined on input line 9
+1.
+
+
+Package natbib Warning: Citation `lamport1978clocks' on page 2 undefined on inp
+ut line 91.
+
+(main.bbl
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/it' will be
-(Font)              scaled to size 8.0pt on input line 46.
+(Font)              scaled to size 8.0pt on input line 51.
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 8.0pt on input line 53.
-LaTeX Info: Redefining \tempurl on input line 66.
-LaTeX Info: Redefining \tempurl on input line 83.
-LaTeX Info: Redefining \tempurl on input line 112.
+(Font)              scaled to size 8.0pt on input line 55.
+
+
+LaTeX Info: Redefining \tempurl on input line 85.
+LaTeX Info: Redefining \tempurl on input line 102.
+LaTeX Info: Redefining \tempurl on input line 131.
 )
 
 Package natbib Warning: There were undefined citations.
@@ -1143,14 +1152,13 @@ Package natbib Warning: There were undefined citations.
 
 
 
-
-
-Overfull \vbox (2.016pt too high) has occurred while \output is active []
+Package balance Warning: You have called \balance in second column
+(balance)                Columns might not be balanced.
 
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.0pt on input line 118.
- [2.2{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertin
-e/lbtn_7grukw.enc}] (main.aux)
+(Font)              scaled to size 7.0pt on input line 119.
+[2.2{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine
+/lbtn_7grukw.enc}] (main.aux)
  ***********
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
@@ -1159,13 +1167,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: E4EE27D5F0E45C8042DBF3E8B964F5C5;982.
  ) 
 Here is how much of TeX's memory you used:
- 20489 strings out of 468080
- 331438 string characters out of 5423836
- 772018 words of memory out of 5000000
- 48408 multiletter control sequences out of 15000+600000
- 739717 words of font info for 246 fonts, out of 8000000 for 9000
+ 20512 strings out of 468080
+ 331968 string characters out of 5423836
+ 773052 words of memory out of 5000000
+ 48412 multiletter control sequences out of 15000+600000
+ 741463 words of font info for 258 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 90i,11n,131p,1080b,560s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,131p,1096b,560s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertin
 e/LinBiolinumT.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type
 1/public/libertine/LinLibertineT.pfb><C:/Users/Consultor/AppData/Local/Programs
@@ -1173,9 +1181,9 @@ e/LinBiolinumT.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type
 Data/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTBI.pfb><C:
 /Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/Lin
 LibertineTI.pfb>
-Output written on main.pdf (2 pages, 339662 bytes).
+Output written on main.pdf (2 pages, 341889 bytes).
 PDF statistics:
- 103 PDF objects out of 1000 (max. 8388607)
- 19 named destinations out of 1000 (max. 500000)
+ 107 PDF objects out of 1000 (max. 8388607)
+ 20 named destinations out of 1000 (max. 500000)
  61509 words of extra memory for PDF output out of 61914 (max. 10000000)
 

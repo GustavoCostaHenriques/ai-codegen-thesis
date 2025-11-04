@@ -17,6 +17,7 @@ Reallocating 'glb_str_end' (item size: 4) to 20 items.
 Reallocating 'glb_str_ptr' (item size: 4) to 20 items.
 Reallocating 'global_strs' (item size: 1) to 4000000 items.
 Reallocating 'singl_function' (item size: 4) to 100 items.
+Warning--page numbers missing in both pages and numpages fields in MetricasSurvey
 Warning--empty year in BERT
 Warning--using n.d. in BERT
 Warning--empty institution in BERT
@@ -35,45 +36,45 @@ Warning--empty institution in GPT-1
 Warning--empty year in Transformer
 Warning--using n.d. in Transformer
 Warning--empty institution in Transformer
-You've used 6 entries,
+You've used 7 entries,
             6273 wiz_defined-function locations,
-            1550 strings with 19566 characters,
-and the built_in function-call counts, 6121 in all, are:
-= -- 563
-> -- 314
+            1559 strings with 19934 characters,
+and the built_in function-call counts, 7781 in all, are:
+= -- 772
+> -- 449
 < -- 1
-+ -- 111
-- -- 107
-* -- 544
-:= -- 726
-add.period$ -- 31
-call.type$ -- 6
-change.case$ -- 61
-chr.to.int$ -- 6
-cite$ -- 24
-duplicate$ -- 465
-empty$ -- 344
-format.name$ -- 131
-if$ -- 1333
++ -- 162
+- -- 155
+* -- 730
+:= -- 932
+add.period$ -- 36
+call.type$ -- 7
+change.case$ -- 81
+chr.to.int$ -- 7
+cite$ -- 26
+duplicate$ -- 546
+empty$ -- 403
+format.name$ -- 183
+if$ -- 1711
 int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 8
-newline$ -- 103
-num.names$ -- 42
-pop$ -- 278
+missing$ -- 12
+newline$ -- 114
+num.names$ -- 49
+pop$ -- 322
 preamble$ -- 1
-purify$ -- 85
+purify$ -- 113
 quote$ -- 0
-skip$ -- 153
+skip$ -- 176
 stack$ -- 0
-substring$ -- 286
-swap$ -- 37
+substring$ -- 350
+swap$ -- 41
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 152
-warning$ -- 18
-while$ -- 24
+type$ -- 168
+warning$ -- 19
+while$ -- 27
 width$ -- 0
-write$ -- 163
-(There were 21 warnings)
+write$ -- 184
+(There were 22 warnings)
