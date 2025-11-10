@@ -62,23 +62,44 @@ A Inteligência Artificial está a tornar-se cada vez mais comum no dia a dia da
 \section{Introdução}
 
 %%Context - What is the scientific/technological context of the topic of your project?
-Graças aos avanços da inteligência artificial nos últimos anos, a forma como é desenvolvido o software tem evoluído significativamente. Uma grande revolução que se deu em IA por volta de 2018, quando começaram a surgir os primeiros Large Language Models, como o BERT \cite{BERT} e o GPT-1\cite{GPT-1}, que se baseavam na arquitetura dos transformers, conceito este que foi introduzido em 2017\cite{Transformer}. Desde então estes modelos têm sofrido alterações no sentido de se tentar otimizar a sua performance, sendo hoje em dia capazes de gerar e completar código executável\cite{LLMSurvey}.\par
+Graças aos avanços da inteligência artificial nos últimos anos, a forma como é desenvolvido o software tem evoluído significativamente. Uma grande revolução que se deu em IA foi por volta de 2018, quando começaram a surgir os primeiros Large Language Models, como o BERT \cite{BERT} e o GPT-1\cite{GPT-1}, que se baseavam na arquitetura dos transformers, conceito este que foi introduzido em 2017\cite{Transformer}. Desde então estes modelos têm sofrido alterações no sentido de se tentar otimizar a sua performance, sendo hoje em dia capazes de gerar e completar código executável\cite{LLMSurvey}.\par
 Com estas contínuas melhorias hoje existem ferramentas como o GitHub Copilot ou Amazon CodeWhisperer que conseguem auxiliar o trabalho de um programador, causando um impacto significativo na sua produtividade\cite{CopilotRole}.\\\par
 
 %%Problem - What is the original problem your addressed in your project?
 Apesar destes modelos e ferramentas, assistidos por IA, trazerem consigo beneficios para o ambiente empresarial, é importante referir que têm as suas limitações no que toca a segurança, qualidade, robustez e confiabilidade. Estudos feitos à robustez do GitHub Copilot indicam que, pequenas alterações de input podem originar alterações significativas no código gerado em, aproximadamente, 46\% dos casos\cite{CopilotStudy}. Além disso, Nam Huynh and Beiyu Lin\cite{LLMSurvey}, concluiram que 40\% do código gerado pelo Copilot continha vulnerabilidades na segurança. Com isto é possível concluir que mesmo com toda a automatização existente, continua a ser essencial uma análise humana que seja rigorosa e, que é vital o modo como construimos o input que será recebido pelos modelos. Com isto, surgiram técnicas mais recentes, designadas de prompt engineering, que estudam como o design dos prompts pode influenciar o desempenho dos LLMs e diminuir o impacto das limitações referidas acima.\\\par
 
 %%Motivation - Why is this problem important and relevant? What justifies your project? How is your work on this problem different from what was already done (if something was done)? 
-Como foram apresentados progressos substanciais no campo da IA durante as últimas décadas, as expectativas do que realmente se pode atingir aumetaram. Apesar disso, há ainda muitos domínios que permanecem em estágio inicial, com incertezas quanto ao seu real potencial, como o prompt engineering e o desenvolvimento autônomo de software. Além disso, os algoritmos existentes, para avaliação de modelos, ainda não são suficientes para tratar de um modo sistemático e comparável as suas capacidades e os seus riscos potenciais \cite{MetricasSurvey}. Portanto, considerando o impacto que estas técnicas podem causar na redução de custos e na otimização de recursos, conclui-se que a pesquisa dos limites dos LLMs pode trazer consequências significativas para a sociedade atual.\par 
+Como se têm dado progressos substanciais no campo da IA durante as últimas décadas, as expectativas do que realmente se pode atingir aumetaram. Apesar disso, há ainda muitos domínios que permanecem em estágio inicial, com incertezas quanto ao seu real potencial, como o prompt engineering e o desenvolvimento autônomo de software. Além disso, os algoritmos existentes, para avaliação de modelos, ainda não são suficientes para tratar de um modo sistemático e comparável as suas capacidades e os seus riscos potenciais \cite{MetricasSurvey}. Portanto, considerando o impacto que estas técnicas podem causar na redução de custos e na otimização de recursos, conclui-se que é importante a pesquisa dos limites dos LLMs visto que pode trazer consequências significativas para a sociedade atual.\par 
 
 %%Goals -  What are the main goals of your project?
 Neste trabalho especificamente, a finalidade é estudar o estado da arte dos Large Language Models e das técnicas de prompt engineering no domínio da geração automática de código. O principal intento é analisar como estas abordagens podem ser implementadas de modo a produzir código, com a melhor qualidade disponível. Qualidade essa que será avaliada através de métricas automáticas e manuais, tentando assim identificar o potencial atual da IA para o desenvolvimento de software.
 
 \noindent\textbf{Outline.} How is the rest of the document structured? \\The remainder of this document is organised as follows. Section \ref{sec:background} presents bla bla bla. ...
 
-\section{Background} \label{sec:background}
+\section{Enquadramento Teórico} \label{sec:background}
+Esta secção serve como base teórica de modo a clarificar alguns conceitos importantes, para uma melhor compreensão das secções que se seguem.
+%%In this section, you should describe the scientific or technological context of your project. Provide enough information so that a reader unfamiliar with the topic can understand the problem you are addressing and the rationale for your project. This may include relevant concepts and definitions in the area, particularly those that will be used throughout this document.
+\subsection{Large Language Models}
 
-In this section, you should describe the scientific or technological context of your project. Provide enough information so that a reader unfamiliar with the topic can understand the problem you are addressing and the rationale for your project. This may include relevant concepts and definitions in the area, particularly those that will be used throughout this document.
+
+
+\subsection{Transformers}
+
+%% Referenciar que começou em 2017 e dar o contraste com as RNNs (Attention is all you need e talvez o outro que o Daniel indicou sobre gerar frontend de Image to Code)
+%% Explicar a estrutura (incluir a imagem)
+
+
+\subsection{Prompt Engineering}
+Para entedermos este conceito é primeiro necessário perceber a definição de prompt. Segundo Ggaliwango Marvin et al.\cite{PEinLLMS} "A prompt is a text-based input that is fed to a language model to guide its output.
+A prompt can be audio but, in this case, the audio input would be transcribed into text
+and fed to the language model as a text-based prompt. The language model would then
+process the text-based prompt and generate an output based on the instructions and
+context provided in the prompt\dots", ou seja, um prompt é um input em formato textual (ou transcrição de outro meio, como áudio ou imagens) usado para orientar a saída de um modelo artificialmente inteligente, servindo para fornecer instruções e contexto, de modo a que o mesmo gere uma resposta em conformidade com a tarefa desejada.\\\par
+Como já foi referido na introdução, uma das influências na qualidade de resposta é a forma como são construídos os prompts, visto que pequenas alterações nos mesmos são capazes de gerar respostas bastantes diferentes\cite{CopilotStudy}. Assim, por volta de 2022, emergiu esta nova disciplina no campo da inteligência artificial, que tem como objetivo conceber prompts e otimiza-los, tornando o uso de LLMs mais eficiente\cite{PEinLLMS}. Outra das razões para ter surgido o prompt engineering deve-se ao facto do custo de treinamento dos modelos. Á medida que a complexidade dos modelos aumenta, os gastos em treinamento tornam-se cada vez maiores. No entanto, ao usar estas técnicas, conseguimos afinar os LLMs sem gastar recursos para treinamento. Com isto, é notável a importância destas técnicas visto que conseguem melhorar a qualidade do output sem necessitar de um dispendioso processo de treinamento.\\
+
+%% Falar de como fazer um bom prompt (mais por alto)
+
+%% Explicar que existem várias técnicas com diferentes objetivos e dar ênfase na que se vai usar (CoT provavelmente)
 
 \section{Related Work} \label{sec:relatedwork}
 
