@@ -8,75 +8,65 @@ Reallocating 'singl_function' (item size: 4) to 100 items.
 Reallocating 'singl_function' (item size: 4) to 100 items.
 Reallocating 'wiz_functions' (item size: 4) to 6000 items.
 Database file #1: sample-base.bib
-Warning--I didn't find a database entry for "lamport1994latex"
-Warning--I didn't find a database entry for "overleaf"
-Warning--I didn't find a database entry for "lamport1978clocks"
 Reallocating 'singl_function' (item size: 4) to 100 items.
 Reallocating 'wiz_functions' (item size: 4) to 9000 items.
 Reallocating 'glb_str_end' (item size: 4) to 20 items.
 Reallocating 'glb_str_ptr' (item size: 4) to 20 items.
 Reallocating 'global_strs' (item size: 1) to 4000000 items.
 Reallocating 'singl_function' (item size: 4) to 100 items.
-Warning--page numbers missing in both pages and numpages fields in MetricasSurvey
-Warning--empty year in BERT
-Warning--using n.d. in BERT
-Warning--empty institution in BERT
-Warning--no journal in LLMSurvey
-Warning--no number and no volume in LLMSurvey
-Warning--page numbers missing in both pages and numpages fields in LLMSurvey
+Warning--page numbers missing in both pages and numpages fields in Codex
+Warning--page numbers missing in both pages and numpages fields in StarCoder
+Warning--page numbers missing in both pages and numpages fields in StarCoder2
 Warning--empty publisher in PEinLLMS
 Warning--empty address in PEinLLMS
 Warning--no journal in CopilotStudy
 Warning--no number and no volume in CopilotStudy
 Warning--page numbers missing in both pages and numpages fields in CopilotStudy
-Warning--empty year in CopilotRole
-Warning--using n.d. in CopilotRole
-Warning--empty institution in CopilotRole
-Warning--empty year in GPT-1
-Warning--using n.d. in GPT-1
-Warning--empty institution in GPT-1
-Warning--empty year in Transformer
-Warning--using n.d. in Transformer
-Warning--empty institution in Transformer
-You've used 8 entries,
+Warning--page numbers missing in both pages and numpages fields in CodeLlama
+Warning--page numbers missing in both pages and numpages fields in PETechniques
+Warning--page numbers missing in both pages and numpages fields in Llama2
+Warning--page numbers missing in both pages and numpages fields in UItoCode
+Warning--page numbers missing in both pages and numpages fields in AmazonCodeWhisperer
+Warning--page numbers missing in both pages and numpages fields in GitHubCopilot
+You've used 12 entries,
             6273 wiz_defined-function locations,
-            1565 strings with 20110 characters,
-and the built_in function-call counts, 8852 in all, are:
-= -- 886
-> -- 488
-< -- 1
-+ -- 175
-- -- 167
-* -- 815
-:= -- 1046
-add.period$ -- 41
-call.type$ -- 8
-change.case$ -- 89
-chr.to.int$ -- 8
-cite$ -- 29
-duplicate$ -- 643
-empty$ -- 469
-format.name$ -- 199
-if$ -- 1954
+            1609 strings with 25809 characters,
+and the built_in function-call counts, 25796 in all, are:
+= -- 2649
+> -- 2604
+< -- 0
++ -- 961
+- -- 945
+* -- 3179
+:= -- 3609
+add.period$ -- 59
+call.type$ -- 12
+change.case$ -- 364
+chr.to.int$ -- 12
+cite$ -- 26
+duplicate$ -- 1041
+empty$ -- 764
+format.name$ -- 993
+if$ -- 5431
 int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 14
-newline$ -- 123
-num.names$ -- 56
-pop$ -- 360
+missing$ -- 45
+newline$ -- 160
+num.names$ -- 84
+pop$ -- 724
 preamble$ -- 1
-purify$ -- 129
+purify$ -- 459
 quote$ -- 0
-skip$ -- 210
+skip$ -- 311
 stack$ -- 0
-substring$ -- 444
-swap$ -- 54
-text.length$ -- 1
+substring$ -- 751
+swap$ -- 56
+text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 183
-warning$ -- 21
-while$ -- 32
+type$ -- 220
+warning$ -- 14
+while$ -- 39
 width$ -- 0
-write$ -- 203
-(There were 24 warnings)
+write$ -- 280
+(There were 14 warnings)

@@ -1,80 +1,439 @@
-%% ======================================= Modelos ======================================= %% 
-@techReport{GPT-1,
-   abstract = {Natural language understanding comprises a wide range of diverse tasks such as textual entailment, question answering, semantic similarity assessment, and document classification. Although large unlabeled text corpora are abundant, labeled data for learning these specific tasks is scarce, making it challenging for discriminatively trained models to perform adequately. We demonstrate that large gains on these tasks can be realized by generative pre-training of a language model on a diverse corpus of unlabeled text, followed by discriminative fine-tuning on each specific task. In contrast to previous approaches, we make use of task-aware input transformations during fine-tuning to achieve effective transfer while requiring minimal changes to the model architecture. We demonstrate the effectiveness of our approach on a wide range of benchmarks for natural language understanding. Our general task-agnostic model outperforms discriminatively trained models that use architectures specifically crafted for each task, significantly improving upon the state of the art in 9 out of the 12 tasks studied. For instance, we achieve absolute improvements of 8.9% on commonsense reasoning (Stories Cloze Test), 5.7% on question answering (RACE), and 1.5% on textual entailment (MultiNLI).},
-   author = {Alec Radford Openai and Karthik Narasimhan Openai and Tim Salimans Openai and Ilya Sutskever Openai},
-   title = {Improving Language Understanding by Generative Pre-Training},
-   url = {https://gluebenchmark.com/leaderboard}
-}
-
-@techReport{BERT,
-   abstract = {We introduce a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers. Unlike recent language representation models (Peters et al., 2018a; Rad-ford et al., 2018), BERT is designed to pre-train deep bidirectional representations from unlabeled text by jointly conditioning on both left and right context in all layers. As a result , the pre-trained BERT model can be fine-tuned with just one additional output layer to create state-of-the-art models for a wide range of tasks, such as question answering and language inference, without substantial task-specific architecture modifications. BERT is conceptually simple and empirically powerful. It obtains new state-of-the-art results on eleven natural language processing tasks, including pushing the GLUE score to 80.5% (7.7% point absolute improvement), MultiNLI accuracy to 86.7% (4.6% absolute improvement), SQuAD v1.1 question answering Test F1 to 93.2 (1.5 point absolute improvement) and SQuAD v2.0 Test F1 to 83.1 (5.1 point absolute improvement).},
-   author = {Jacob Devlin and Ming-Wei Chang and Kenton Lee and Kristina Toutanova Google and A I Language},
-   pages = {4171-4186},
-   title = {BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding},
-   url = {https://github.com/tensorflow/tensor2tensor}
-}
-
-%% =================================== Transformers =================================== %% 
-@techReport{Transformer,
-   abstract = {The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.0 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature.},
-   author = {Ashish Vaswani and Google Brain and Noam Shazeer and Niki Parmar and Jakob Uszkoreit and Llion Jones and Aidan N Gomez and Łukasz Kaiser and Illia Polosukhin},
-   title = {Attention Is All You Need}
-}
-
-%% ======================================= LLMs ======================================= %% 
-
-%% Paper sobre o potencial e as limitações de LLMs
-@article{LLMSurvey,
-   abstract = {Large Language Models (LLMs) have demonstrated their remarkable capabilities in numerous fields. This survey focuses on how LLMs empower users, regardless of their technical background, to use human languages to automatically generate executable code. We begin with understanding LLMs' limitations and challenges in automated code generation. Subsequently, we review various fine-tuning techniques designed to enhance both the performance and adaptability of LLMs in code generation tasks. We then review the existing metrics and benchmarks for evaluations to assess model performance based on fine-tuning techniques. Finally, we explore the applications of LLMs (e.g. CodeLlama, GitHub Copilot, ToolGen) in code generation tasks to illustrate their roles and functionalities. This survey provides a comprehensive overview of LLMs for code generation, helps researchers in diverse fields better understand the current state-of-the-art technologies, and offers the potential of effectively leveraging LLMs for code generation tasks.},
-   author = {Nam Huynh and Beiyu Lin},
-   month = {4},
-   title = {Large Language Models for Code Generation: A Comprehensive Survey of Challenges, Techniques, Evaluation, and Applications},
-   url = {http://arxiv.org/abs/2503.01245},
-   year = {2025}
-}
-
-
-%% Paper sobre o estudo empírico do copilot
-@article{CopilotStudy,
-   abstract = {Software engineering research has always being concerned with the improvement of code completion approaches, which suggest the next tokens a developer will likely type while coding. The release of GitHub Copilot constitutes a big step forward, also because of its unprecedented ability to automatically generate even entire functions from their natural language description. While the usefulness of Copilot is evident, it is still unclear to what extent it is robust. Specifically, we do not know the extent to which semantic-preserving changes in the natural language description provided to the model have an effect on the generated code function. In this paper we present an empirical study in which we aim at understanding whether different but semantically equivalent natural language descriptions result in the same recommended function. A negative answer would pose questions on the robustness of deep learning (DL)-based code generators since it would imply that developers using different wordings to describe the same code would obtain different recommendations. We asked Copilot to automatically generate 892 Java methods starting from their original Javadoc description. Then, we generated different semantically equivalent descriptions for each method both manually and automatically, and we analyzed the extent to which predictions generated by Copilot changed. Our results show that modifying the description results in different code recommendations in ~46% of cases. Also, differences in the semantically equivalent descriptions might impact the correctness of the generated code ~28%.},
-   author = {Antonio Mastropaolo and Luca Pascarella and Emanuela Guglielmi and Matteo Ciniselli and Simone Scalabrino and Rocco Oliveto and Gabriele Bavota},
-   month = {2},
-   title = {On the Robustness of Code Generation Techniques: An Empirical Study on GitHub Copilot},
-   url = {http://arxiv.org/abs/2302.00438},
-   year = {2023}
-}
-
-%% Paper sobre o papel do copilot
-@techReport{CopilotRole,
-   abstract = {GitHub Copilot is transforming software development by automating tasks and boosting productivity through AI-driven code generation. In this paper, we conduct a literature survey to synthesize insights on Copilot's impact on productivity and security. We review academic journal databases, industry reports, and official documentation to highlight key findings and challenges. While Copilot accelerates coding and prototyping, concerns over security vulnerabilities and intellectual property risks persist. Drawing from the literature, we provide a perspective on best practices and future directions for responsible AI adoption in software engineering, offering actionable insights for developers and organizations to integrate Copilot effectively while maintaining high standards of quality and security.},
-   author = {Suresh Babu Nettur and Shanthi Karpurapu and Unnati Nettur and Likhit Sagar Gajja and Sravanthy Myneni and Akhil Dusi},
-   keywords = {AI Assistant,Agile development,Amazon Code Whisperer,Artificial Intelligence (AI),Continuous Integration and Delivery (CI/CD),Cursor AI,Ethical AI,GPT-3,GPT-4,GitHub Copilot,Google Codey,Java,Large Language Models (LLMs),OpenAI,Python,code completion,code gen-eration tools,code quality,code refactoring,cyber security,data privacy,debugging,defect resolution,developer tools,productivity,program-ming,risk mitigation,secure code,secure software de-velopment,security,software development,software engineering,software quality assurance,software testing,unit test-ing,vulnerability detection},
-   title = {The Role of GitHub Copilot on Software Development: A Perspec-tive on Productivity, Security, Best Practices and Future Directions}
-}
-
-%% ===================================== Métricas ===================================== %% 
-@article{MetricasSurvey,
-   abstract = {Large language models (LLMs) are gaining increasing popularity in both academia and industry, owing to their unprecedented performance in various applications. As LLMs continue to play a vital role in both research and daily use, their evaluation becomes increasingly critical, not only at the task level, but also at the society level for better understanding of their potential risks. Over the past years, significant efforts have been made to examine LLMs from various perspectives. This paper presents a comprehensive review of these evaluation methods for LLMs, focusing on three key dimensions: what to evaluate, where to evaluate, and how to evaluate. Firstly, we provide an overview from the perspective of evaluation tasks, encompassing general natural language processing tasks, reasoning, medical usage, ethics, education, natural and social sciences, agent applications, and other areas. Secondly, we answer the 'where' and 'how' questions by diving into the evaluation methods and benchmarks, which serve as crucial components in assessing the performance of LLMs. Then, we summarize the success and failure cases of LLMs in different tasks. Finally, we shed light on several future challenges that lie ahead in LLMs evaluation. Our aim is to offer invaluable insights to researchers in the realm of LLMs evaluation, thereby aiding the development of more proficient LLMs. Our key point is that evaluation should be treated as an essential discipline to better assist the development of LLMs. We consistently maintain the related open-source materials at: https://github.com/MLGroupJLU/LLM-eval-survey},
-   author = {Yupeng Chang and Xu Wang and Jindong Wang and Yuan Wu and Linyi Yang and Kaijie Zhu and Hao Chen and Xiaoyuan Yi and Cunxiang Wang and Yidong Wang and Wei Ye and Yue Zhang and Yi Chang and Philip S. Yu and Qiang Yang and Xing Xie},
-   doi = {10.1145/3641289},
-   issn = {21576912},
-   issue = {3},
-   journal = {ACM Transactions on Intelligent Systems and Technology},
-   keywords = {Additional Key Words and PhrasesLarge language models,benchmark,evaluation,model assessment},
-   month = {3},
-   publisher = {Association for Computing Machinery},
-   title = {A Survey on Evaluation of Large Language Models},
-   volume = {15},
-   year = {2024}
-}
-
 %% ================================ Prompt Engineeering =============================== %% 
-@inbook{PEinLLMS,
-   abstract = {Prompt engineering is a crucial yet challenging task for optimizing the performance of large language models (LLMs) on customized tasks. This pioneering research introduces the Automatic Prompt Engineering Toolbox (APET), which enables GPT-4 to autonomously apply prompt engineering techniques. By leveraging sophisticated strategies such as Expert Prompting, Chain of Thought, and Tree of Thoughts, APET empowers GPT-4 to dynamically optimize prompts, resulting in substantial improvements in tasks like Word Sorting (4.4% increase) and Geometric Shapes (6.8% increase). Despite encountering challenges in complex tasks such as Checkmate in One (-14.8%), these findings demonstrate the transformative potential of APET in automating complex prompt optimization processes without the use of external data. Overall, this research represents a significant leap in AI development, presenting a robust framework for future innovations in autonomous AI systems and highlighting the ability of GPT-4 to bring prompt engineering theory to practice. It establishes a foundation for enhancing performance in complex task performance and broadening the practical applications of these techniques in real-world scenarios.},
-   author = {Ggaliwango Marvin and Nakayiza Hellen and Daudi Jjingo and Joyce Nakatumba-Nabende},
-   doi = {10.1007/978-981-99-7962-2_30},
-   pages = {387-402},
-   title = {Prompt Engineering in Large Language Models},
-   year = {2024}
+%% Paper geral, bom para definições e explicitar o que é um bom prompt
+@inproceedings{PEinLLMS,
+  title={Prompt engineering in large language models},
+  author={Marvin, Ggaliwango and Hellen, Nakayiza and Jjingo, Daudi and Nakatumba-Nabende, Joyce},
+  booktitle={International conference on data intelligence and cognitive informatics},
+  pages={387--402},
+  year={2023},
+  organization={Springer}
 }
+
+%% Paper com muitas técnincas
+@article{PETechniques,
+  author       = {Pranab Sahoo and
+                  Ayush Kumar Singh and
+                  Sriparna Saha and
+                  Vinija Jain and
+                  Samrat Mondal and
+                  Aman Chadha},
+  title        = {A Systematic Survey of Prompt Engineering in Large Language Models:
+                  Techniques and Applications},
+  journal      = {CoRR},
+  volume       = {abs/2402.07927},
+  year         = {2024},
+  url          = {https://doi.org/10.48550/arXiv.2402.07927},
+  doi          = {10.48550/ARXIV.2402.07927},
+  eprinttype    = {arXiv},
+  eprint       = {2402.07927},
+  timestamp    = {Mon, 19 Feb 2024 15:25:43 +0100},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2402-07927.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+%% ================================= Geração de Código ================================ %% 
+%% Paper de UI to Code
+@article{UItoCode,
+  author       = {Yong Xu and
+                  Lili Bo and
+                  Xiaobing Sun and
+                  Bin Li and
+                  Jing Jiang and
+                  Wei Zhou},
+  title        = {image2emmet: Automatic code generation from web user interface image},
+  journal      = {J. Softw. Evol. Process.},
+  volume       = {33},
+  number       = {8},
+  year         = {2021},
+  url          = {https://doi.org/10.1002/smr.2369},
+  doi          = {10.1002/SMR.2369},
+  timestamp    = {Wed, 08 Mar 2023 11:21:50 +0100},
+  biburl       = {https://dblp.org/rec/journals/smr/XuBSLJZ21.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{Codex,
+  author       = {Mark Chen and
+                  Jerry Tworek and
+                  Heewoo Jun and
+                  Qiming Yuan and
+                  Henrique Pond{\'{e}} de Oliveira Pinto and
+                  Jared Kaplan and
+                  Harri Edwards and
+                  Yuri Burda and
+                  Nicholas Joseph and
+                  Greg Brockman and
+                  Alex Ray and
+                  Raul Puri and
+                  Gretchen Krueger and
+                  Michael Petrov and
+                  Heidy Khlaaf and
+                  Girish Sastry and
+                  Pamela Mishkin and
+                  Brooke Chan and
+                  Scott Gray and
+                  Nick Ryder and
+                  Mikhail Pavlov and
+                  Alethea Power and
+                  Lukasz Kaiser and
+                  Mohammad Bavarian and
+                  Clemens Winter and
+                  Philippe Tillet and
+                  Felipe Petroski Such and
+                  Dave Cummings and
+                  Matthias Plappert and
+                  Fotios Chantzis and
+                  Elizabeth Barnes and
+                  Ariel Herbert{-}Voss and
+                  William Hebgen Guss and
+                  Alex Nichol and
+                  Alex Paino and
+                  Nikolas Tezak and
+                  Jie Tang and
+                  Igor Babuschkin and
+                  Suchir Balaji and
+                  Shantanu Jain and
+                  William Saunders and
+                  Christopher Hesse and
+                  Andrew N. Carr and
+                  Jan Leike and
+                  Joshua Achiam and
+                  Vedant Misra and
+                  Evan Morikawa and
+                  Alec Radford and
+                  Matthew Knight and
+                  Miles Brundage and
+                  Mira Murati and
+                  Katie Mayer and
+                  Peter Welinder and
+                  Bob McGrew and
+                  Dario Amodei and
+                  Sam McCandlish and
+                  Ilya Sutskever and
+                  Wojciech Zaremba},
+  title        = {Evaluating Large Language Models Trained on Code},
+  journal      = {CoRR},
+  volume       = {abs/2107.03374},
+  year         = {2021},
+  url          = {https://arxiv.org/abs/2107.03374},
+  eprinttype    = {arXiv},
+  eprint       = {2107.03374},
+  timestamp    = {Tue, 20 Aug 2024 16:58:46 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2107-03374.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+
+@article{CodeLlama,
+  author       = {Baptiste Rozi{\`{e}}re and
+                  Jonas Gehring and
+                  Fabian Gloeckle and
+                  Sten Sootla and
+                  Itai Gat and
+                  Xiaoqing Ellen Tan and
+                  Yossi Adi and
+                  Jingyu Liu and
+                  Tal Remez and
+                  J{\'{e}}r{\'{e}}my Rapin and
+                  Artyom Kozhevnikov and
+                  Ivan Evtimov and
+                  Joanna Bitton and
+                  Manish Bhatt and
+                  Cristian Canton{-}Ferrer and
+                  Aaron Grattafiori and
+                  Wenhan Xiong and
+                  Alexandre D{\'{e}}fossez and
+                  Jade Copet and
+                  Faisal Azhar and
+                  Hugo Touvron and
+                  Louis Martin and
+                  Nicolas Usunier and
+                  Thomas Scialom and
+                  Gabriel Synnaeve},
+  title        = {Code Llama: Open Foundation Models for Code},
+  journal      = {CoRR},
+  volume       = {abs/2308.12950},
+  year         = {2023},
+  url          = {https://doi.org/10.48550/arXiv.2308.12950},
+  doi          = {10.48550/ARXIV.2308.12950},
+  eprinttype    = {arXiv},
+  eprint       = {2308.12950},
+  timestamp    = {Wed, 30 Aug 2023 17:27:54 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2308-12950.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{Llama2,
+  author       = {Hugo Touvron and
+                  Louis Martin and
+                  Kevin Stone and
+                  Peter Albert and
+                  Amjad Almahairi and
+                  Yasmine Babaei and
+                  Nikolay Bashlykov and
+                  Soumya Batra and
+                  Prajjwal Bhargava and
+                  Shruti Bhosale and
+                  Dan Bikel and
+                  Lukas Blecher and
+                  Cristian Canton{-}Ferrer and
+                  Moya Chen and
+                  Guillem Cucurull and
+                  David Esiobu and
+                  Jude Fernandes and
+                  Jeremy Fu and
+                  Wenyin Fu and
+                  Brian Fuller and
+                  Cynthia Gao and
+                  Vedanuj Goswami and
+                  Naman Goyal and
+                  Anthony Hartshorn and
+                  Saghar Hosseini and
+                  Rui Hou and
+                  Hakan Inan and
+                  Marcin Kardas and
+                  Viktor Kerkez and
+                  Madian Khabsa and
+                  Isabel Kloumann and
+                  Artem Korenev and
+                  Punit Singh Koura and
+                  Marie{-}Anne Lachaux and
+                  Thibaut Lavril and
+                  Jenya Lee and
+                  Diana Liskovich and
+                  Yinghai Lu and
+                  Yuning Mao and
+                  Xavier Martinet and
+                  Todor Mihaylov and
+                  Pushkar Mishra and
+                  Igor Molybog and
+                  Yixin Nie and
+                  Andrew Poulton and
+                  Jeremy Reizenstein and
+                  Rashi Rungta and
+                  Kalyan Saladi and
+                  Alan Schelten and
+                  Ruan Silva and
+                  Eric Michael Smith and
+                  Ranjan Subramanian and
+                  Xiaoqing Ellen Tan and
+                  Binh Tang and
+                  Ross Taylor and
+                  Adina Williams and
+                  Jian Xiang Kuan and
+                  Puxin Xu and
+                  Zheng Yan and
+                  Iliyan Zarov and
+                  Yuchen Zhang and
+                  Angela Fan and
+                  Melanie Kambadur and
+                  Sharan Narang and
+                  Aur{\'{e}}lien Rodriguez and
+                  Robert Stojnic and
+                  Sergey Edunov and
+                  Thomas Scialom},
+  title        = {Llama 2: Open Foundation and Fine-Tuned Chat Models},
+  journal      = {CoRR},
+  volume       = {abs/2307.09288},
+  year         = {2023},
+  url          = {https://doi.org/10.48550/arXiv.2307.09288},
+  doi          = {10.48550/ARXIV.2307.09288},
+  eprinttype    = {arXiv},
+  eprint       = {2307.09288},
+  timestamp    = {Tue, 11 Feb 2025 12:43:02 +0100},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2307-09288.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{StarCoder,
+  author       = {Raymond Li and
+                  Loubna Ben Allal and
+                  Yangtian Zi and
+                  Niklas Muennighoff and
+                  Denis Kocetkov and
+                  Chenghao Mou and
+                  Marc Marone and
+                  Christopher Akiki and
+                  Jia Li and
+                  Jenny Chim and
+                  Qian Liu and
+                  Evgenii Zheltonozhskii and
+                  Terry Yue Zhuo and
+                  Thomas Wang and
+                  Olivier Dehaene and
+                  Mishig Davaadorj and
+                  Joel Lamy{-}Poirier and
+                  Jo{\~{a}}o Monteiro and
+                  Oleh Shliazhko and
+                  Nicolas Gontier and
+                  Nicholas Meade and
+                  Armel Zebaze and
+                  Ming{-}Ho Yee and
+                  Logesh Kumar Umapathi and
+                  Jian Zhu and
+                  Benjamin Lipkin and
+                  Muhtasham Oblokulov and
+                  Zhiruo Wang and
+                  Rudra Murthy V and
+                  Jason T. Stillerman and
+                  Siva Sankalp Patel and
+                  Dmitry Abulkhanov and
+                  Marco Zocca and
+                  Manan Dey and
+                  Zhihan Zhang and
+                  Nour Fahmy and
+                  Urvashi Bhattacharyya and
+                  Wenhao Yu and
+                  Swayam Singh and
+                  Sasha Luccioni and
+                  Paulo Villegas and
+                  Maxim Kunakov and
+                  Fedor Zhdanov and
+                  Manuel Romero and
+                  Tony Lee and
+                  Nadav Timor and
+                  Jennifer Ding and
+                  Claire Schlesinger and
+                  Hailey Schoelkopf and
+                  Jan Ebert and
+                  Tri Dao and
+                  Mayank Mishra and
+                  Alex Gu and
+                  Jennifer Robinson and
+                  Carolyn Jane Anderson and
+                  Brendan Dolan{-}Gavitt and
+                  Danish Contractor and
+                  Siva Reddy and
+                  Daniel Fried and
+                  Dzmitry Bahdanau and
+                  Yacine Jernite and
+                  Carlos Mu{\~{n}}oz Ferrandis and
+                  Sean Hughes and
+                  Thomas Wolf and
+                  Arjun Guha and
+                  Leandro von Werra and
+                  Harm de Vries},
+  title        = {StarCoder: may the source be with you!},
+  journal      = {Trans. Mach. Learn. Res.},
+  volume       = {2023},
+  year         = {2023},
+  url          = {https://openreview.net/forum?id=KoFOg41haE},
+  timestamp    = {Fri, 25 Apr 2025 07:53:47 +0200},
+  biburl       = {https://dblp.org/rec/journals/tmlr/LiAZMKMMALCLZZW23.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{StarCoder2,
+  author       = {Anton Lozhkov and
+                  Raymond Li and
+                  Loubna Ben Allal and
+                  Federico Cassano and
+                  Joel Lamy{-}Poirier and
+                  Nouamane Tazi and
+                  Ao Tang and
+                  Dmytro Pykhtar and
+                  Jiawei Liu and
+                  Yuxiang Wei and
+                  Tianyang Liu and
+                  Max Tian and
+                  Denis Kocetkov and
+                  Arthur Zucker and
+                  Younes Belkada and
+                  Zijian Wang and
+                  Qian Liu and
+                  Dmitry Abulkhanov and
+                  Indraneil Paul and
+                  Zhuang Li and
+                  Wen{-}Ding Li and
+                  Megan Risdal and
+                  Jia Li and
+                  Jian Zhu and
+                  Terry Yue Zhuo and
+                  Evgenii Zheltonozhskii and
+                  Nii Osae Osae Dade and
+                  Wenhao Yu and
+                  Lucas Krau{\ss} and
+                  Naman Jain and
+                  Yixuan Su and
+                  Xuanli He and
+                  Manan Dey and
+                  Edoardo Abati and
+                  Yekun Chai and
+                  Niklas Muennighoff and
+                  Xiangru Tang and
+                  Muhtasham Oblokulov and
+                  Christopher Akiki and
+                  Marc Marone and
+                  Chenghao Mou and
+                  Mayank Mishra and
+                  Alex Gu and
+                  Binyuan Hui and
+                  Tri Dao and
+                  Armel Zebaze and
+                  Olivier Dehaene and
+                  Nicolas Patry and
+                  Canwen Xu and
+                  Julian J. McAuley and
+                  Han Hu and
+                  Torsten Scholak and
+                  S{\'{e}}bastien Paquet and
+                  Jennifer Robinson and
+                  Carolyn Jane Anderson and
+                  Nicolas Chapados and
+                  et al.},
+  title        = {StarCoder 2 and The Stack v2: The Next Generation},
+  journal      = {CoRR},
+  volume       = {abs/2402.19173},
+  year         = {2024},
+  url          = {https://doi.org/10.48550/arXiv.2402.19173},
+  doi          = {10.48550/ARXIV.2402.19173},
+  eprinttype    = {arXiv},
+  eprint       = {2402.19173},
+  timestamp    = {Fri, 10 Oct 2025 07:50:56 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2402-19173.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{GitHubCopilot,
+  author       = {Albert Ziegler and
+                  Eirini Kalliamvakou and
+                  Shawn Simister and
+                  Ganesh Sittampalam and
+                  X. Alice Li and
+                  Andrew Rice and
+                  Devon Rifkin and
+                  Edward Aftandilian},
+  title        = {Productivity Assessment of Neural Code Completion},
+  journal      = {CoRR},
+  volume       = {abs/2205.06537},
+  year         = {2022},
+  url          = {https://doi.org/10.48550/arXiv.2205.06537},
+  doi          = {10.48550/ARXIV.2205.06537},
+  eprinttype    = {arXiv},
+  eprint       = {2205.06537},
+  timestamp    = {Tue, 16 Aug 2022 23:07:05 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2205-06537.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{AmazonCodeWhisperer,
+  author       = {Burak Yetistiren and
+                  Isik {\"{O}}zsoy and
+                  Miray Ayerdem and
+                  Eray T{\"{u}}z{\"{u}}n},
+  title        = {Evaluating the Code Quality of AI-Assisted Code Generation Tools:
+                  An Empirical Study on GitHub Copilot, Amazon CodeWhisperer, and ChatGPT},
+  journal      = {CoRR},
+  volume       = {abs/2304.10778},
+  year         = {2023},
+  url          = {https://doi.org/10.48550/arXiv.2304.10778},
+  doi          = {10.48550/ARXIV.2304.10778},
+  eprinttype    = {arXiv},
+  eprint       = {2304.10778},
+  timestamp    = {Tue, 02 May 2023 18:58:23 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2304-10778.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+
 
