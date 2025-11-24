@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{12}
+\begin{thebibliography}{24}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -35,6 +35,51 @@
 \providecommand\bibinfo[2]{#2}
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[CNN({[n.\,d.]})]%
+        {CNN}
+ \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{title}{Convolutional Neural Networks for Visual Recognition
+  site}.
+\newblock
+  \bibinfo{howpublished}{\url{https://cs231n.github.io/convolutional-networks/}}.
+\newblock
+\newblock
+\shownote{Accessed: 2025-11-22}.
+
+
+\bibitem[JML({[n.\,d.]})]%
+        {JML}
+ \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{title}{Java Modeling Language (JML) site}.
+\newblock
+  \bibinfo{howpublished}{\url{https://www.cs.ucf.edu/~leavens/JML/index.shtml}}.
+\newblock
+\newblock
+\shownote{Accessed: 2025-11-22}.
+
+
+\bibitem[R-C({[n.\,d.]})]%
+        {R-CNN}
+ \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{title}{Understanding and Implementing Faster R-CNN site}.
+\newblock
+  \bibinfo{howpublished}{\url{https://medium.com/@RobuRishabh/understanding-and-implementing-faster-r-cnn-248f7b25ff96}}.
+\newblock
+\newblock
+\shownote{Accessed: 2025-11-22}.
+
+
+\bibitem[LST({[n.\,d.]})]%
+        {LSTM}
+ \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{title}{Understanding LSTMs site}.
+\newblock
+  \bibinfo{howpublished}{\url{https://colah.github.io/posts/2015-08-Understanding-LSTMs/}}.
+\newblock
+\newblock
+\shownote{Accessed: 2025-11-22}.
+
 
 \bibitem[Chen et~al\mbox{.}(2021)]%
         {Codex}
@@ -80,13 +125,45 @@
 
 
 \bibitem[Cottier et~al\mbox{.}(2024)]%
-        {LLMsTrainingCosts}
+        {CostIncreaseInLLMS}
 \bibfield{author}{\bibinfo{person}{Ben Cottier}, \bibinfo{person}{Robi Rahman},
   \bibinfo{person}{Loredana Fattorini}, \bibinfo{person}{Nestor Maslej}, {and}
   \bibinfo{person}{David Owen}.} \bibinfo{year}{2024}\natexlab{}.
-\newblock \bibinfo{title}{The rising costs of training frontier AI models}.
+\newblock \showarticletitle{The rising costs of training frontier {AI} models}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2405.21015}
+  (\bibinfo{year}{2024}).
 \newblock
-\showeprint[arxiv]{2405.21015}~[cs.CY]
+\showeprint[arXiv]{2405.21015}
+\href{https://doi.org/10.48550/ARXIV.2405.21015}{doi:\nolinkurl{10.48550/ARXIV.2405.21015}}
+
+
+\bibitem[Ding et~al\mbox{.}(2024)]%
+        {PECYCLE}
+\bibfield{author}{\bibinfo{person}{Yangruibo Ding}, \bibinfo{person}{Marcus~J.
+  Min}, \bibinfo{person}{Gail~E. Kaiser}, {and} \bibinfo{person}{Baishakhi
+  Ray}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{{CYCLE:} Learning to Self-Refine the Code
+  Generation}.
+\newblock \bibinfo{journal}{\emph{Proc. {ACM} Program. Lang.}}
+  \bibinfo{volume}{8}, \bibinfo{number}{{OOPSLA1}} (\bibinfo{year}{2024}),
+  \bibinfo{pages}{392--418}.
+\newblock
+\href{https://doi.org/10.1145/3649825}{doi:\nolinkurl{10.1145/3649825}}
+
+
+\bibitem[Khojah et~al\mbox{.}(2025)]%
+        {PEIMPACTWITHCODEPROMPTEVAL}
+\bibfield{author}{\bibinfo{person}{Ranim Khojah},
+  \bibinfo{person}{Francisco~Gomes de Oliveira~Neto}, \bibinfo{person}{Mazen
+  Mohamad}, {and} \bibinfo{person}{Philipp Leitner}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{The Impact of Prompt Programming on Function-Level
+  Code Generation}.
+\newblock \bibinfo{journal}{\emph{{IEEE} Trans. Software Eng.}}
+  \bibinfo{volume}{51}, \bibinfo{number}{8} (\bibinfo{year}{2025}),
+  \bibinfo{pages}{2381--2395}.
+\newblock
+\href{https://doi.org/10.1109/TSE.2025.3587794}{doi:\nolinkurl{10.1109/TSE.2025.3587794}}
 
 
 \bibitem[Li et~al\mbox{.}(2023)]%
@@ -135,6 +212,20 @@
 \tempurl}
 
 
+\bibitem[Liu et~al\mbox{.}(2023)]%
+        {ChatGPTGenerationPE}
+\bibfield{author}{\bibinfo{person}{Chao Liu}, \bibinfo{person}{Xuanlin Bao},
+  \bibinfo{person}{Hongyu Zhang}, \bibinfo{person}{Neng Zhang},
+  \bibinfo{person}{Haibo Hu}, \bibinfo{person}{Xiaohong Zhang}, {and}
+  \bibinfo{person}{Meng Yan}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Improving ChatGPT Prompt for Code Generation}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2305.08360}
+  (\bibinfo{year}{2023}).
+\newblock
+\showeprint[arXiv]{2305.08360}
+\href{https://doi.org/10.48550/ARXIV.2305.08360}{doi:\nolinkurl{10.48550/ARXIV.2305.08360}}
+
+
 \bibitem[Lozhkov et~al\mbox{.}(2024)]%
         {StarCoder2}
 \bibfield{author}{\bibinfo{person}{Anton Lozhkov}, \bibinfo{person}{Raymond
@@ -174,6 +265,20 @@
 \href{https://doi.org/10.48550/ARXIV.2402.19173}{doi:\nolinkurl{10.48550/ARXIV.2402.19173}}
 
 
+\bibitem[Ma et~al\mbox{.}(2025)]%
+        {SpecGen}
+\bibfield{author}{\bibinfo{person}{Lezhi Ma}, \bibinfo{person}{Shangqing Liu},
+  \bibinfo{person}{Yi Li}, \bibinfo{person}{Xiaofei Xie}, {and}
+  \bibinfo{person}{Lei Bu}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{SpecGen: Automated Generation of Formal Program
+  Specifications via Large Language Models}. In \bibinfo{booktitle}{\emph{47th
+  {IEEE/ACM} International Conference on Software Engineering, {ICSE} 2025,
+  Ottawa, ON, Canada, April 26 - May 6, 2025}}. \bibinfo{publisher}{{IEEE}},
+  \bibinfo{pages}{16--28}.
+\newblock
+\href{https://doi.org/10.1109/ICSE55347.2025.00129}{doi:\nolinkurl{10.1109/ICSE55347.2025.00129}}
+
+
 \bibitem[Marvin et~al\mbox{.}(2023)]%
         {PEinLLMS}
 \bibfield{author}{\bibinfo{person}{Ggaliwango Marvin},
@@ -193,13 +298,28 @@
   Oliveto}, {and} \bibinfo{person}{Gabriele Bavota}.}
   \bibinfo{year}{2023}\natexlab{}.
 \newblock \showarticletitle{On the Robustness of Code Generation Techniques: An
-  Empirical Study on GitHub Copilot}.
-\newblock  (\bibinfo{date}{2} \bibinfo{year}{2023}).
+  Empirical Study on GitHub Copilot}. In \bibinfo{booktitle}{\emph{45th
+  {IEEE/ACM} International Conference on Software Engineering, {ICSE} 2023,
+  Melbourne, Australia, May 14-20, 2023}}. \bibinfo{publisher}{{IEEE}},
+  \bibinfo{pages}{2149--2160}.
 \newblock
-\urldef\tempurl%
-\url{http://arxiv.org/abs/2302.00438}
-\showURL{%
-\tempurl}
+\href{https://doi.org/10.1109/ICSE48619.2023.00181}{doi:\nolinkurl{10.1109/ICSE48619.2023.00181}}
+
+
+\bibitem[Patil et~al\mbox{.}(2024)]%
+        {Spec2Code}
+\bibfield{author}{\bibinfo{person}{Minal~Suresh Patil}, \bibinfo{person}{Gustav
+  Ung}, {and} \bibinfo{person}{Mattias Nyberg}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Towards Specification-Driven LLM-Based Generation
+  of Embedded Automotive Software}. In \bibinfo{booktitle}{\emph{Bridging the
+  Gap Between {AI} and Reality - Second International Conference, AISoLA 2024,
+  Crete, Greece, October 30 - November 3, 2024, Proceedings}}
+  \emph{(\bibinfo{series}{Lecture Notes in Computer Science},
+  Vol.~\bibinfo{volume}{15217})}, \bibfield{editor}{\bibinfo{person}{Bernhard
+  Steffen}} (Ed.). \bibinfo{publisher}{Springer}, \bibinfo{pages}{125--144}.
+\newblock
+\href{https://doi.org/10.1007/978-3-031-75434-0\_9}{doi:\nolinkurl{10.1007/978-3-031-75434-0\_9}}
 
 
 \bibitem[Rozi{\`{e}}re et~al\mbox{.}(2023)]%
@@ -287,6 +407,43 @@
 \href{https://doi.org/10.48550/ARXIV.2307.09288}{doi:\nolinkurl{10.48550/ARXIV.2307.09288}}
 
 
+\bibitem[Vaswani et~al\mbox{.}(2017)]%
+        {Transformer}
+\bibfield{author}{\bibinfo{person}{Ashish Vaswani}, \bibinfo{person}{Noam
+  Shazeer}, \bibinfo{person}{Niki Parmar}, \bibinfo{person}{Jakob Uszkoreit},
+  \bibinfo{person}{Llion Jones}, \bibinfo{person}{Aidan~N. Gomez},
+  \bibinfo{person}{Lukasz Kaiser}, {and} \bibinfo{person}{Illia Polosukhin}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Attention is All you Need}. In
+  \bibinfo{booktitle}{\emph{Advances in Neural Information Processing Systems
+  30: Annual Conference on Neural Information Processing Systems 2017, December
+  4-9, 2017, Long Beach, CA, {USA}}},
+  \bibfield{editor}{\bibinfo{person}{Isabelle Guyon}, \bibinfo{person}{Ulrike
+  von Luxburg}, \bibinfo{person}{Samy Bengio}, \bibinfo{person}{Hanna~M.
+  Wallach}, \bibinfo{person}{Rob Fergus}, \bibinfo{person}{S.~V.~N.
+  Vishwanathan}, {and} \bibinfo{person}{Roman Garnett}} (Eds.).
+  \bibinfo{pages}{5998--6008}.
+\newblock
+\urldef\tempurl%
+\url{https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Wang et~al\mbox{.}(2024)]%
+        {PET-SELECT}
+\bibfield{author}{\bibinfo{person}{Chung{-}Yu Wang}, \bibinfo{person}{Alireza
+  DaghighFarsoodeh}, {and} \bibinfo{person}{Hung~Viet Pham}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Selection of Prompt Engineering Techniques for Code
+  Generation through Predicting Code Complexity}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2409.16416}
+  (\bibinfo{year}{2024}).
+\newblock
+\showeprint[arXiv]{2409.16416}
+\href{https://doi.org/10.48550/ARXIV.2409.16416}{doi:\nolinkurl{10.48550/ARXIV.2409.16416}}
+
+
 \bibitem[Xu et~al\mbox{.}(2021)]%
         {UItoCode}
 \bibfield{author}{\bibinfo{person}{Yong Xu}, \bibinfo{person}{Lili Bo},
@@ -314,6 +471,23 @@
 \newblock
 \showeprint[arXiv]{2304.10778}
 \href{https://doi.org/10.48550/ARXIV.2304.10778}{doi:\nolinkurl{10.48550/ARXIV.2304.10778}}
+
+
+\bibitem[Zhou et~al\mbox{.}(2025)]%
+        {PEREFINERCODE}
+\bibfield{author}{\bibinfo{person}{Changzhi Zhou}, \bibinfo{person}{Xinyu
+  Zhang}, \bibinfo{person}{Dandan Song}, \bibinfo{person}{Xiancai Chen},
+  \bibinfo{person}{Wanli Gu}, \bibinfo{person}{Huipeng Ma},
+  \bibinfo{person}{Yuhang Tian}, \bibinfo{person}{Mengdi Zhang}, {and}
+  \bibinfo{person}{Linmei Hu}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{RefineCoder: Iterative Improving of Large Language
+  Models via Adaptive Critique Refinement for Code Generation}.
+\newblock
+\showeprint[arxiv]{2502.09183}~[cs.CL]
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2502.09183}
+\showURL{%
+\tempurl}
 
 
 \bibitem[Ziegler et~al\mbox{.}(2022)]%
