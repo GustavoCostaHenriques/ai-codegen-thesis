@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{24}
+\begin{thebibliography}{32}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -36,18 +36,6 @@
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
 
-\bibitem[CNN({[n.\,d.]})]%
-        {CNN}
- \bibinfo{year}{[n.\,d.]}\natexlab{}.
-\newblock \bibinfo{title}{Convolutional Neural Networks for Visual Recognition
-  site}.
-\newblock
-  \bibinfo{howpublished}{\url{https://cs231n.github.io/convolutional-networks/}}.
-\newblock
-\newblock
-\shownote{Accessed: 2025-11-22}.
-
-
 \bibitem[JML({[n.\,d.]})]%
         {JML}
  \bibinfo{year}{[n.\,d.]}\natexlab{}.
@@ -59,69 +47,51 @@
 \shownote{Accessed: 2025-11-22}.
 
 
-\bibitem[R-C({[n.\,d.]})]%
-        {R-CNN}
- \bibinfo{year}{[n.\,d.]}\natexlab{}.
-\newblock \bibinfo{title}{Understanding and Implementing Faster R-CNN site}.
+\bibitem[Berenbach(2004)]%
+        {UML}
+\bibfield{author}{\bibinfo{person}{Brian Berenbach}.}
+  \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Comparison of {UML} and text based requirements
+  engineering}. In \bibinfo{booktitle}{\emph{Companion to the 19th Annual {ACM}
+  {SIGPLAN} Conference on Object-Oriented Programming, Systems, Languages, and
+  Applications, {OOPSLA} 2004, October 24-28, 2004, Vancouver, BC, Canada}},
+  \bibfield{editor}{\bibinfo{person}{John~M. Vlissides} {and}
+  \bibinfo{person}{Douglas~C. Schmidt}} (Eds.). \bibinfo{publisher}{{ACM}},
+  \bibinfo{pages}{247--252}.
 \newblock
-  \bibinfo{howpublished}{\url{https://medium.com/@RobuRishabh/understanding-and-implementing-faster-r-cnn-248f7b25ff96}}.
-\newblock
-\newblock
-\shownote{Accessed: 2025-11-22}.
+\href{https://doi.org/10.1145/1028664.1028766}{doi:\nolinkurl{10.1145/1028664.1028766}}
 
 
-\bibitem[LST({[n.\,d.]})]%
-        {LSTM}
- \bibinfo{year}{[n.\,d.]}\natexlab{}.
-\newblock \bibinfo{title}{Understanding LSTMs site}.
+\bibitem[Brambilla et~al\mbox{.}(2012)]%
+        {MDEInPratice}
+\bibfield{author}{\bibinfo{person}{Marco Brambilla}, \bibinfo{person}{Jordi
+  Cabot}, {and} \bibinfo{person}{Manuel Wimmer}.}
+  \bibinfo{year}{2012}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Model-Driven Software Engineering in
+  Practice}}.
+\newblock \bibinfo{publisher}{Morgan {\&} Claypool Publishers}.
 \newblock
-  \bibinfo{howpublished}{\url{https://colah.github.io/posts/2015-08-Understanding-LSTMs/}}.
-\newblock
-\newblock
-\shownote{Accessed: 2025-11-22}.
+\showISBNx{978-3-031-02546-4}
+\href{https://doi.org/10.2200/S00441ED1V01Y201208SWE001}{doi:\nolinkurl{10.2200/S00441ED1V01Y201208SWE001}}
 
 
-\bibitem[Chen et~al\mbox{.}(2021)]%
-        {Codex}
-\bibfield{author}{\bibinfo{person}{Mark Chen}, \bibinfo{person}{Jerry Tworek},
-  \bibinfo{person}{Heewoo Jun}, \bibinfo{person}{Qiming Yuan},
-  \bibinfo{person}{Henrique~Pond{\'{e}} de Oliveira~Pinto},
-  \bibinfo{person}{Jared Kaplan}, \bibinfo{person}{Harri Edwards},
-  \bibinfo{person}{Yuri Burda}, \bibinfo{person}{Nicholas Joseph},
-  \bibinfo{person}{Greg Brockman}, \bibinfo{person}{Alex Ray},
-  \bibinfo{person}{Raul Puri}, \bibinfo{person}{Gretchen Krueger},
-  \bibinfo{person}{Michael Petrov}, \bibinfo{person}{Heidy Khlaaf},
-  \bibinfo{person}{Girish Sastry}, \bibinfo{person}{Pamela Mishkin},
-  \bibinfo{person}{Brooke Chan}, \bibinfo{person}{Scott Gray},
-  \bibinfo{person}{Nick Ryder}, \bibinfo{person}{Mikhail Pavlov},
-  \bibinfo{person}{Alethea Power}, \bibinfo{person}{Lukasz Kaiser},
-  \bibinfo{person}{Mohammad Bavarian}, \bibinfo{person}{Clemens Winter},
-  \bibinfo{person}{Philippe Tillet}, \bibinfo{person}{Felipe~Petroski Such},
-  \bibinfo{person}{Dave Cummings}, \bibinfo{person}{Matthias Plappert},
-  \bibinfo{person}{Fotios Chantzis}, \bibinfo{person}{Elizabeth Barnes},
-  \bibinfo{person}{Ariel Herbert{-}Voss}, \bibinfo{person}{William~Hebgen
-  Guss}, \bibinfo{person}{Alex Nichol}, \bibinfo{person}{Alex Paino},
-  \bibinfo{person}{Nikolas Tezak}, \bibinfo{person}{Jie Tang},
-  \bibinfo{person}{Igor Babuschkin}, \bibinfo{person}{Suchir Balaji},
-  \bibinfo{person}{Shantanu Jain}, \bibinfo{person}{William Saunders},
-  \bibinfo{person}{Christopher Hesse}, \bibinfo{person}{Andrew~N. Carr},
-  \bibinfo{person}{Jan Leike}, \bibinfo{person}{Joshua Achiam},
-  \bibinfo{person}{Vedant Misra}, \bibinfo{person}{Evan Morikawa},
-  \bibinfo{person}{Alec Radford}, \bibinfo{person}{Matthew Knight},
-  \bibinfo{person}{Miles Brundage}, \bibinfo{person}{Mira Murati},
-  \bibinfo{person}{Katie Mayer}, \bibinfo{person}{Peter Welinder},
-  \bibinfo{person}{Bob McGrew}, \bibinfo{person}{Dario Amodei},
-  \bibinfo{person}{Sam McCandlish}, \bibinfo{person}{Ilya Sutskever}, {and}
-  \bibinfo{person}{Wojciech Zaremba}.} \bibinfo{year}{2021}\natexlab{}.
-\newblock \showarticletitle{Evaluating Large Language Models Trained on Code}.
-\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2107.03374}
-  (\bibinfo{year}{2021}).
+\bibitem[Bubeck et~al\mbox{.}(2023)]%
+        {GPT4Experiments}
+\bibfield{author}{\bibinfo{person}{S{\'{e}}bastien Bubeck},
+  \bibinfo{person}{Varun Chandrasekaran}, \bibinfo{person}{Ronen Eldan},
+  \bibinfo{person}{Johannes Gehrke}, \bibinfo{person}{Eric Horvitz},
+  \bibinfo{person}{Ece Kamar}, \bibinfo{person}{Peter Lee},
+  \bibinfo{person}{Yin~Tat Lee}, \bibinfo{person}{Yuanzhi Li},
+  \bibinfo{person}{Scott~M. Lundberg}, \bibinfo{person}{Harsha Nori},
+  \bibinfo{person}{Hamid Palangi}, \bibinfo{person}{Marco~T{\'{u}}lio Ribeiro},
+  {and} \bibinfo{person}{Yi Zhang}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Sparks of Artificial General Intelligence: Early
+  experiments with {GPT-4}}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2303.12712}
+  (\bibinfo{year}{2023}).
 \newblock
-\showeprint[arXiv]{2107.03374}
-\urldef\tempurl%
-\url{https://arxiv.org/abs/2107.03374}
-\showURL{%
-\tempurl}
+\showeprint[arXiv]{2303.12712}
+\href{https://doi.org/10.48550/ARXIV.2303.12712}{doi:\nolinkurl{10.48550/ARXIV.2303.12712}}
 
 
 \bibitem[Cottier et~al\mbox{.}(2024)]%
@@ -151,6 +121,110 @@
 \href{https://doi.org/10.1145/3649825}{doi:\nolinkurl{10.1145/3649825}}
 
 
+\bibitem[et~al.(2024)]%
+        {StarCoder2}
+\bibfield{author}{\bibinfo{person}{Anton~Lozhkov et al.}}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{StarCoder 2 and The Stack v2: The Next Generation}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2402.19173}
+  (\bibinfo{year}{2024}).
+\newblock
+\showeprint[arXiv]{2402.19173}
+\href{https://doi.org/10.48550/ARXIV.2402.19173}{doi:\nolinkurl{10.48550/ARXIV.2402.19173}}
+
+
+\bibitem[et~al.(2023a)]%
+        {Llama2}
+\bibfield{author}{\bibinfo{person}{Hugo~Touvron et al.}}
+  \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{Llama 2: Open Foundation and Fine-Tuned Chat
+  Models}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2307.09288}
+  (\bibinfo{year}{2023}).
+\newblock
+\showeprint[arXiv]{2307.09288}
+\href{https://doi.org/10.48550/ARXIV.2307.09288}{doi:\nolinkurl{10.48550/ARXIV.2307.09288}}
+
+
+\bibitem[et~al.(2021)]%
+        {Codex}
+\bibfield{author}{\bibinfo{person}{Mark~Chen et al.}}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Evaluating Large Language Models Trained on Code}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2107.03374}
+  (\bibinfo{year}{2021}).
+\newblock
+\showeprint[arXiv]{2107.03374}
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2107.03374}
+\showURL{%
+\tempurl}
+
+
+\bibitem[et~al.(2023b)]%
+        {StarCoder}
+\bibfield{author}{\bibinfo{person}{Raymond~Li et al.}}
+  \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{StarCoder: may the source be with you!}
+\newblock \bibinfo{journal}{\emph{Trans. Mach. Learn. Res.}}
+  \bibinfo{volume}{2023} (\bibinfo{year}{2023}).
+\newblock
+\urldef\tempurl%
+\url{https://openreview.net/forum?id=KoFOg41haE}
+\showURL{%
+\tempurl}
+
+
+\bibitem[et~al.(2020)]%
+        {GPT-3}
+\bibfield{author}{\bibinfo{person}{Tom B.~Brown et al.}}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Language Models are Few-Shot Learners}. In
+  \bibinfo{booktitle}{\emph{Advances in Neural Information Processing Systems
+  33: Annual Conference on Neural Information Processing Systems 2020, NeurIPS
+  2020, December 6-12, 2020, virtual}}, \bibfield{editor}{\bibinfo{person}{Hugo
+  Larochelle}, \bibinfo{person}{Marc'Aurelio Ranzato}, \bibinfo{person}{Raia
+  Hadsell}, \bibinfo{person}{Maria{-}Florina Balcan}, {and}
+  \bibinfo{person}{Hsuan{-}Tien Lin}} (Eds.).
+\newblock
+\urldef\tempurl%
+\url{https://proceedings.neurips.cc/paper/2020/hash/1457c0d6bfcb4967418bfb8ac142f64a-Abstract.html}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Fern{\'{a}}ndez{-}Diego et~al\mbox{.}(2020)]%
+        {Agile}
+\bibfield{author}{\bibinfo{person}{Marta Fern{\'{a}}ndez{-}Diego},
+  \bibinfo{person}{Erwin~R. M{\'{e}}ndez}, \bibinfo{person}{Fernando
+  Gonz{\'{a}}lez{-}Ladr{\'{o}}n{-}de{-}Guevara}, \bibinfo{person}{Silvia
+  Abrah{\~{a}}o}, {and} \bibinfo{person}{Emilio Insfr{\'{a}}n}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{An Update on Effort Estimation in Agile Software
+  Development: {A} Systematic Literature Review}.
+\newblock \bibinfo{journal}{\emph{{IEEE} Access}}  \bibinfo{volume}{8}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{166768--166800}.
+\newblock
+\href{https://doi.org/10.1109/ACCESS.2020.3021664}{doi:\nolinkurl{10.1109/ACCESS.2020.3021664}}
+
+
+\bibitem[Hou et~al\mbox{.}(2024)]%
+        {LLM4SE}
+\bibfield{author}{\bibinfo{person}{Xinyi Hou}, \bibinfo{person}{Yanjie Zhao},
+  \bibinfo{person}{Yue Liu}, \bibinfo{person}{Zhou Yang},
+  \bibinfo{person}{Kailong Wang}, \bibinfo{person}{Li Li},
+  \bibinfo{person}{Xiapu Luo}, \bibinfo{person}{David Lo},
+  \bibinfo{person}{John Grundy}, {and} \bibinfo{person}{Haoyu Wang}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Large Language Models for Software Engineering: {A}
+  Systematic Literature Review}.
+\newblock \bibinfo{journal}{\emph{{ACM} Trans. Softw. Eng. Methodol.}}
+  \bibinfo{volume}{33}, \bibinfo{number}{8} (\bibinfo{year}{2024}),
+  \bibinfo{pages}{220:1--220:79}.
+\newblock
+\href{https://doi.org/10.1145/3695988}{doi:\nolinkurl{10.1145/3695988}}
+
+
 \bibitem[Khojah et~al\mbox{.}(2025)]%
         {PEIMPACTWITHCODEPROMPTEVAL}
 \bibfield{author}{\bibinfo{person}{Ranim Khojah},
@@ -166,50 +240,17 @@
 \href{https://doi.org/10.1109/TSE.2025.3587794}{doi:\nolinkurl{10.1109/TSE.2025.3587794}}
 
 
-\bibitem[Li et~al\mbox{.}(2023)]%
-        {StarCoder}
-\bibfield{author}{\bibinfo{person}{Raymond Li}, \bibinfo{person}{Loubna~Ben
-  Allal}, \bibinfo{person}{Yangtian Zi}, \bibinfo{person}{Niklas Muennighoff},
-  \bibinfo{person}{Denis Kocetkov}, \bibinfo{person}{Chenghao Mou},
-  \bibinfo{person}{Marc Marone}, \bibinfo{person}{Christopher Akiki},
-  \bibinfo{person}{Jia Li}, \bibinfo{person}{Jenny Chim}, \bibinfo{person}{Qian
-  Liu}, \bibinfo{person}{Evgenii Zheltonozhskii}, \bibinfo{person}{Terry~Yue
-  Zhuo}, \bibinfo{person}{Thomas Wang}, \bibinfo{person}{Olivier Dehaene},
-  \bibinfo{person}{Mishig Davaadorj}, \bibinfo{person}{Joel Lamy{-}Poirier},
-  \bibinfo{person}{Jo{\~{a}}o Monteiro}, \bibinfo{person}{Oleh Shliazhko},
-  \bibinfo{person}{Nicolas Gontier}, \bibinfo{person}{Nicholas Meade},
-  \bibinfo{person}{Armel Zebaze}, \bibinfo{person}{Ming{-}Ho Yee},
-  \bibinfo{person}{Logesh~Kumar Umapathi}, \bibinfo{person}{Jian Zhu},
-  \bibinfo{person}{Benjamin Lipkin}, \bibinfo{person}{Muhtasham Oblokulov},
-  \bibinfo{person}{Zhiruo Wang}, \bibinfo{person}{Rudra~Murthy V},
-  \bibinfo{person}{Jason~T. Stillerman}, \bibinfo{person}{Siva~Sankalp Patel},
-  \bibinfo{person}{Dmitry Abulkhanov}, \bibinfo{person}{Marco Zocca},
-  \bibinfo{person}{Manan Dey}, \bibinfo{person}{Zhihan Zhang},
-  \bibinfo{person}{Nour Fahmy}, \bibinfo{person}{Urvashi Bhattacharyya},
-  \bibinfo{person}{Wenhao Yu}, \bibinfo{person}{Swayam Singh},
-  \bibinfo{person}{Sasha Luccioni}, \bibinfo{person}{Paulo Villegas},
-  \bibinfo{person}{Maxim Kunakov}, \bibinfo{person}{Fedor Zhdanov},
-  \bibinfo{person}{Manuel Romero}, \bibinfo{person}{Tony Lee},
-  \bibinfo{person}{Nadav Timor}, \bibinfo{person}{Jennifer Ding},
-  \bibinfo{person}{Claire Schlesinger}, \bibinfo{person}{Hailey Schoelkopf},
-  \bibinfo{person}{Jan Ebert}, \bibinfo{person}{Tri Dao},
-  \bibinfo{person}{Mayank Mishra}, \bibinfo{person}{Alex Gu},
-  \bibinfo{person}{Jennifer Robinson}, \bibinfo{person}{Carolyn~Jane Anderson},
-  \bibinfo{person}{Brendan Dolan{-}Gavitt}, \bibinfo{person}{Danish
-  Contractor}, \bibinfo{person}{Siva Reddy}, \bibinfo{person}{Daniel Fried},
-  \bibinfo{person}{Dzmitry Bahdanau}, \bibinfo{person}{Yacine Jernite},
-  \bibinfo{person}{Carlos~Mu{\~{n}}oz Ferrandis}, \bibinfo{person}{Sean
-  Hughes}, \bibinfo{person}{Thomas Wolf}, \bibinfo{person}{Arjun Guha},
-  \bibinfo{person}{Leandro von Werra}, {and} \bibinfo{person}{Harm de Vries}.}
-  \bibinfo{year}{2023}\natexlab{}.
-\newblock \showarticletitle{StarCoder: may the source be with you!}
-\newblock \bibinfo{journal}{\emph{Trans. Mach. Learn. Res.}}
-  \bibinfo{volume}{2023} (\bibinfo{year}{2023}).
+\bibitem[Lim et~al\mbox{.}(2021)]%
+        {RE}
+\bibfield{author}{\bibinfo{person}{Sachiko Lim}, \bibinfo{person}{Aron
+  Henriksson}, {and} \bibinfo{person}{Jelena Zdravkovic}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Data-Driven Requirements Elicitation: {A}
+  Systematic Literature Review}.
+\newblock \bibinfo{journal}{\emph{{SN} Comput. Sci.}} \bibinfo{volume}{2},
+  \bibinfo{number}{1} (\bibinfo{year}{2021}), \bibinfo{pages}{16}.
 \newblock
-\urldef\tempurl%
-\url{https://openreview.net/forum?id=KoFOg41haE}
-\showURL{%
-\tempurl}
+\href{https://doi.org/10.1007/S42979-020-00416-4}{doi:\nolinkurl{10.1007/S42979-020-00416-4}}
 
 
 \bibitem[Liu et~al\mbox{.}(2023)]%
@@ -224,45 +265,6 @@
 \newblock
 \showeprint[arXiv]{2305.08360}
 \href{https://doi.org/10.48550/ARXIV.2305.08360}{doi:\nolinkurl{10.48550/ARXIV.2305.08360}}
-
-
-\bibitem[Lozhkov et~al\mbox{.}(2024)]%
-        {StarCoder2}
-\bibfield{author}{\bibinfo{person}{Anton Lozhkov}, \bibinfo{person}{Raymond
-  Li}, \bibinfo{person}{Loubna~Ben Allal}, \bibinfo{person}{Federico Cassano},
-  \bibinfo{person}{Joel Lamy{-}Poirier}, \bibinfo{person}{Nouamane Tazi},
-  \bibinfo{person}{Ao Tang}, \bibinfo{person}{Dmytro Pykhtar},
-  \bibinfo{person}{Jiawei Liu}, \bibinfo{person}{Yuxiang Wei},
-  \bibinfo{person}{Tianyang Liu}, \bibinfo{person}{Max Tian},
-  \bibinfo{person}{Denis Kocetkov}, \bibinfo{person}{Arthur Zucker},
-  \bibinfo{person}{Younes Belkada}, \bibinfo{person}{Zijian Wang},
-  \bibinfo{person}{Qian Liu}, \bibinfo{person}{Dmitry Abulkhanov},
-  \bibinfo{person}{Indraneil Paul}, \bibinfo{person}{Zhuang Li},
-  \bibinfo{person}{Wen{-}Ding Li}, \bibinfo{person}{Megan Risdal},
-  \bibinfo{person}{Jia Li}, \bibinfo{person}{Jian Zhu},
-  \bibinfo{person}{Terry~Yue Zhuo}, \bibinfo{person}{Evgenii Zheltonozhskii},
-  \bibinfo{person}{Nii Osae~Osae Dade}, \bibinfo{person}{Wenhao Yu},
-  \bibinfo{person}{Lucas Krau{\ss}}, \bibinfo{person}{Naman Jain},
-  \bibinfo{person}{Yixuan Su}, \bibinfo{person}{Xuanli He},
-  \bibinfo{person}{Manan Dey}, \bibinfo{person}{Edoardo Abati},
-  \bibinfo{person}{Yekun Chai}, \bibinfo{person}{Niklas Muennighoff},
-  \bibinfo{person}{Xiangru Tang}, \bibinfo{person}{Muhtasham Oblokulov},
-  \bibinfo{person}{Christopher Akiki}, \bibinfo{person}{Marc Marone},
-  \bibinfo{person}{Chenghao Mou}, \bibinfo{person}{Mayank Mishra},
-  \bibinfo{person}{Alex Gu}, \bibinfo{person}{Binyuan Hui},
-  \bibinfo{person}{Tri Dao}, \bibinfo{person}{Armel Zebaze},
-  \bibinfo{person}{Olivier Dehaene}, \bibinfo{person}{Nicolas Patry},
-  \bibinfo{person}{Canwen Xu}, \bibinfo{person}{Julian~J. McAuley},
-  \bibinfo{person}{Han Hu}, \bibinfo{person}{Torsten Scholak},
-  \bibinfo{person}{S{\'{e}}bastien Paquet}, \bibinfo{person}{Jennifer
-  Robinson}, \bibinfo{person}{Carolyn~Jane Anderson}, \bibinfo{person}{Nicolas
-  Chapados}, {and} \bibinfo{person}{et al.}} \bibinfo{year}{2024}\natexlab{}.
-\newblock \showarticletitle{StarCoder 2 and The Stack v2: The Next Generation}.
-\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2402.19173}
-  (\bibinfo{year}{2024}).
-\newblock
-\showeprint[arXiv]{2402.19173}
-\href{https://doi.org/10.48550/ARXIV.2402.19173}{doi:\nolinkurl{10.48550/ARXIV.2402.19173}}
 
 
 \bibitem[Ma et~al\mbox{.}(2025)]%
@@ -306,6 +308,34 @@
 \href{https://doi.org/10.1109/ICSE48619.2023.00181}{doi:\nolinkurl{10.1109/ICSE48619.2023.00181}}
 
 
+\bibitem[Mernik et~al\mbox{.}(2005)]%
+        {DSLs}
+\bibfield{author}{\bibinfo{person}{Marjan Mernik}, \bibinfo{person}{Jan
+  Heering}, {and} \bibinfo{person}{Anthony~M. Sloane}.}
+  \bibinfo{year}{2005}\natexlab{}.
+\newblock \showarticletitle{When and how to develop domain-specific languages}.
+\newblock \bibinfo{journal}{\emph{{ACM} Comput. Surv.}} \bibinfo{volume}{37},
+  \bibinfo{number}{4} (\bibinfo{year}{2005}), \bibinfo{pages}{316--344}.
+\newblock
+\href{https://doi.org/10.1145/1118890.1118892}{doi:\nolinkurl{10.1145/1118890.1118892}}
+
+
+\bibitem[Nettur et~al\mbox{.}(2025)]%
+        {CopilotRole}
+\bibfield{author}{\bibinfo{person}{Nettur}, \bibinfo{person}{Suresh Babu},
+  \bibinfo{person}{Karpurapu}, \bibinfo{person}{Shanthi},
+  \bibinfo{person}{Nettur}, \bibinfo{person}{Unnati}, \bibinfo{person}{Gajja},
+  \bibinfo{person}{Likhit Sagar}, \bibinfo{person}{Myneni},
+  \bibinfo{person}{Sravanthy}, \bibinfo{person}{Dusi}, {and}
+  \bibinfo{person}{Akhil}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{The Role of GitHub Copilot on Software Development:
+  A Perspective on Productivity, Security, Best Practices and Future
+  Directions}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2502.13199}}
+  (\bibinfo{year}{2025}).
+\newblock
+
+
 \bibitem[Patil et~al\mbox{.}(2024)]%
         {Spec2Code}
 \bibfield{author}{\bibinfo{person}{Minal~Suresh Patil}, \bibinfo{person}{Gustav
@@ -320,6 +350,24 @@
   Steffen}} (Ed.). \bibinfo{publisher}{Springer}, \bibinfo{pages}{125--144}.
 \newblock
 \href{https://doi.org/10.1007/978-3-031-75434-0\_9}{doi:\nolinkurl{10.1007/978-3-031-75434-0\_9}}
+
+
+\bibitem[Royce(1987)]%
+        {Waterfall}
+\bibfield{author}{\bibinfo{person}{W.~W. Royce}.}
+  \bibinfo{year}{1987}\natexlab{}.
+\newblock \showarticletitle{Managing the Development of Large Software Systems:
+  Concepts and Techniques}. In \bibinfo{booktitle}{\emph{Proceedings, 9th
+  International Conference on Software Engineering, Monterey, California, USA,
+  March 30 - April 2, 1987}}, \bibfield{editor}{\bibinfo{person}{William~E.
+  Riddle}, \bibinfo{person}{Robert~M. Balzer}, {and} \bibinfo{person}{Kouichi
+  Kishida}} (Eds.). \bibinfo{publisher}{{ACM} Press},
+  \bibinfo{pages}{328--339}.
+\newblock
+\urldef\tempurl%
+\url{http://dl.acm.org/citation.cfm?id=41801}
+\showURL{%
+\tempurl}
 
 
 \bibitem[Rozi{\`{e}}re et~al\mbox{.}(2023)]%
@@ -361,50 +409,26 @@
 \href{https://doi.org/10.48550/ARXIV.2402.07927}{doi:\nolinkurl{10.48550/ARXIV.2402.07927}}
 
 
-\bibitem[Touvron et~al\mbox{.}(2023)]%
-        {Llama2}
-\bibfield{author}{\bibinfo{person}{Hugo Touvron}, \bibinfo{person}{Louis
-  Martin}, \bibinfo{person}{Kevin Stone}, \bibinfo{person}{Peter Albert},
-  \bibinfo{person}{Amjad Almahairi}, \bibinfo{person}{Yasmine Babaei},
-  \bibinfo{person}{Nikolay Bashlykov}, \bibinfo{person}{Soumya Batra},
-  \bibinfo{person}{Prajjwal Bhargava}, \bibinfo{person}{Shruti Bhosale},
-  \bibinfo{person}{Dan Bikel}, \bibinfo{person}{Lukas Blecher},
-  \bibinfo{person}{Cristian Canton{-}Ferrer}, \bibinfo{person}{Moya Chen},
-  \bibinfo{person}{Guillem Cucurull}, \bibinfo{person}{David Esiobu},
-  \bibinfo{person}{Jude Fernandes}, \bibinfo{person}{Jeremy Fu},
-  \bibinfo{person}{Wenyin Fu}, \bibinfo{person}{Brian Fuller},
-  \bibinfo{person}{Cynthia Gao}, \bibinfo{person}{Vedanuj Goswami},
-  \bibinfo{person}{Naman Goyal}, \bibinfo{person}{Anthony Hartshorn},
-  \bibinfo{person}{Saghar Hosseini}, \bibinfo{person}{Rui Hou},
-  \bibinfo{person}{Hakan Inan}, \bibinfo{person}{Marcin Kardas},
-  \bibinfo{person}{Viktor Kerkez}, \bibinfo{person}{Madian Khabsa},
-  \bibinfo{person}{Isabel Kloumann}, \bibinfo{person}{Artem Korenev},
-  \bibinfo{person}{Punit~Singh Koura}, \bibinfo{person}{Marie{-}Anne Lachaux},
-  \bibinfo{person}{Thibaut Lavril}, \bibinfo{person}{Jenya Lee},
-  \bibinfo{person}{Diana Liskovich}, \bibinfo{person}{Yinghai Lu},
-  \bibinfo{person}{Yuning Mao}, \bibinfo{person}{Xavier Martinet},
-  \bibinfo{person}{Todor Mihaylov}, \bibinfo{person}{Pushkar Mishra},
-  \bibinfo{person}{Igor Molybog}, \bibinfo{person}{Yixin Nie},
-  \bibinfo{person}{Andrew Poulton}, \bibinfo{person}{Jeremy Reizenstein},
-  \bibinfo{person}{Rashi Rungta}, \bibinfo{person}{Kalyan Saladi},
-  \bibinfo{person}{Alan Schelten}, \bibinfo{person}{Ruan Silva},
-  \bibinfo{person}{Eric~Michael Smith}, \bibinfo{person}{Ranjan Subramanian},
-  \bibinfo{person}{Xiaoqing~Ellen Tan}, \bibinfo{person}{Binh Tang},
-  \bibinfo{person}{Ross Taylor}, \bibinfo{person}{Adina Williams},
-  \bibinfo{person}{Jian~Xiang Kuan}, \bibinfo{person}{Puxin Xu},
-  \bibinfo{person}{Zheng Yan}, \bibinfo{person}{Iliyan Zarov},
-  \bibinfo{person}{Yuchen Zhang}, \bibinfo{person}{Angela Fan},
-  \bibinfo{person}{Melanie Kambadur}, \bibinfo{person}{Sharan Narang},
-  \bibinfo{person}{Aur{\'{e}}lien Rodriguez}, \bibinfo{person}{Robert Stojnic},
-  \bibinfo{person}{Sergey Edunov}, {and} \bibinfo{person}{Thomas Scialom}.}
-  \bibinfo{year}{2023}\natexlab{}.
-\newblock \showarticletitle{Llama 2: Open Foundation and Fine-Tuned Chat
-  Models}.
-\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2307.09288}
-  (\bibinfo{year}{2023}).
+\bibitem[Schmidt(2006)]%
+        {MDE-Schmidt}
+\bibfield{author}{\bibinfo{person}{Douglas~C. Schmidt}.}
+  \bibinfo{year}{2006}\natexlab{}.
+\newblock \showarticletitle{Guest Editor's Introduction: Model-Driven
+  Engineering}.
+\newblock \bibinfo{journal}{\emph{Computer}} \bibinfo{volume}{39},
+  \bibinfo{number}{2} (\bibinfo{year}{2006}), \bibinfo{pages}{25--31}.
 \newblock
-\showeprint[arXiv]{2307.09288}
-\href{https://doi.org/10.48550/ARXIV.2307.09288}{doi:\nolinkurl{10.48550/ARXIV.2307.09288}}
+\href{https://doi.org/10.1109/MC.2006.58}{doi:\nolinkurl{10.1109/MC.2006.58}}
+
+
+\bibitem[Sommerville(2015)]%
+        {ALLLIFECYCLE}
+\bibfield{author}{\bibinfo{person}{Ian Sommerville}.}
+  \bibinfo{year}{2015}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Software Engineering}
+  (\bibinfo{edition}{10} ed.)}.
+\newblock \bibinfo{publisher}{Pearson}.
+\newblock
 
 
 \bibitem[Vaswani et~al\mbox{.}(2017)]%
@@ -442,20 +466,6 @@
 \newblock
 \showeprint[arXiv]{2409.16416}
 \href{https://doi.org/10.48550/ARXIV.2409.16416}{doi:\nolinkurl{10.48550/ARXIV.2409.16416}}
-
-
-\bibitem[Xu et~al\mbox{.}(2021)]%
-        {UItoCode}
-\bibfield{author}{\bibinfo{person}{Yong Xu}, \bibinfo{person}{Lili Bo},
-  \bibinfo{person}{Xiaobing Sun}, \bibinfo{person}{Bin Li},
-  \bibinfo{person}{Jing Jiang}, {and} \bibinfo{person}{Wei Zhou}.}
-  \bibinfo{year}{2021}\natexlab{}.
-\newblock \showarticletitle{image2emmet: Automatic code generation from web
-  user interface image}.
-\newblock \bibinfo{journal}{\emph{J. Softw. Evol. Process.}}
-  \bibinfo{volume}{33}, \bibinfo{number}{8} (\bibinfo{year}{2021}).
-\newblock
-\href{https://doi.org/10.1002/SMR.2369}{doi:\nolinkurl{10.1002/SMR.2369}}
 
 
 \bibitem[Yetistiren et~al\mbox{.}(2023)]%
