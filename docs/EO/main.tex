@@ -34,6 +34,9 @@
 \usepackage[table]{xcolor}
 \usepackage{tabularx}
 \usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
 \definecolor{headergray}{RGB}{220, 230, 236} % Azul acinzentado muito suave
 \definecolor{ganttblue}{RGB}{110, 155, 180}
 
@@ -57,7 +60,7 @@
   Mestrado em Engenharia Informática \\ 
   Faculdade de Ciências, Universidade de Lisboa}
  }
-\email{fc64361@fc.ul.pt}
+\email{fc64361@alunos.fc.ul.pt}
 
 
 \begin{abstract}
@@ -100,21 +103,29 @@ Os avanços recentes na inteligência artificial generativa têm permitido autom
 
 \section{Enquadramento Teórico} \label{sec:background}
 
-Esta secção serve como base teórica para clarificar alguns conceitos importantes, oferecendo uma melhor compreensão das secções que se seguem.\\\par
+Esta secção serve como base teórica para clarificar alguns conceitos importantes para o projeto, permitindo uma melhor compreensão das secções que se seguem.\\\par
 
 %%In this section, you should describe the scientific or technological context of your project. Provide enough information so that a reader unfamiliar with the topic can understand the problem you are addressing and the rationale for your project. This may include relevant concepts and definitions in the area, particularly those that will be used throughout this document.
 
-\indent\textbf{Geração automática de código}\par
-\noindent{A} geração automática de código consiste no processo de produzir componentes de software de forma parcial ou integral a partir de descrições de mais alto nível, como requisitos em linguagem natural, esquemas visuais, modelos formais ou exemplos estruturados. Em vez de o programador escrever manualmente o código fonte, recorre-se a sistemas capazes de interpretar estas descrições e traduzir o seu conteúdo para implementações concretas, acelerando o desenvolvimento e reduzindo tarefas repetitivas.\par
-\noindent{Apesar} da geração automática de código estar hoje em dia associada a inteligência artificial generativa, o conceito não é propriamente recente. Já existiam abordagens como o Model-Driven Engineering (MDE), onde o código é gerado a partir de modelos formais, como por exemplo diagramas ou estruturas abstratas, conforme descrito por Schmidt\cite{MDE-Schmidt} e Brambilla et al.\cite{MDEInPratice} ou linguagens específicas de domínio (DSLs), que permitem escrever descrições declarativas que depois são traduzidas automaticamente para código, tal como discutido por Mernik et al.\cite{DSLs}. Contudo, estas técnicas dependem de regras de transformação rígidas e gramáticas estritamente definidas, o que as torna eficazes apenas em domínios muito controlados e pouco adaptáveis a requisitos mais abertos ou expressos em linguagem natural.\\\par
+\noindent\textbf{Geração automática de código}\par
+\noindent{A} geração automática de código consiste no processo de produzir código fonte de forma parcial ou integral a partir de descrições de mais alto nível, como requisitos em linguagem natural, esquemas visuais, modelos formais ou exemplos estruturados. Em vez de o programador escrever manualmente o código fonte, recorre-se a sistemas capazes de interpretar estas descrições e traduzir o seu conteúdo para implementações concretas, acelerando o desenvolvimento e reduzindo tarefas repetitivas.\par
 
-\noindent{Os} modelos de IA generativa proporcionaram uma evolução significativa na geração automática de código ao permitirem interpretar instruções menos estruturadas, como texto em linguagem natural, conforme discutido por Chen et al.\cite{Codex}. Esta capacidade resulta do facto de estes modelos serem treinados em grandes volumes de dados heterogéneos, que incluem código fonte, documentação técnica, exemplos de implementação e descrições presentes em fóruns de programação. A exposição simultânea a linguagem natural e a linguagens de programação permite que os modelos aprendam padrões sintáticos, estruturas típicas de implementação e relações entre diferentes componentes de um programa.\par
+\noindent{Apesar} da geração automática de código estar hoje em dia associada à inteligência artificial generativa, a ideia não é propriamente nova. A geração de código foi endereçada anteriormente por abordagens como o Model-Driven Engineering (MDE), onde o código é gerado a partir de modelos formais, como por exemplo diagramas ou estruturas abstratas\cite{MDE-Schmidt,MDEInPratice} ou linguagens específicas de domínio (DSLs), que permitem escrever descrições declarativas que depois são traduzidas automaticamente para código\cite{DSLs}. Contudo, estas técnicas dependem de regras de transformação rígidas e gramáticas estritamente definidas, o que as torna eficazes apenas em domínios muito controlados e pouco adaptáveis a requisitos mais abertos ou expressos em linguagem natural.\\\par
 
-\noindent{Uma} parte importante desta evolução deve-se à arquitetura \textit{Transformer}, proposta em 2017 por Vaswani et al.\cite{Transformer}. Os \textit{Transformer} utilizam mecanismos de atenção que identificam, dentro de uma sequência de texto, as partes mais relevantes para cada token, capturando dependências longas e relações complexas entre elementos da instrução. Esta arquitetura revelou-se altamente eficiente para tarefas de processamento de linguagem natural e tornou possível, nos anos seguintes, treinar modelos de grande escala capazes de compreender instruções complexas e gerar código coerente e funcional\cite{Codex}.
+\noindent{Os} modelos de IA generativa, os quais se tornaram oficialmente disponíveis em 2022, proporcionaram uma evolução significativa na geração automática de código ao permitirem interpretar instruções menos estruturadas, como texto em linguagem natural\cite{Codex}. Esta capacidade resulta do facto de estes modelos serem treinados em grandes volumes de dados heterogéneos, que incluem código fonte, documentação técnica, exemplos de implementação e descrições presentes em fóruns de programação. A exposição simultânea a linguagem natural e a linguagens de programação permite que os modelos aprendam padrões sintáticos, estruturas típicas de implementação e relações entre diferentes componentes de um programa.\\
 
-\noindent{Ao} longo desta evolução têm surgido cada vez mais sistemas que exploram o potencial dos modelos de linguagem para apoiar ou automatizar partes do processo de desenvolvimento de software. Alguns destes sistemas recorrem a um único modelo para interpretar descrições e gerar código de forma direta, enquanto outros combinam vários modelos ou etapas especializadas para orientar, validar ou complementar a geração. Esta diversidade reflete a maturidade crescente da área e o interesse em integrar modelos de linguagem não só como geradores de código, mas também como assistentes ativos no fluxo de trabalho do programador. Exemplos representativos destas abordagens são discutidos de forma detalhada na secção \ref{CODE_GENERATION_TR}.\\\par
+\noindent{Uma} parte importante desta evolução deve-se à arquitetura \textit{Transformer}, proposta em 2017 por Vaswani et al.\cite{Transformer}. Como ilustrado na Figura \ref{fig:transformer}, os \textit{Transformer} utilizam mecanismos de atenção que identificam, dentro de uma sequência de texto, as partes mais relevantes para cada token, capturando dependências longas e relações complexas entre elementos da instrução. Esta arquitetura revelou-se altamente eficiente para tarefas de processamento de linguagem natural e tornou possível, nos anos seguintes, treinar modelos de grande escala capazes de compreender instruções complexas e gerar código coerente e funcional\cite{Codex}.\\
 
-\indent\textbf{Ciclo de Vida do Desenvolvimento de Software}\par
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.4\textheight, width=0.3\textwidth]{../../img/transformer.png}
+    \caption{Arquitetura Transformer proposta por Vaswani et al.\cite{Transformer}}
+    \label{fig:tansformer}
+\end{figure}
+
+\noindent{Ao} longo dos últimos três anos têm surgido cada vez mais sistemas que exploram o potencial dos modelos de linguagem para apoiar ou automatizar partes do processo de desenvolvimento de software. Alguns destes sistemas recorrem a um único modelo para interpretar descrições e gerar código de forma direta, enquanto outros combinam vários modelos ou etapas especializadas para orientar, validar ou complementar a geração. Esta diversidade reflete a maturidade crescente da área e o interesse em integrar modelos de linguagem não só como geradores de código, mas também como assistentes ativos no fluxo de trabalho do programador. Exemplos representativos destas abordagens são discutidos de forma detalhada na secção \ref{CODE_GENERATION_TR}.\\\par
+
+\noindent\textbf{Ciclo de Vida do Desenvolvimento de Software}\par
 
 \noindent{Embora} os avanços nos LLMs demonstrem o seu potencial para a geração de código, a construção de um produto de software envolve um conjunto mais amplo de fases. Para contextualizar o impacto e o papel que a automatização pode assumir, é necessário compreender o ciclo de vida completo do desenvolvimento de software\cite{ALLLIFECYCLE}, identificando as fases onde é possível introduzir automatização. Antes de existir código, é necessário definir o que deve ser construído e como o sistema deve funcionar. Após a implementação, existem ainda outros passos a cumprir para que se garanta a qualidade e a continuidade do produto.\\\par
 
@@ -126,9 +137,16 @@ Esta secção serve como base teórica para clarificar alguns conceitos importan
 
 \noindent{Depois} da definição dos componentes e das interfaces do sistema, segue-se a fase de implementação, onde o código é desenvolvido de acordo com as especificações definidas. Esta etapa envolve não apenas a programação propriamente dita, mas também a integração entre módulos e a resolução de dependências técnicas, garantindo que os componentes funcionem de forma coesa. A implementação é acompanhada por atividades de verificação e validação, onde se aplicam diferentes níveis de testes, com o objetivo de identificar defeitos, avaliar comportamentos e assegurar que o software cumpre os requisitos estabelecidos. Por fim, a documentação técnica desempenha um papel transversal a todas estas fases, registando decisões, especificações, arquiteturas, APIs e procedimentos de utilização, facilitando a manutenção futura e promovendo uma compreensão consistente do sistema entre programadores e stakeholders.\\\par
 
-\noindent{Para} além das fases que compõem o desenvolvimento de software, importa considerar também as metodologias que organizam estas atividades ao longo do ciclo de vida. Os processos tradicionais, como o modelo em cascata (Waterfall)\cite{Waterfall}, estruturavam o desenvolvimento de forma sequencial, com transições rígidas entre etapas. Com o tempo, esta abordagem revelou limitações em cenários de requisitos dinâmicos, particularmente em contextos de mudança frequente ou incerteza elevada, conduzindo à adoção de metodologias ágeis, que promovem ciclos iterativos, entregas incrementais e adaptação contínua às necessidades do utilizador\cite{Agile}.\\\\\par
+\noindent{Para} além das fases que compõem o desenvolvimento de software, importa considerar também as metodologias que organizam estas atividades ao longo do ciclo de vida. Os processos tradicionais, como o modelo em cascata (Waterfall)\cite{Waterfall}, estruturavam o desenvolvimento de forma sequencial, com transições rígidas entre etapas. Com o tempo, esta abordagem revelou limitações em cenários de requisitos dinâmicos, particularmente em contextos de mudança frequente ou incerteza elevada, conduzindo à adoção de metodologias ágeis, que promovem ciclos iterativos, entregas incrementais e adaptação contínua às necessidades do utilizador\cite{Agile}, como ilustrado na Figura \ref{fig:waterfall_agile}.\\\par
 
-\indent\textbf{Limitações dos Modelos de Linguagem e Técnicas de Refinamento} \label {PE-BACKGROUND}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.2\textheight, width=0.45\textwidth]{../../img/waterfall_agille.png}
+    \caption{Comparação entre o modelo Waterfall e uma abordagem Agile}
+    \label{fig:waterfall_agile}
+\end{figure}
+
+\noindent\textbf{Limitações dos LLMs e Técnicas de Refinamento} \label {PE-BACKGROUND}
 
 \noindent{Apesar} dos avanços significativos alcançados pelos modelos de linguagem de grande escala, estes sistemas apresentam limitações que afetam diretamente a sua aplicação no desenvolvimento de software. Entre os desafios mais comuns encontram-se a geração de código incorreto ou incompleto, inconsistências lógicas, alucinações factuais e dificuldades em interpretar requisitos ambíguos ou instruções pouco estruturadas. Estas limitações resultam, em grande parte, da natureza estatística dos modelos, da variabilidade dos dados de treino e da ausência de mecanismos internos de verificação semântica.\par
 
@@ -150,7 +168,7 @@ A presente secção reúne o estado da arte relevante para esta tese, apresentan
 
 %%In this work, you are expected to follow the guidelines on document preparation presented in Lamport’s book on \LaTeX~\cite{lamport1994latex}. For editing, you may use tools such as the online platform Overleaf~\cite{overleaf}. There is also a good chance that your project will build upon some of Lamport’s many scientific contributions, such as the concept of logical clocks~\cite{lamport1978clocks}.
 
-\indent\textbf{Geração Automática de Código} \label{CODE_GENERATION_TR}
+\noindent\textbf{Geração Automática de Código} \label{CODE_GENERATION_TR}
 
 \noindent{Nesta} secção são analisados trabalhos que ilustram várias abordagens para automatizar a transformação de descrições diretamente em código.\\\par
 
@@ -163,10 +181,13 @@ A presente secção reúne o estado da arte relevante para esta tese, apresentan
 
 \noindent{Hoje} em dia já existem vários modelos generativos com a finalidade de desenvolvimento de código, ou seja, modelos que foram construídos com o objetivo principal de gerar como resposta um excerto de código que cumpre os requisitos solicitados pelo ser humano. Codex\cite{Codex}, uma variante do GPT-3\cite{GPT-3} especializada em código, foi um dos primeiros modelos amplamente conhecidos para transformar descrições textuais em código executável, suportando múltiplas linguagens e tarefas como geração de funções, completamento e tradução entre linguagens. Este modelo serviu ainda de base ao GitHub Copilot, que será abordado mais adiante, estabelecendo um marco na utilização prática de LLMs para auxiliar o desenvolvimento de software.\par
 
-\noindent{Dando} seguimento a esta ideia, surgiu o CodeLlama\cite{CodeLlama}, uma família de modelos orientados para tarefas de programação como geração, explicação e preenchimento de código. Estes modelos, que foram desenvolvidos com base no modelo Llama2\cite{Llama2}, são disponibilizados em três variantes distintas especificadas abaixo e na Figura \ref{fig:codellama-pipeline}:\par
-\textbf{Code Llama}, a versão base, implementada para tarefas mais gerais de compreensão e transformação de código;\par
-\textbf{Code Llama - Python}, uma versão treinada adicionalmente com grandes bases de dados de código python, fornecendo um auxílio com mais qualidade em requisitos para esta linguagem em específico;\par
-\textbf{Code Llama - Instruct}, uma variante ajustada para seguir melhor as instruções humanas, oferecendo uma interação conversacional mais aprimorada.\par
+\noindent{Dando} seguimento a esta ideia, surgiu o CodeLlama\cite{CodeLlama}, uma família de modelos orientados para tarefas de programação como geração, explicação e preenchimento de código. Estes modelos, que foram desenvolvidos com base no modelo Llama2\cite{Llama2}, são disponibilizados em três variantes distintas especificadas abaixo e na Figura \ref{fig:codellama-pipeline}:
+
+\begin{itemize}
+    \item \textbf{Code Llama}, a versão base, implementada para tarefas mais gerais de compreensão e transformação de código;
+    \item \textbf{Code Llama - Python}, uma versão treinada adicionalmente com grandes bases de dados de código python, fornecendo um auxílio com mais qualidade em requisitos para esta linguagem em específico;
+    \item \textbf{Code Llama - Instruct}, uma variante ajustada para seguir melhor as instruções humanas, oferecendo uma interação conversacional mais aprimorada.
+\end{itemize}
 \noindent{Treinados} para processar sintaxe estruturada e múltiplos paradigmas de programação, os modelos CodeLlama representam uma alternativa moderna e de acesso aberto (open-source), ideal para cenários que exigem a conversão de requisitos em linguagem natural diretamente para código.\par
 
 \noindent{Adicionalmente}, temos também o StarCoder\cite{StarCoder} e a sua evolução mais recente, StarCoder2\cite{StarCoder2}, que representam modelos treinados em larga escala no dataset The Stack (The Stack v2 para o modelo StarCoder2), destacando-se pelo suporte multilinguagem, capacidades de preenchimento, janelas de contexto alargadas, permitindo, com este último ponto, analisar blocos mais extensos de código numa única passagem, e mecanismos de treino orientados para segurança e transparência. Graças a estas características, tornam-se referências úteis para compreender boas práticas na construção de LLMs orientados para código, tanto ao nível da arquitetura e dos datasets, como das técnicas necessárias para desenvolver sistemas capazes de converter descrições em código de forma fiável e coerente.\\\par
@@ -192,7 +213,7 @@ A presente secção reúne o estado da arte relevante para esta tese, apresentan
     \label{fig:timeline-modelos}
 \end{figure}
 
-\indent\textbf{Engenharia de Prompts}
+\noindent\textbf{Engenharia de Prompts}
 
 Como já foi referido na secção \ref{PE-BACKGROUND}, a forma como as instruções são fornecidas a um modelo de linguagem tem um impacto direto na qualidade do código que o mesmo consegue gerar. Diversos trabalhos mostram que técnicas de engenharia de prompts podem melhorar significativamente o desempenho em tarefas de linguagem natural para código. Esta secção apresenta estudos que aplicam estas técnicas em cenários reais de geração de código, evidenciando a sua importância prática no desenvolvimento de sistemas baseados em LLMs.\\\par
 
@@ -206,7 +227,245 @@ Como já foi referido na secção \ref{PE-BACKGROUND}, a forma como as instruç�
 
 \section{Processo de Desenvolvimento de Software da Trust Systems}
 
+Esta secção descreve o processo de desenvolvimento de produtos adotado pela Trust Systems, apresentando as principais etapas que estruturam a construção de uma solução desde a sua conceção inicial até à sua validação final. O objetivo é caracterizar o fluxo interno seguido pela empresa, evidenciando a forma como as equipas analisam o mercado, definem requisitos, concebem a arquitetura, desenvolvem os componentes técnicos e asseguram a conformidade com normas e boas práticas. A compreensão deste processo é essencial para contextualizar a pipeline proposta nesta dissertação, uma vez que permite identificar os pontos onde a automatização baseada em modelos de linguagem pode oferecer ganhos de eficiência e consistência.
+
+\subsection{Análise de Negócio}
+
+\noindent{A} fase de análise de negócio constitui o ponto de partida do processo de desenvolvimento de software na Trust Systems. Antes de qualquer atividade técnica, a empresa conduz uma avaliação estratégica destinada a determinar se existe uma necessidade real no mercado e se a solução proposta tem viabilidade comercial. Esta etapa envolve a análise do contexto competitivo, da oferta existente, dos modelos de pricing e das oportunidades identificadas, permitindo enquadrar o problema com precisão e estabelecer a relevância da futura solução.\\
+
+\noindent{O} resultado desta avaliação é consolidado num \textit{business case}, que reúne as evidências necessárias para suportar a decisão de avançar ou não com o projeto. Aqui são analisados o enquadramento de mercado, a oferta e o posicionamento competitivo, bem como o modelo de pricing e o impacto esperado da solução. Esta análise permite ainda caracterizar três elementos fundamentais que orientam a decisão estratégica, sendo eles os fatores essenciais que a solução deve satisfazer (\textit{Key Satisfactors}), as limitações e condicionantes relevantes que podem restringir o seu desenvolvimento (\textit{Key Constraints}) e os ativos estratégicos necessários para suportar a execução do projeto (\textit{Key Assets}).
+
+\noindent{Com} base no \textit{business case}, a empresa conduz uma avaliação de viabilidade que culmina numa decisão final para avançar ou não com o projeto. Apenas as iniciativas consideradas exequíveis e alinhadas com os objetivos estratégicos da organização avançam para a fase seguinte. A sequência destas etapas encontra-se sintetizada na Figura \ref{fig:analise-negocio}, que representa o fluxo de análise de negócio adotado na Trust Systems.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.2\textheight, width=0.5\textwidth]{../../img/market_analysis.png}
+    \caption{Processo de análise de negócio na Trust Systems.}
+    \label{fig:analise-negocio}
+\end{figure}
+
+\subsection{Requisitos, Design e Arquitetura}
+
+Após a decisão formal de avançar com o projeto, a responsabilidade transita para o \textit{Product Owner}, que conduz a definição tecnofuncional da solução em articulação contínua com o cliente. O objetivo é transformar necessidades de negócio em descrições funcionais claras e validadas.
+
+\noindent{A} definição de requisitos abrange vários níveis de detalhe, desde requisitos de alto nível e de utilizador até requisitos funcionais, não funcionais e tecnológicos. Estes últimos estabelecem orientações relacionadas com plataformas, linguagens, integrações e outros constrangimentos técnicos. Todo o processo evolui de forma iterativa, sendo ajustado e validado com o cliente até atingir um estado adequado de maturidade.
+
+\noindent{Com} esta base de entendimento são elaborados os \textit{Mockups \& Design}, que representam visualmente a estrutura, os fluxos de interação e a experiência prevista para o sistema. Estes artefactos tornam explícita a interpretação dos requisitos e são essenciais para assegurar alinhamento antes da continuação do trabalho.\\
+
+\noindent{Nesta} fase inclui-se também a definição da arquitetura do sistema, onde são estabelecidos os padrões estruturais, as camadas funcionais, os modelos de comunicação, os mecanismos de segurança e os requisitos técnicos necessários para garantir consistência, escalabilidade e manutenibilidade. É igualmente aqui que se formalizam as normas, políticas e limitações aplicáveis ao projeto, que variam consoante o domínio e podem incluir referências como normas IEEE, a ISO/IEC 27001, recomendações OWASP para proteção de aplicações web ou diretrizes de acessibilidade baseadas nos níveis A, AA e AAA das WCAG, alinhadas com o enquadramento europeu do EAA.
+
+\subsection{Especificação da API (OpenAPI)}
+
+\noindent{Após} a validação dos \textit{Mockups}, é definida a especificação da API em formato OpenAPI. Este documento descreve os endpoints, modelos de dados, parâmetros e regras de validação, funcionando como contrato técnico entre as diferentes componentes do sistema.
+
+\noindent{Por} representar de forma estruturada todas as operações previstas, a API serve como base para o desenvolvimento backend e para a implementação frontend, assegurando consistência entre o comportamento esperado e a lógica construída nas fases seguintes.
+
+\subsection{Desenvolvimento Backend}
+
+\noindent{O} desenvolvimento backend na Trust Systems assenta numa estrutura organizacional bem definida, refletida nos projetos gerados com recurso ao JHipster. Esta ferramenta automatiza a criação da arquitetura base e origina uma separação clara por camadas, com diretórios dedicados a \textit{domain}, \textit{repository}, \textit{service} e \textit{web}, garantindo uma organização consistente e alinhada com boas práticas de engenharia de software. Cada camada assume responsabilidades distintas, onde o domínio modela as entidades da aplicação, os repositórios tratam da persistência de dados, os serviços concentram a lógica de negócio e a camada web expõe os controladores responsáveis pela comunicação com a API.
+
+\noindent{O} backend é construído a partir da especificação OpenAPI previamente validada, que define os endpoints, os modelos de dados e os contratos de comunicação. Com base nessa descrição são implementados os controladores, serviços e repositórios necessários ao funcionamento da aplicação, assegurando correspondência direta entre a API definida e a lógica do sistema. Esta abordagem reduz ambiguidades, promove a rastreabilidade entre requisitos e implementação e facilita a evolução posterior do sistema.\\
+
+\noindent{A} componente de persistência utiliza habitualmente bases de dados relacionais, sendo o PostgreSQL uma das tecnologias mais frequentes nos projetos da empresa. A modelação e inspeção da base de dados é frequentemente apoiada pelo DBeaver, que facilita o acompanhamento do esquema e das operações realizadas durante o desenvolvimento.
+
+\noindent{O} processo de execução é suportado pelos mecanismos habituais do ecossistema Java, recorrendo ao Maven para compilar, gerar artefactos e executar a aplicação localmente. Para complementar esta explicação, a Figura \ref{fig:endpoint-flow} ilustra o percurso típico de um endpoint, começando na especificação OpenAPI e terminando na camada de repositório. Esta representação visual evidencia a separação de responsabilidades entre as várias camadas e o modo como o backend materializa o contrato definido na especificação.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.2\textheight, width=0.4\textwidth]{../../img/backend_endpoint.png}
+    \caption{Fluxo típico de implementação de um endpoint no backend.}
+    \label{fig:endpoint-flow}
+\end{figure}
+
+\subsection{Desenvolvimento Frontend}
+
+\noindent{O} desenvolvimento frontend na Trust Systems segue práticas que asseguram organização, consistência e facilidade de manutenção. Os projetos são desenvolvidos em Angular e estruturados de forma modular em diretórios \textit{core}, \textit{development} e \textit{shared}. O \textit{core} reúne elementos essenciais da aplicação, como serviços globais e configurações. O \textit{development} organiza as funcionalidades específicas do produto em desenvolvimento. O \textit{shared} agrega componentes, modelos e utilitários reutilizáveis, garantindo consistência e evitando duplicação de código.\\
+
+\noindent{A} comunicação com o backend é realizada através de serviços Angular dedicados, responsáveis por encapsular as chamadas à API definida na especificação OpenAPI. Estes serviços centralizam o acesso a dados e fornecem métodos bem definidos para consumo pela interface, garantindo separação entre lógica de apresentação e lógica de comunicação.
+
+\noindent{Cada} página da aplicação corresponde a um componente Angular, que solicita a informação necessária ao serviço respetivo. O serviço estabelece a comunicação com a API, interpreta a resposta recebida e devolve ao componente os dados já preparados para apresentação. Esta abordagem reduz acoplamento, facilita testes e contribui para a evolução sustentada da aplicação.
+
+\noindent{A} Figura \ref{fig:frontend-flow} ilustra o fluxo típico seguido no frontend entre componentes, serviços e a API.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.23\textheight, width=0.35\textwidth]{../../img/frontend_process.png}
+    \caption{Fluxo de interação entre componente, serviço e API no frontend.}
+    \label{fig:frontend-flow}
+\end{figure}
+
+\subsection{Testes, Qualidade e Conformidade}
+
+Os testes constituem a etapa final do processo de desenvolvimento e garantem que a solução implementada corresponde ao comportamento definido nas fases anteriores. Na Trust Systems, esta validação ocorre de forma essencialmente manual, assegurando que cada componente cumpre os requisitos funcionais, tecnológicos e de experiência definidos em colaboração com o cliente.
+
+\noindent{No} backend, a verificação centra-se na API gerada a partir da especificação OpenAPI. O Postman é utilizado para testar os endpoints, validar códigos de resposta, conteúdos devolvidos e comportamento em diferentes cenários. Esta validação permite confirmar que os controladores, serviços e repositórios implementados materializam corretamente o contrato definido pela API.
+
+\noindent{No} frontend, os testes incidem sobretudo na interação com a API e na verificação dos fluxos principais da interface. São validados o consumo dos serviços, o tratamento de respostas e a exibição correta da informação, garantindo que os componentes Angular permanecem alinhados com o comportamento esperado do sistema. Além desta validação funcional, é também utilizado o SonarLint/ESLint em ambiente local para detetar problemas de qualidade de código, como duplicação, uso de elementos obsoletos ou \textit{code smells}. A aplicação é compilada e testada localmente com \texttt{ng build} e \texttt{npm test}, sendo analisados avisos e erros produzidos durante este processo. Por fim, a solução é testada em ambiente de desenvolvimento, onde são realizados testes manuais adicionais para confirmar o comportamento final do frontend.
+
 \section{Pipeline Proposta}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[height=0.20\textheight, width=0.6\textwidth]{../../img/proposal_pipeline.pdf}
+    \caption{Pipeline proposta para a geração automática de artefactos de software.}
+    \label{fig:proposal_pipeline}
+\end{figure*}
+
+\noindent{A} pipeline proposta define a arquitetura central deste trabalho para automatizar etapas do processo de desenvolvimento de software. Esta secção apresenta a mesma, descrevendo a sua organização modular, o papel de cada componente e a forma como os diferentes módulos interagem ao longo do processo. Explica-se também os mecanismos de validação e refinamento que, não só asseguram a consistência do processo como aumentam o seu potencial. A Figura \ref{fig:proposal_pipeline} fornece uma visão geral do fluxo completo da pipeline, enquanto a Figura \ref{fig:human-validation} ilustra o ciclo de validação humana que intervém no processo de refinamento.
+
+\subsection{Módulos da Pipeline}
+
+\noindent{A} solução foi concebida para integrar modelos de linguagem em diferentes fases do ciclo de desenvolvimento, articulando a geração automática com mecanismos de validação e refinamento iterativo. Desta forma, cada módulo da pipeline assume uma responsabilidade específica, consumindo e produzindo artefactos que alimentam o módulo seguinte, enquanto a validação humana e o refinamento asseguram que o processo permanece alinhado com os requisitos funcionais e com as práticas internas da Trust Systems. As subseções seguintes descrevem cada um dos módulos mais detalhadamente.
+
+\subsubsection{Interpretador de Requisitos} \label{Gerador_Requisitos}
+
+Este módulo constitui o ponto de entrada da pipeline, sendo responsável por analisar as descrições fornecidas pelo cliente e convertê-las numa representação mais estruturada, como ilustrado na Figura \ref{fig:modulo-requisitos}. O seu papel consiste em interpretar instruções iniciais podendo ser ambíguas e informais e organizá-las de modo a facilitar as etapas posteriores. A estrutura resultante permite que os módulos seguintes operem sobre requisitos mais claros e consistentes, reduzindo a propagação de ambiguidades ao longo do processo.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.08\textheight, width=0.3\textwidth]{../../img/pipeline_proposal_modules/requirements.pdf}
+    \caption{Módulo de interpretação de requisitos.}
+    \label{fig:modulo-requisitos}
+\end{figure}
+\subsubsection{Gerador de Interfaces}
+
+O módulo de geração de interfaces transforma os requisitos estruturados em representações de elementos de interface e fluxos de interação, conforme representado na Figura \ref{fig:modulo-interfaces}. Esta etapa permite antecipar a organização funcional do sistema e constitui um ponto de validação precoce, uma vez que as interfaces refletem, visualmente, a interpretação dos requisitos. A saída deste módulo serve de referência para o frontend e também para a definição das APIs, garantindo que existe correspondência entre o que é apresentado ao utilizador e o que o sistema deve disponibilizar enquanto funcionalidade.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.08\textheight, width=0.3\textwidth]{../../img/pipeline_proposal_modules/interfaces.pdf}
+    \caption{Módulo de geração de interfaces.}
+    \label{fig:modulo-interfaces}
+\end{figure}
+\subsubsection{Gerador da API}
+
+Com base nas interfaces validadas e na lista de requisitos, este módulo gera a especificação da API, definida de forma a representar o contrato de comunicação entre componentes do sistema, tal como a Figura \ref{fig:modulo-api} ilustra. A API surge apenas após a definição e validação da interface, garantindo alinhamento entre as capacidades expostas e os fluxos identificados nas etapas anteriores. Esta especificação, geralmente expressa em formatos formais como OpenAPI, constitui o elemento estruturante que orienta tanto o backend como o frontend, assegurando consistência entre camadas.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.13\textheight, width=0.3\textwidth]{../../img/pipeline_proposal_modules/api.pdf}
+    \caption{Módulo de geração da API.}
+    \label{fig:modulo-api}
+\end{figure}
+\subsubsection{Gerador de Backend}
+
+A partir da especificação da API e da lista de requisitos desenvolvida nas etapas anteriores, este módulo gera os componentes de backend necessários ao funcionamento do sistema, conforme ilustrado na Figura \ref{fig:modulo-backend}. Esta geração inclui estruturas de dados, controladores, serviços e demais elementos da lógica de negócio associados aos endpoints definidos. Ao assentar diretamente na especificação da API, o backend produzido mantém-se alinhado com o comportamento esperado do sistema e reduz a probabilidade de inconsistências entre a descrição funcional e a implementação.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.13\textheight, width=0.3\textwidth]{../../img/pipeline_proposal_modules/backend.pdf}
+    \caption{Módulo de geração do código de backend.}
+    \label{fig:modulo-backend}
+\end{figure}
+\subsubsection{Gerador de Frontend}
+
+O módulo de frontend utiliza a informação proveniente das interfaces e da API para gerar componentes de apresentação e os mecanismos necessários para comunicar com o backend, como ilustrado na Figura \ref{fig:modulo-frontend}. Esta organização permite que a camada de apresentação seja construída de forma alinhada tanto com o design inicial como com o contrato da API, evitando discrepâncias entre o que a interface expõe e o que o sistema efetivamente disponibiliza.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.13\textheight, width=0.3\textwidth]{../../img/pipeline_proposal_modules/frontend.pdf}
+    \caption{Módulo de geração do código de frontend.}
+    \label{fig:modulo-frontend}
+\end{figure}
+\subsubsection{Gerador de Infraestrutura}
+
+Este módulo é responsável por produzir artefactos relacionados com a execução e implantação do sistema, como representado na Figura \ref{fig:modulo-infraestrutura}, incluindo configurações, ficheiros de suporte e componentes necessários para integrar o software em ambientes de desenvolvimento ou produção. A infraestrutura funciona como camada complementar às componentes geradas nas etapas anteriores e assegura que o sistema pode ser executado em condições adequadas, respeitando práticas internas da organização.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.13\textheight, width=0.3\textwidth]{../../img/pipeline_proposal_modules/infraestructure.pdf}
+    \caption{Módulo de geração da Infraestrutura.}
+    \label{fig:modulo-infraestrutura}
+\end{figure}
+\subsection{Controlo de Qualidade da Pipeline}
+
+Esta secção descreve o processo de controlo de qualidade aplicado aos artefactos produzidos pela pipeline, bem como as técnicas utilizadas para melhorar o desempenho e a fiabilidade do sistema. São apresentados os métodos de avaliação que permitem comparar diferentes combinações de modelos de forma consistente, assim como os mecanismos que asseguram que cada etapa da geração permanece alinhada com os requisitos e com o comportamento esperado.
+
+\subsubsection{Validação}
+
+\hspace*{1.5em}\textbf{Métricas Automáticas}
+
+\noindent{A} validação automática incide particularmente sobre a qualidade do código produzido, recorrendo a métricas amplamente utilizadas na investigação em geração de código, nomeadamente \textit{CodeBLEU}\cite{CODEBLEU} e \textit{CodeBERTScore}\cite{CODEBERTSCORE}. Estas métricas derivam, respetivamente, de \textit{BLEU}\cite{BLEU} e \textit{BERTScore}\cite{BERTSCORE}, originalmente propostas para tarefas de linguagem natural, tendo sido adaptadas para refletir propriedades sintáticas e semânticas específicas de programas.
+
+\paragraph{CodeBLEU}foi proposta por Ren et al.\cite{CODEBLEU} e constitui uma extensão do \textit{BLEU} tradicional\cite{BLEU}, concebida especificamente para avaliar código gerado automaticamente. Ao contrário do \textit{BLEU} simples, que mede apenas a sobreposição de \textit{n-gramas}, o \textit{CodeBLEU} agrega múltiplas dimensões de análise para refletir propriedades estruturais e semânticas intrínsecas aos programas. A métrica é definida como uma combinação ponderada de quatro componentes distintos:
+
+\begin{equation}
+\begin{aligned}
+    \text{CodeBLEU} &=
+    \alpha \cdot \text{BLEU}
+    + \beta \cdot \text{BLEU}_{\text{weighted}} \\
+    &\quad
+    + \gamma \cdot \text{Match}_{\text{AST}}
+    + \delta \cdot \text{Match}_{\text{DF}}.
+\end{aligned}
+\end{equation}
+
+\noindent{A} componente \textit{BLEU} mantém a métrica original de sobreposição de \textit{n-gramas} entre o código candidato e o código de referência. A componente \(\text{BLEU}_{\text{weighted}}\) introduz um esquema de ponderação que atribui maior peso a palavras-chave da linguagem de programação (por exemplo, \texttt{if}, \texttt{return}, \texttt{class}), refletindo o impacto diferenciado que estes tokens têm na estrutura e funcionamento do programa.
+
+\noindent{Uma} \textit{Abstract Syntax Tree} (AST) constitui a representação estruturada do código, na qual cada nó corresponde a uma construção sintática, como expressões, instruções ou blocos. Estas árvores descrevem a organização hierárquica do programa de forma independente da sua forma textual, permitindo comparar a estrutura sintática entre diferentes fragmentos de código. A componente \(\text{Match}_{\text{AST}}\) explora precisamente esta característica, avaliando a semelhança estrutural entre o candidato e a referência através da correspondência entre as respetivas subárvores, permitindo capturar erros estruturais, como omissões de blocos, incompatibilidades de tipos ou construções sintaticamente incompletas, sendo definida, de forma simplificada, por:
+\begin{equation}
+\begin{aligned}
+\text{Match}_{\text{AST}} 
+    &= 
+    \frac{\displaystyle \text{total de subárvores coincidentes}}
+         {\displaystyle \text{total de subárvores da referência}}
+\end{aligned}
+\end{equation}
+
+\noindent{Por} sua vez, os grafos de fluxo de dados (\textit{data-flow}) representam a forma como a informação é transmitida e transformada ao longo da execução de um programa, descrevendo as dependências entre variáveis e operações. Estes grafos permitem identificar relações semânticas que não são capturadas apenas pela estrutura sintática, como a origem e propagação de valores ou o modo como diferentes instruções interagem entre si. A componente \(\text{Match}_{\text{DF}}\) recorre precisamente a esta representação para avaliar a similaridade semântica entre o candidato e a referência, comparando os respetivos fluxos de dados associados às variáveis do programa:
+\begin{equation}
+    \text{Match}_{\text{DF}} =
+    \frac{\text{total de fluxos de dados coincidentes}}
+         {\text{total de fluxos de dados da referência}}
+\end{equation}
+
+Desta forma, é possível distinguir fragmentos de código que são lexicalmente semelhantes, mas que apresentam comportamentos lógicos distintos. Na configuração recomendada pelos autores, os pesos são definidos como \(\alpha = 0.1\), \(\beta = 0.1\), \(\gamma = 0.4\) e \(\delta = 0.4\)\cite{CODEBLEU}, atribuindo maior relevância às componentes sintática e semântica. Os resultados experimentais apresentados no trabalho original evidenciam que o \textit{CodeBLEU} apresenta uma correlação mais elevada com a avaliação humana do que métricas tradicionais baseadas apenas em \textit{BLEU}.
+
+\paragraph{CodeBERTScore}segue a mesma lógica do \textit{BERTScore}\cite{BERTSCORE}, adaptando-o ao domínio da programação através da utilização de modelos de representação de código, como o \textit{CodeBERT}\cite{CODEBERT}. Em vez de se basear apenas na coincidência textual, esta métrica avalia a similaridade entre o código gerado e o código de referência a partir de \textit{embeddings} contextuais, captando relações semânticas que subsistem mesmo quando as duas implementações apresentam diferenças ao nível superficial.
+
+Sejam \(C\) o conjunto de tokens do código candidato e \(R\) o conjunto de tokens da referência e, \(\mathbf{e}_t\), \(\mathbf{e}_r\) os \textit{embeddings} associados a cada token por um modelo pré-treinado. A métrica define valores de \textit{precision} e \textit{recall}, calculando um valor final \text{F1} através da média harmónica entre os dois valores, da seguinte forma:
+
+\begin{equation}
+    \text{Precision} =
+    \frac{1}{|C|}
+    \sum_{t \in C}
+    \max_{r \in R}
+    \cos\big(\mathbf{e}_t, \mathbf{e}_r\big),
+\end{equation}
+
+\begin{equation}
+    \text{Recall} =
+    \frac{1}{|R|}
+    \sum_{r \in R}
+    \max_{t \in C}
+    \cos\big(\mathbf{e}_r, \mathbf{e}_t\big),
+\end{equation}
+
+\begin{equation}
+    \text{F1} =
+    2 \cdot
+    \frac{\text{Precision} \cdot \text{Recall}}
+         {\text{Precision} + \text{Recall}}.
+\end{equation}
+
+Ao basear-se em representações distribuídas treinadas especificamente em código fonte, o \textit{CodeBERTScore} consegue avaliar a proximidade semântica entre duas soluções, mesmo quando estas utilizam diferentes estruturas de controlo, convenções de nomenclatura ou organizações de código. Esta característica torna a métrica particularmente adequada em cenários em que é expectável a existência de múltiplas implementações corretas para o mesmo problema, complementando assim a avaliação estrutural fornecida pelo \textit{CodeBLEU}\cite{CODEBLEU}.\\
+
+\indent\textbf{Validação humana}
+
+\noindent{Para} além das métricas automáticas, a avaliação da qualidade dos artefactos gerados integra igualmente uma componente de apreciação humana. A análise por parte de um avaliador permite identificar aspetos que não são totalmente captados pelas métricas quantitativas, tais como clareza, adequação ao enunciado, legibilidade e conformidade com boas práticas de programação. A inclusão desta dimensão qualitativa assegura que a comparação entre diferentes combinações de modelos não se limita à proximidade numérica relativamente ao código de referência.
+
+\noindent{Deste} modo, a avaliação final resulta da combinação equilibrada entre métricas automáticas e julgamento humano, garantindo uma análise mais completa e representativa da qualidade global das soluções geradas.
+
+\subsubsection{Refinamento}
+
+O processo de refinamento tem como objetivo melhorar progressivamente a qualidade dos artefactos produzidos pela pipeline, garantindo que estes evoluem de acordo com os requisitos definidos e com as expectativas do utilizador. Este processo assenta em duas componentes complementares, o ciclo de validação humana e a aplicação sistemática de técnicas de \textit{prompt engineering} antes da execução de cada módulo.
+
+\noindent{A} validação humana constitui um mecanismo central deste processo. Após a geração de cada artefacto por parte do respetivo modelo, o resultado é analisado por um avaliador, que determina se este é adequado ou se necessita de ajustamentos. Sempre que o artefacto não cumpre os critérios esperados, o avaliador fornece orientações explícitas que descrevem os aspetos a corrigir. Este feedback é então reintegrado no sistema, originando uma nova iteração de geração. O processo repete-se até que o avaliador considere que o artefacto atinge um nível de qualidade satisfatório. Este ciclo iterativo, ilustrado na Figura \ref{fig:human-validation}, permite incorporar de forma contínua a interpretação humana e assegurar que o sistema se adapta às necessidades específicas do contexto.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{../../img/human_validation.pdf}
+    \caption{Ciclo de validação e feedback humano.}
+    \label{fig:human-validation}
+\end{figure}
+
+\noindent{Para} além da validação humana, o refinamento é reforçado pela aplicação sistemática de técnicas de \textit{prompt engineering} na entrada de cada módulo da pipeline. Estas técnicas orientam o comportamento dos modelos de linguagem, reduzindo ambiguidades e aumentando a precisão, completude e consistência das respostas. A preparação cuidadosa dos pedidos pode incluir a definição de papéis, a formulação estruturada das instruções, a inclusão de exemplos (\textit{few-shot prompting}), a imposição de restrições explícitas ou outras estratégias adequadas ao tipo de artefacto a gerar. Nos diagramas apresentados ao longo desta dissertação, a aplicação destas técnicas é assinalada pelo ícone de duas engrenagens colocado antes de cada modelo, simbolizando que a geração de cada artefacto é antecedida por um conjunto de instruções cuidadosamente formuladas para orientar o comportamento do LLM.
+
+\noindent{A} combinação entre validação humana iterativa e técnicas de \textit{prompt engineering} confere ao processo de refinamento uma natureza adaptativa. Cada iteração incorpora o feedback obtido e melhora o comportamento subsequente dos modelos, promovendo a convergência para artefactos mais completos, precisos e alinhados com o objetivo final da pipeline. Deste modo, o refinamento não apenas complementa a validação automática discutida anteriormente, como assegura um controlo de qualidade dinâmico e sensível ao contexto ao longo de todo o fluxo de geração.
 
 \section{Planeamento do Trabalho}
 

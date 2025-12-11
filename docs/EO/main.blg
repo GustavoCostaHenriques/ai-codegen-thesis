@@ -34,6 +34,7 @@ Warning--page numbers missing in both pages and numpages fields in StarCoder
 Warning--empty publisher in GPT-3
 Warning--empty address in GPT-3
 Warning--page numbers missing in both pages and numpages fields in GPT-3
+Warning--empty address in CODEBERT
 Warning--page numbers missing in both pages and numpages fields in ChatGPTGenerationPE
 Warning--empty address in SpecGen
 Warning--empty publisher in PEinLLMS
@@ -41,7 +42,9 @@ Warning--empty address in PEinLLMS
 Warning--empty address in CopilotStudy
 Warning--no number and no volume in CopilotRole
 Warning--page numbers missing in both pages and numpages fields in CopilotRole
+Warning--empty address in BLEU
 Warning--empty address in Spec2Code
+Warning--page numbers missing in both pages and numpages fields in CODEBLEU
 Warning--empty address in Waterfall
 Warning--page numbers missing in both pages and numpages fields in CodeLlama
 Warning--page numbers missing in both pages and numpages fields in PETechniques
@@ -50,46 +53,49 @@ Warning--empty publisher in Transformer
 Warning--empty address in Transformer
 Warning--page numbers missing in both pages and numpages fields in PET-SELECT
 Warning--page numbers missing in both pages and numpages fields in AmazonCodeWhisperer
+Warning--empty address in BERTSCORE
+Warning--page numbers missing in both pages and numpages fields in BERTSCORE
+Warning--empty address in CODEBERTSCORE
 Warning--page numbers missing in both pages and numpages fields in GitHubCopilot
-You've used 32 entries,
+You've used 37 entries,
             6273 wiz_defined-function locations,
-            1786 strings with 27785 characters,
-and the built_in function-call counts, 38910 in all, are:
-= -- 5187
-> -- 1584
+            1831 strings with 29694 characters,
+and the built_in function-call counts, 45869 in all, are:
+= -- 5952
+> -- 1913
 < -- 0
-+ -- 544
-- -- 536
-* -- 3153
-:= -- 3825
-add.period$ -- 160
-call.type$ -- 32
-change.case$ -- 291
-chr.to.int$ -- 31
-cite$ -- 73
-duplicate$ -- 3111
-empty$ -- 2228
-format.name$ -- 624
-if$ -- 9599
++ -- 657
+- -- 644
+* -- 3759
+:= -- 4539
+add.period$ -- 185
+call.type$ -- 37
+change.case$ -- 345
+chr.to.int$ -- 36
+cite$ -- 84
+duplicate$ -- 3695
+empty$ -- 2637
+format.name$ -- 752
+if$ -- 11226
 int.to.chr$ -- 3
 int.to.str$ -- 1
-missing$ -- 124
-newline$ -- 347
-num.names$ -- 226
-pop$ -- 1321
+missing$ -- 148
+newline$ -- 395
+num.names$ -- 265
+pop$ -- 1578
 preamble$ -- 1
-purify$ -- 538
+purify$ -- 632
 quote$ -- 0
-skip$ -- 1030
+skip$ -- 1244
 stack$ -- 0
-substring$ -- 2527
-swap$ -- 265
+substring$ -- 2993
+swap$ -- 323
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 647
-warning$ -- 37
-while$ -- 173
+type$ -- 783
+warning$ -- 43
+while$ -- 199
 width$ -- 0
-write$ -- 692
-(There were 37 warnings)
+write$ -- 800
+(There were 43 warnings)

@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{32}
+\begin{thebibliography}{37}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -193,6 +193,26 @@
 \tempurl}
 
 
+\bibitem[Feng et~al\mbox{.}(2020)]%
+        {CODEBERT}
+\bibfield{author}{\bibinfo{person}{Zhangyin Feng}, \bibinfo{person}{Daya Guo},
+  \bibinfo{person}{Duyu Tang}, \bibinfo{person}{Nan Duan},
+  \bibinfo{person}{Xiaocheng Feng}, \bibinfo{person}{Ming Gong},
+  \bibinfo{person}{Linjun Shou}, \bibinfo{person}{Bing Qin},
+  \bibinfo{person}{Ting Liu}, \bibinfo{person}{Daxin Jiang}, {and}
+  \bibinfo{person}{Ming Zhou}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{CodeBERT: {A} Pre-Trained Model for Programming and
+  Natural Languages}. In \bibinfo{booktitle}{\emph{Findings of the Association
+  for Computational Linguistics: {EMNLP} 2020, Online Event, 16-20 November
+  2020}} \emph{(\bibinfo{series}{Findings of {ACL}},
+  Vol.~\bibinfo{volume}{{EMNLP} 2020})},
+  \bibfield{editor}{\bibinfo{person}{Trevor Cohn}, \bibinfo{person}{Yulan He},
+  {and} \bibinfo{person}{Yang Liu}} (Eds.). \bibinfo{publisher}{Association for
+  Computational Linguistics}, \bibinfo{pages}{1536--1547}.
+\newblock
+\href{https://doi.org/10.18653/V1/2020.FINDINGS-EMNLP.139}{doi:\nolinkurl{10.18653/V1/2020.FINDINGS-EMNLP.139}}
+
+
 \bibitem[Fern{\'{a}}ndez{-}Diego et~al\mbox{.}(2020)]%
         {Agile}
 \bibfield{author}{\bibinfo{person}{Marta Fern{\'{a}}ndez{-}Diego},
@@ -336,6 +356,20 @@
 \newblock
 
 
+\bibitem[Papineni et~al\mbox{.}(2002)]%
+        {BLEU}
+\bibfield{author}{\bibinfo{person}{Kishore Papineni}, \bibinfo{person}{Salim
+  Roukos}, \bibinfo{person}{Todd Ward}, {and} \bibinfo{person}{Wei{-}Jing
+  Zhu}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{Bleu: a Method for Automatic Evaluation of Machine
+  Translation}. In \bibinfo{booktitle}{\emph{Proceedings of the 40th Annual
+  Meeting of the Association for Computational Linguistics, July 6-12, 2002,
+  Philadelphia, PA, {USA}}}. \bibinfo{publisher}{{ACL}},
+  \bibinfo{pages}{311--318}.
+\newblock
+\href{https://doi.org/10.3115/1073083.1073135}{doi:\nolinkurl{10.3115/1073083.1073135}}
+
+
 \bibitem[Patil et~al\mbox{.}(2024)]%
         {Spec2Code}
 \bibfield{author}{\bibinfo{person}{Minal~Suresh Patil}, \bibinfo{person}{Gustav
@@ -350,6 +384,26 @@
   Steffen}} (Ed.). \bibinfo{publisher}{Springer}, \bibinfo{pages}{125--144}.
 \newblock
 \href{https://doi.org/10.1007/978-3-031-75434-0\_9}{doi:\nolinkurl{10.1007/978-3-031-75434-0\_9}}
+
+
+\bibitem[Ren et~al\mbox{.}(2020)]%
+        {CODEBLEU}
+\bibfield{author}{\bibinfo{person}{Shuo Ren}, \bibinfo{person}{Daya Guo},
+  \bibinfo{person}{Shuai Lu}, \bibinfo{person}{Long Zhou},
+  \bibinfo{person}{Shujie Liu}, \bibinfo{person}{Duyu Tang},
+  \bibinfo{person}{Neel Sundaresan}, \bibinfo{person}{Ming Zhou},
+  \bibinfo{person}{Ambrosio Blanco}, {and} \bibinfo{person}{Shuai Ma}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{CodeBLEU: a Method for Automatic Evaluation of Code
+  Synthesis}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2009.10297}
+  (\bibinfo{year}{2020}).
+\newblock
+\showeprint[arXiv]{2009.10297}
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2009.10297}
+\showURL{%
+\tempurl}
 
 
 \bibitem[Royce(1987)]%
@@ -483,6 +537,22 @@
 \href{https://doi.org/10.48550/ARXIV.2304.10778}{doi:\nolinkurl{10.48550/ARXIV.2304.10778}}
 
 
+\bibitem[Zhang et~al\mbox{.}(2020)]%
+        {BERTSCORE}
+\bibfield{author}{\bibinfo{person}{Tianyi Zhang}, \bibinfo{person}{Varsha
+  Kishore}, \bibinfo{person}{Felix Wu}, \bibinfo{person}{Kilian~Q. Weinberger},
+  {and} \bibinfo{person}{Yoav Artzi}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{BERTScore: Evaluating Text Generation with {BERT}}.
+  In \bibinfo{booktitle}{\emph{8th International Conference on Learning
+  Representations, {ICLR} 2020, Addis Ababa, Ethiopia, April 26-30, 2020}}.
+  \bibinfo{publisher}{OpenReview.net}.
+\newblock
+\urldef\tempurl%
+\url{https://openreview.net/forum?id=SkeHuCVFDr}
+\showURL{%
+\tempurl}
+
+
 \bibitem[Zhou et~al\mbox{.}(2025)]%
         {PEREFINERCODE}
 \bibfield{author}{\bibinfo{person}{Changzhi Zhou}, \bibinfo{person}{Xinyu
@@ -498,6 +568,23 @@
 \url{https://arxiv.org/abs/2502.09183}
 \showURL{%
 \tempurl}
+
+
+\bibitem[Zhou et~al\mbox{.}(2023)]%
+        {CODEBERTSCORE}
+\bibfield{author}{\bibinfo{person}{Shuyan Zhou}, \bibinfo{person}{Uri Alon},
+  \bibinfo{person}{Sumit Agarwal}, {and} \bibinfo{person}{Graham Neubig}.}
+  \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{CodeBERTScore: Evaluating Code Generation with
+  Pretrained Models of Code}. In \bibinfo{booktitle}{\emph{Proceedings of the
+  2023 Conference on Empirical Methods in Natural Language Processing, {EMNLP}
+  2023, Singapore, December 6-10, 2023}},
+  \bibfield{editor}{\bibinfo{person}{Houda Bouamor}, \bibinfo{person}{Juan
+  Pino}, {and} \bibinfo{person}{Kalika Bali}} (Eds.).
+  \bibinfo{publisher}{Association for Computational Linguistics},
+  \bibinfo{pages}{13921--13937}.
+\newblock
+\href{https://doi.org/10.18653/V1/2023.EMNLP-MAIN.859}{doi:\nolinkurl{10.18653/V1/2023.EMNLP-MAIN.859}}
 
 
 \bibitem[Ziegler et~al\mbox{.}(2022)]%
