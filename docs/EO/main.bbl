@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{37}
+\begin{thebibliography}{36}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -47,19 +47,18 @@
 \shownote{Accessed: 2025-11-22}.
 
 
-\bibitem[Berenbach(2004)]%
+\bibitem[Bouzian(2020)]%
         {UML}
-\bibfield{author}{\bibinfo{person}{Brian Berenbach}.}
-  \bibinfo{year}{2004}\natexlab{}.
-\newblock \showarticletitle{Comparison of {UML} and text based requirements
-  engineering}. In \bibinfo{booktitle}{\emph{Companion to the 19th Annual {ACM}
-  {SIGPLAN} Conference on Object-Oriented Programming, Systems, Languages, and
-  Applications, {OOPSLA} 2004, October 24-28, 2004, Vancouver, BC, Canada}},
-  \bibfield{editor}{\bibinfo{person}{John~M. Vlissides} {and}
-  \bibinfo{person}{Douglas~C. Schmidt}} (Eds.). \bibinfo{publisher}{{ACM}},
-  \bibinfo{pages}{247--252}.
+\bibfield{author}{\bibinfo{person}{E.~M. Bouzian}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Use case and UML Scenarios Engineering for Building
+  B2B E-commerce}.
+\newblock \bibinfo{journal}{\emph{International Journal of Advanced Trends in
+  Computer Science and Engineering}}  \bibinfo{volume}{9}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{5428--5432}.
 \newblock
-\href{https://doi.org/10.1145/1028664.1028766}{doi:\nolinkurl{10.1145/1028664.1028766}}
+Issue 4.
+\href{https://doi.org/10.30534/ijatcse/2020/180942020}{doi:\nolinkurl{10.30534/ijatcse/2020/180942020}}
 
 
 \bibitem[Brambilla et~al\mbox{.}(2012)]%
@@ -92,19 +91,6 @@
 \newblock
 \showeprint[arXiv]{2303.12712}
 \href{https://doi.org/10.48550/ARXIV.2303.12712}{doi:\nolinkurl{10.48550/ARXIV.2303.12712}}
-
-
-\bibitem[Cottier et~al\mbox{.}(2024)]%
-        {CostIncreaseInLLMS}
-\bibfield{author}{\bibinfo{person}{Ben Cottier}, \bibinfo{person}{Robi Rahman},
-  \bibinfo{person}{Loredana Fattorini}, \bibinfo{person}{Nestor Maslej}, {and}
-  \bibinfo{person}{David Owen}.} \bibinfo{year}{2024}\natexlab{}.
-\newblock \showarticletitle{The rising costs of training frontier {AI} models}.
-\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2405.21015}
-  (\bibinfo{year}{2024}).
-\newblock
-\showeprint[arXiv]{2405.21015}
-\href{https://doi.org/10.48550/ARXIV.2405.21015}{doi:\nolinkurl{10.48550/ARXIV.2405.21015}}
 
 
 \bibitem[Ding et~al\mbox{.}(2024)]%
