@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{36}
+\begin{thebibliography}{35}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -340,20 +340,6 @@ Issue 4.
 \newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2502.13199}}
   (\bibinfo{year}{2025}).
 \newblock
-
-
-\bibitem[Papineni et~al\mbox{.}(2002)]%
-        {BLEU}
-\bibfield{author}{\bibinfo{person}{Kishore Papineni}, \bibinfo{person}{Salim
-  Roukos}, \bibinfo{person}{Todd Ward}, {and} \bibinfo{person}{Wei{-}Jing
-  Zhu}.} \bibinfo{year}{2002}\natexlab{}.
-\newblock \showarticletitle{Bleu: a Method for Automatic Evaluation of Machine
-  Translation}. In \bibinfo{booktitle}{\emph{Proceedings of the 40th Annual
-  Meeting of the Association for Computational Linguistics, July 6-12, 2002,
-  Philadelphia, PA, {USA}}}. \bibinfo{publisher}{{ACL}},
-  \bibinfo{pages}{311--318}.
-\newblock
-\href{https://doi.org/10.3115/1073083.1073135}{doi:\nolinkurl{10.3115/1073083.1073135}}
 
 
 \bibitem[Patil et~al\mbox{.}(2024)]%

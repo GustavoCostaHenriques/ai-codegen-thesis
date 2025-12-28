@@ -9,6 +9,7 @@ Reallocating 'singl_function' (item size: 4) to 100 items.
 Reallocating 'wiz_functions' (item size: 4) to 6000 items.
 Database file #1: sample-base.bib
 Warning--I didn't find a database entry for "Cottier"
+Warning--I didn't find a database entry for "CODEBLEUBERTSCORE"
 Reallocating 'singl_function' (item size: 4) to 100 items.
 Reallocating 'wiz_functions' (item size: 4) to 9000 items.
 Warning--no key, author in JML
@@ -41,7 +42,6 @@ Warning--empty address in PEinLLMS
 Warning--empty address in CopilotStudy
 Warning--no number and no volume in CopilotRole
 Warning--page numbers missing in both pages and numpages fields in CopilotRole
-Warning--empty address in BLEU
 Warning--empty address in Spec2Code
 Warning--page numbers missing in both pages and numpages fields in CODEBLEU
 Warning--empty address in Waterfall
@@ -56,45 +56,45 @@ Warning--empty address in BERTSCORE
 Warning--page numbers missing in both pages and numpages fields in BERTSCORE
 Warning--empty address in CODEBERTSCORE
 Warning--page numbers missing in both pages and numpages fields in GitHubCopilot
-You've used 36 entries,
+You've used 35 entries,
             6273 wiz_defined-function locations,
-            1821 strings with 29270 characters,
-and the built_in function-call counts, 44734 in all, are:
-= -- 5848
-> -- 1858
+            1813 strings with 28965 characters,
+and the built_in function-call counts, 43462 in all, are:
+= -- 5709
+> -- 1819
 < -- 0
-+ -- 637
-- -- 627
-* -- 3655
-:= -- 4420
-add.period$ -- 180
-call.type$ -- 36
-change.case$ -- 336
-chr.to.int$ -- 35
-cite$ -- 81
-duplicate$ -- 3592
-empty$ -- 2563
-format.name$ -- 731
-if$ -- 10971
++ -- 624
+- -- 615
+* -- 3562
+:= -- 4303
+add.period$ -- 175
+call.type$ -- 35
+change.case$ -- 328
+chr.to.int$ -- 34
+cite$ -- 79
+duplicate$ -- 3467
+empty$ -- 2477
+format.name$ -- 715
+if$ -- 10667
 int.to.chr$ -- 3
 int.to.str$ -- 1
-missing$ -- 143
-newline$ -- 387
-num.names$ -- 256
-pop$ -- 1524
+missing$ -- 138
+newline$ -- 379
+num.names$ -- 249
+pop$ -- 1472
 preamble$ -- 1
-purify$ -- 615
+purify$ -- 599
 quote$ -- 0
-skip$ -- 1210
+skip$ -- 1162
 stack$ -- 0
-substring$ -- 2937
-swap$ -- 319
+substring$ -- 2833
+swap$ -- 305
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 753
-warning$ -- 41
-while$ -- 194
+type$ -- 723
+warning$ -- 40
+while$ -- 188
 width$ -- 0
-write$ -- 780
+write$ -- 760
 (There were 42 warnings)

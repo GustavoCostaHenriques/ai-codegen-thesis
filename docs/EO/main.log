@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  21 DEC 2025 22:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  28 DEC 2025 15:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1179,14 +1179,11 @@ Underfull \hbox (badness 10000) in paragraph at lines 113--114
  []
 
 
-Underfull \vbox (badness 2359) has occurred while \output is active []
-
-
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 122--122
 
  []
+
+
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 126--126
@@ -1194,9 +1191,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 126--126
  []
 
 
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.0pt on input line 130.
+(Font)              scaled to size 7.0pt on input line 134.
 [2.2]
 Underfull \hbox (badness 10000) in paragraph at lines 134--134
 
@@ -1207,7 +1207,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 136--136
 
  []
 
-<../../img/waterfall_agille.png, id=128, 1891.065pt x 1007.765pt>
+<../../img/waterfall_agille.png, id=129, 1891.065pt x 1007.765pt>
 File: ../../img/waterfall_agille.png Graphic file (type png)
 <use ../../img/waterfall_agille.png>
 Package pdftex.def Info: ../../img/waterfall_agille.png  used on input line 140.
@@ -1226,240 +1226,249 @@ Underfull \hbox (badness 10000) in paragraph at lines 149--149
  []
 
 
-Underfull \vbox (badness 2626) has occurred while \output is active []
+Underfull \hbox (badness 10000) in paragraph at lines 157--157
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 169--169
+
+ []
+
+<../../img/codellama_family.pdf, id=134, 1075.12665pt x 201.77483pt>
+File: ../../img/codellama_family.pdf Graphic file (type pdf)
+<use ../../img/codellama_family.pdf>
+Package pdftex.def Info: ../../img/codellama_family.pdf  used on input line 173.
+(pdftex.def)             Requested size: 430.00958pt x 80.70233pt.
+
+Class acmart Warning: A possible image without description on input line 176.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
 [3.3 <../../img/waterfall_agille.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 158--158
-
+Overfull \hbox (16.99pt too wide) in paragraph at lines 189--189
+\T1/LinuxLibertineT-TLF/m/n/10 (-20) Adicionalmente, o StarCoder[[]] e a sua evo-lu-ção, o StarCoder2[[]],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 170--170
-
+Overfull \hbox (15.26959pt too wide) in paragraph at lines 189--189
+\T1/LinuxLibertineT-TLF/m/n/10 (-20) fo-ram trei-na-dos em larga es-cala no da-ta-set The Stack, destacando-
  []
 
-<../../img/codellama_family.pdf, id=144, 1075.12665pt x 201.77483pt>
-File: ../../img/codellama_family.pdf Graphic file (type pdf)
-<use ../../img/codellama_family.pdf>
-Package pdftex.def Info: ../../img/codellama_family.pdf  used on input line 174.
-(pdftex.def)             Requested size: 430.00958pt x 80.70233pt.
 
-Class acmart Warning: A possible image without description on input line 177.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 190--190
+Underfull \hbox (badness 10000) in paragraph at lines 189--189
 
  []
 
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.3pt on input line 192.
+(Font)              scaled to size 7.3pt on input line 191.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 6.0pt on input line 192.
-
-Underfull \hbox (badness 10000) in paragraph at lines 196--197
-
- []
+(Font)              scaled to size 6.0pt on input line 191.
 
 
 
-[4.4]
-Underfull \hbox (badness 10000) in paragraph at lines 200--200
+Underfull \hbox (badness 10000) in paragraph at lines 195--196
 
  []
 
 
-Underfull \vbox (badness 3547) has occurred while \output is active []
 
-
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 204--205
+[4.4 <../../img/codellama_family.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 199--199
 
  []
 
-<../../img/code_generation_tineline.png, id=184, 296.307pt x 462.528pt>
+
+Underfull \hbox (badness 10000) in paragraph at lines 203--204
+
+ []
+
+<../../img/code_generation_tineline.png, id=191, 296.307pt x 462.528pt>
 File: ../../img/code_generation_tineline.png Graphic file (type png)
 <use ../../img/code_generation_tineline.png>
-Package pdftex.def Info: ../../img/code_generation_tineline.png  used on input line 208.
+Package pdftex.def Info: ../../img/code_generation_tineline.png  used on input line 207.
 (pdftex.def)             Requested size: 101.17256pt x 193.80168pt.
 
-Class acmart Warning: A possible image without description on input line 211.
+Class acmart Warning: A possible image without description on input line 210.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 215--215
-
- []
-
-
-
-[5.5 <../../img/codellama_family.pdf> <../../img/code_generation_tineline.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 218--218
+Underfull \hbox (badness 10000) in paragraph at lines 214--214
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 220--220
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 222--223
+Underfull \hbox (badness 10000) in paragraph at lines 217--217
 
  []
 
 
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--233
+Underfull \hbox (badness 10000) in paragraph at lines 219--219
 
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \hbox (badness 10000) in paragraph at lines 221--222
+
+ []
+
+
+Underfull \vbox (badness 1377) has occurred while \output is active []
 
 
 
-[6.6]
-<../../img/market_analysis.png, id=222, 1328.965pt x 686.565pt>
+[5.5 <../../img/code_generation_tineline.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 231--232
+
+ []
+
+
+
+<../../img/market_analysis.png, id=217, 1328.965pt x 686.565pt>
 File: ../../img/market_analysis.png Graphic file (type png)
 <use ../../img/market_analysis.png>
-Package pdftex.def Info: ../../img/market_analysis.png  used on input line 240.
+Package pdftex.def Info: ../../img/market_analysis.png  used on input line 239.
 (pdftex.def)             Requested size: 202.33734pt x 96.89368pt.
 
+Class acmart Warning: A possible image without description on input line 242.
 
-Class acmart Warning: A possible image without description on input line 243.
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 251--252
+Underfull \hbox (badness 10000) in paragraph at lines 250--251
 
  []
 
 
-Class acmart Warning: \vspace should only be used to provide space above/below surrounding objects on input line 255.
 
+[6.6 <../../img/market_analysis.png>]
 
+Class acmart Warning: \vspace should only be used to provide space above/below surrounding objects on input line 254.
 
-<../../img/architectural_views.png, id=224, 1256.695pt x 859.21pt>
+<../../img/architectural_views.png, id=226, 1256.695pt x 859.21pt>
 File: ../../img/architectural_views.png Graphic file (type png)
 <use ../../img/architectural_views.png>
-Package pdftex.def Info: ../../img/architectural_views.png  used on input line 260.
+Package pdftex.def Info: ../../img/architectural_views.png  used on input line 259.
 (pdftex.def)             Requested size: 252.9453pt x 193.799pt.
 
-Overfull \hbox (12.0003pt too wide) in paragraph at lines 260--261
+Overfull \hbox (12.0003pt too wide) in paragraph at lines 259--260
  [][] 
  []
 
 
-Class acmart Warning: A possible image without description on input line 263.
+Class acmart Warning: A possible image without description on input line 262.
+
+
 
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 8.0pt on input line 273.
+(Font)              scaled to size 8.0pt on input line 272.
 
-
-[7.7 <../../img/market_analysis.png> <../../img/architectural_views.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 275--276
+Underfull \hbox (badness 10000) in paragraph at lines 274--275
 
  []
 
-<../../img/backend_endpoint.pdf, id=244, 1088.065pt x 887.315pt>
+<../../img/backend_endpoint.pdf, id=236, 1088.065pt x 887.315pt>
 File: ../../img/backend_endpoint.pdf Graphic file (type pdf)
 <use ../../img/backend_endpoint.pdf>
-Package pdftex.def Info: ../../img/backend_endpoint.pdf  used on input line 283.
+Package pdftex.def Info: ../../img/backend_endpoint.pdf  used on input line 282.
 (pdftex.def)             Requested size: 177.06581pt x 96.88736pt.
 
-Class acmart Warning: A possible image without description on input line 286.
+Class acmart Warning: A possible image without description on input line 285.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 290--291
+Underfull \hbox (badness 10000) in paragraph at lines 289--290
 
  []
 
 
 
-<../../img/frontend_process.png, id=248, 843.15pt x 887.315pt>
+[7.7 <../../img/architectural_views.png>]
+<../../img/frontend_process.png, id=253, 843.15pt x 887.315pt>
 File: ../../img/frontend_process.png Graphic file (type png)
 <use ../../img/frontend_process.png>
-Package pdftex.def Info: ../../img/frontend_process.png  used on input line 300.
+Package pdftex.def Info: ../../img/frontend_process.png  used on input line 299.
 (pdftex.def)             Requested size: 151.76045pt x 116.26213pt.
 
-Class acmart Warning: A possible image without description on input line 303.
 
-<../../img/proposal_pipeline.pdf, id=249, 5167.305pt x 1489.565pt>
+Class acmart Warning: A possible image without description on input line 302.
+
+<../../img/proposal_pipeline.pdf, id=254, 5167.305pt x 1489.565pt>
 File: ../../img/proposal_pipeline.pdf Graphic file (type pdf)
 <use ../../img/proposal_pipeline.pdf>
-Package pdftex.def Info: ../../img/proposal_pipeline.pdf  used on input line 307.
+Package pdftex.def Info: ../../img/proposal_pipeline.pdf  used on input line 306.
 (pdftex.def)             Requested size: 455.2604pt x 129.19107pt.
 
-Class acmart Warning: A possible image without description on input line 310.
+Class acmart Warning: A possible image without description on input line 309.
 
-LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 318.
+
+
+LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 317.
 (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/inconsolata\t1zi4.fd
 File: t1zi4.fd 2018/01/14 T1/zi4 (Inconsolata)
 )
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 10.0pt on input line 318.
+(Font)              scaled to size 10.0pt on input line 317.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 
 
-[8.8 <../../img/backend_endpoint.pdf> <../../img/frontend_process.png>]
+Class acmart Warning: \vspace should only be used to provide space above/below surrounding objects on input line 325.
 
-<../../img/pipeline_proposal_modules/requirements.pdf, id=278, 1240.635pt x 393.47pt>
+
+
+[8.8{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/inconsolata/i4-t1-4.enc} <../../img/backend_endpoint.pdf> <../../img/frontend_process.png>]
+<../../img/pipeline_proposal_modules/requirements.pdf, id=282, 1240.635pt x 393.47pt>
 File: ../../img/pipeline_proposal_modules/requirements.pdf Graphic file (type pdf)
 <use ../../img/pipeline_proposal_modules/requirements.pdf>
-Package pdftex.def Info: ../../img/pipeline_proposal_modules/requirements.pdf  used on input line 339.
+Package pdftex.def Info: ../../img/pipeline_proposal_modules/requirements.pdf  used on input line 337.
 (pdftex.def)             Requested size: 151.76614pt x 51.67522pt.
 
-Class acmart Warning: A possible image without description on input line 342.
 
-<../../img/pipeline_proposal_modules/interfaces.pdf, id=280, 1276.77pt x 409.53pt>
+Class acmart Warning: A possible image without description on input line 340.
+
+<../../img/pipeline_proposal_modules/interfaces.pdf, id=284, 1276.77pt x 409.53pt>
 File: ../../img/pipeline_proposal_modules/interfaces.pdf Graphic file (type pdf)
 <use ../../img/pipeline_proposal_modules/interfaces.pdf>
-Package pdftex.def Info: ../../img/pipeline_proposal_modules/interfaces.pdf  used on input line 348.
+Package pdftex.def Info: ../../img/pipeline_proposal_modules/interfaces.pdf  used on input line 346.
 (pdftex.def)             Requested size: 151.76413pt x 51.67853pt.
 
-Class acmart Warning: A possible image without description on input line 351.
+Class acmart Warning: A possible image without description on input line 349.
 
 
 
-[9.9{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/inconsolata/i4-t1-4.enc} <../../img/proposal_pipeline.pdf> <../../img/pipeline_proposal_modules/requirements.pdf>]
-<../../img/pipeline_proposal_modules/api.pdf, id=307, 1365.1pt x 682.55pt>
+<../../img/pipeline_proposal_modules/api.pdf, id=286, 1365.1pt x 682.55pt>
 File: ../../img/pipeline_proposal_modules/api.pdf Graphic file (type pdf)
 <use ../../img/pipeline_proposal_modules/api.pdf>
-Package pdftex.def Info: ../../img/pipeline_proposal_modules/api.pdf  used on input line 357.
+Package pdftex.def Info: ../../img/pipeline_proposal_modules/api.pdf  used on input line 356.
 (pdftex.def)             Requested size: 151.76535pt x 83.97502pt.
 
+Class acmart Warning: A possible image without description on input line 359.
 
-Class acmart Warning: A possible image without description on input line 360.
-
-<../../img/pipeline_proposal_modules/backend.pdf, id=309, 1240.635pt x 666.49pt>
+<../../img/pipeline_proposal_modules/backend.pdf, id=288, 1240.635pt x 666.49pt>
 File: ../../img/pipeline_proposal_modules/backend.pdf Graphic file (type pdf)
 <use ../../img/pipeline_proposal_modules/backend.pdf>
-Package pdftex.def Info: ../../img/pipeline_proposal_modules/backend.pdf  used on input line 366.
+Package pdftex.def Info: ../../img/pipeline_proposal_modules/backend.pdf  used on input line 365.
 (pdftex.def)             Requested size: 151.76614pt x 83.98224pt.
 
-Class acmart Warning: A possible image without description on input line 369.
+Class acmart Warning: A possible image without description on input line 368.
 
-<../../img/pipeline_proposal_modules/frontend.pdf, id=311, 1240.635pt x 662.475pt>
+
+
+[9.9 <../../img/proposal_pipeline.pdf> <../../img/pipeline_proposal_modules/requirements.pdf> <../../img/pipeline_proposal_modules/interfaces.pdf> <../../img/pipeline_proposal_modules/api.pdf>]
+<../../img/pipeline_proposal_modules/frontend.pdf, id=325, 1240.635pt x 662.475pt>
 File: ../../img/pipeline_proposal_modules/frontend.pdf Graphic file (type pdf)
 <use ../../img/pipeline_proposal_modules/frontend.pdf>
-Package pdftex.def Info: ../../img/pipeline_proposal_modules/frontend.pdf  used on input line 375.
+Package pdftex.def Info: ../../img/pipeline_proposal_modules/frontend.pdf  used on input line 374.
 (pdftex.def)             Requested size: 151.76614pt x 83.98175pt.
 
-Class acmart Warning: A possible image without description on input line 378.
 
+Class acmart Warning: A possible image without description on input line 377.
 
-
-<../../img/pipeline_proposal_modules/infraestructure.pdf, id=313, 1304.875pt x 666.49pt>
+<../../img/pipeline_proposal_modules/infraestructure.pdf, id=327, 1304.875pt x 666.49pt>
 File: ../../img/pipeline_proposal_modules/infraestructure.pdf Graphic file (type pdf)
 <use ../../img/pipeline_proposal_modules/infraestructure.pdf>
 Package pdftex.def Info: ../../img/pipeline_proposal_modules/infraestructure.pdf  used on input line 384.
@@ -1468,72 +1477,69 @@ Package pdftex.def Info: ../../img/pipeline_proposal_modules/infraestructure.pdf
 Class acmart Warning: A possible image without description on input line 387.
 
 
-Overfull \hbox (1.32677pt too wide) in paragraph at lines 396--397
-\T1/LinuxLibertineT-TLF/m/n/10 (-20) tri-cas de-ri-vam, res-pe-ti-va-mente, de \T1/LinuxLibertineT-TLF/m/it/10 (-20) BLEU\T1/LinuxLibertineT-TLF/m/n/10 (-20) [[]] e \T1/LinuxLibertineT-TLF/m/it/10 (-20) BERTS-core\T1/LinuxLibertineT-TLF/m/n/10 (-20) [[]],
- []
 
 
 
-[10.10 <../../img/pipeline_proposal_modules/interfaces.pdf> <../../img/pipeline_proposal_modules/api.pdf> <../../img/pipeline_proposal_modules/backend.pdf> <../../img/pipeline_proposal_modules/frontend.pdf> <../../img/pipeline_proposal_modules/infraestructure.pdf>]
+[10.10 <../../img/pipeline_proposal_modules/backend.pdf> <../../img/pipeline_proposal_modules/frontend.pdf> <../../img/pipeline_proposal_modules/infraestructure.pdf>]
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 5.5pt on input line 402.
+(Font)              scaled to size 5.5pt on input line 485.
+
+
+Package natbib Warning: Citation `CODEBLEUBERTSCORE' on page 11 undefined on input line 497.
+
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
+(Font)              scaled to size 10.0pt on input line 504.
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
+(Font)              scaled to size 7.3pt on input line 504.
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
+(Font)              scaled to size 5.5pt on input line 504.
 
 
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 10.0pt on input line 434.
+(Font)              scaled to size 8.0pt on input line 543.
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 7.3pt on input line 434.
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 5.5pt on input line 434.
-
-Underfull \hbox (badness 10000) in paragraph at lines 459--460
-
- []
-
-
-
-[11.11{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbtn_fygcup.enc}]
-
+(Font)              scaled to size 6.0pt on input line 543.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[12.12]
-Overfull \hbox (3.52701pt too wide) in paragraph at lines 501--501
+[11.11{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbtn_fygcup.enc}]
+Overfull \hbox (3.52701pt too wide) in paragraph at lines 567--567
 []|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Mar
  []
 
 
-Overfull \hbox (2.32162pt too wide) in paragraph at lines 501--501
+Overfull \hbox (2.32162pt too wide) in paragraph at lines 567--567
 []|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Abr
  []
 
 
-Overfull \hbox (2.69821pt too wide) in paragraph at lines 501--501
+Overfull \hbox (2.69821pt too wide) in paragraph at lines 567--567
 []|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Mai
  []
 
 
-Overfull \hbox (1.32622pt too wide) in paragraph at lines 501--502
+Overfull \hbox (1.32622pt too wide) in paragraph at lines 567--568
 []|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Jun
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 509--509
+Underfull \hbox (badness 10000) in paragraph at lines 575--575
 []|\T1/LinuxLibertineT-TLF/m/n/10 (+20) Redação do do-cu-
  []
 
 
-Overfull \hbox (2.9714pt too wide) in paragraph at lines 498--514
+Overfull \hbox (2.9714pt too wide) in paragraph at lines 564--580
  [][] 
  []
 
+
+Underfull \vbox (badness 1436) has occurred while \output is active []
+
+
+
 (main.bbl
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 8.0pt on input line 44.
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 6.0pt on input line 44.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/it' will be
 (Font)              scaled to size 8.0pt on input line 57.
 LaTeX Info: Redefining \tempurl on input line 159.
@@ -1550,32 +1556,26 @@ Underfull \hbox (badness 1062) in paragraph at lines 166--180
 
 
 
-
+[12.12]
 Underfull \hbox (badness 1406) in paragraph at lines 294--299
 []\T1/LinuxLibertineT-TLF/m/n/8 (+20) Ggaliwango Mar-vin, Na-kayiza Hel-len, Daudi Jjingo, and Joyce
  []
 
+LaTeX Info: Redefining \tempurl on input line 376.
+LaTeX Info: Redefining \tempurl on input line 394.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[13.13]
-LaTeX Info: Redefining \tempurl on input line 390.
-LaTeX Info: Redefining \tempurl on input line 408.
-LaTeX Info: Redefining \tempurl on input line 492.
+LaTeX Info: Redefining \tempurl on input line 478.
 
-Underfull \hbox (badness 1509) in paragraph at lines 479--495
+Underfull \hbox (badness 1509) in paragraph at lines 465--481
 \T1/LinuxLibertineT-TLF/m/n/8 (+20) lach, Rob Fer-gus, S. V. N. Vishwa-nathan, and Ro-man Gar-nett
  []
 
-LaTeX Info: Redefining \tempurl on input line 537.
-LaTeX Info: Redefining \tempurl on input line 554.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
+LaTeX Info: Redefining \tempurl on input line 523.
+LaTeX Info: Redefining \tempurl on input line 540.
 )
 
 Package natbib Warning: There were undefined citations.
@@ -1589,7 +1589,7 @@ Class acmart Warning: Some images may lack descriptions.
 Package balance Warning: You have called \balance in second column
 (balance)                Columns might not be balanced.
 
-[14.14] (main.aux)
+[13.13] (main.aux)
  ***********
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
@@ -1598,17 +1598,17 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: E7259AB0A3A6A16ECC5B62B5C71C3DC9;3828.
  ) 
 Here is how much of TeX's memory you used:
- 32776 strings out of 468080
- 603934 string characters out of 5423836
- 1024004 words of memory out of 5000000
- 60002 multiletter control sequences out of 15000+600000
- 803008 words of font info for 480 fonts, out of 8000000 for 9000
+ 32739 strings out of 468080
+ 603068 string characters out of 5423836
+ 1017974 words of memory out of 5000000
+ 59999 multiletter control sequences out of 15000+600000
+ 799259 words of font info for 458 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 90i,11n,131p,1701b,775s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,131p,1701b,753s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/LibertineMathMI.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/LibertineMathMI7.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinBiolinumT.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineT.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTB.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTBI.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTI.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTZ.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/txexs.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/txmiaX.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/txsys.pfb>
-Output written on main.pdf (14 pages, 1950717 bytes).
+Output written on main.pdf (13 pages, 1947215 bytes).
 PDF statistics:
- 545 PDF objects out of 1000 (max. 8388607)
- 115 named destinations out of 1000 (max. 500000)
+ 539 PDF objects out of 1000 (max. 8388607)
+ 114 named destinations out of 1000 (max. 500000)
  86767 words of extra memory for PDF output out of 89155 (max. 10000000)
 
