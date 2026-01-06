@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{35}
+\begin{thebibliography}{36}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -91,6 +91,19 @@ Issue 4.
 \newblock
 \showeprint[arXiv]{2303.12712}
 \href{https://doi.org/10.48550/ARXIV.2303.12712}{doi:\nolinkurl{10.48550/ARXIV.2303.12712}}
+
+
+\bibitem[Cottier et~al\mbox{.}(2024)]%
+        {CostIncreaseInLLMS}
+\bibfield{author}{\bibinfo{person}{Ben Cottier}, \bibinfo{person}{Robi Rahman},
+  \bibinfo{person}{Loredana Fattorini}, \bibinfo{person}{Nestor Maslej}, {and}
+  \bibinfo{person}{David Owen}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{The rising costs of training frontier {AI} models}.
+\newblock \bibinfo{journal}{\emph{CoRR}}  \bibinfo{volume}{abs/2405.21015}
+  (\bibinfo{year}{2024}).
+\newblock
+\showeprint[arXiv]{2405.21015}
+\href{https://doi.org/10.48550/ARXIV.2405.21015}{doi:\nolinkurl{10.48550/ARXIV.2405.21015}}
 
 
 \bibitem[Ding et~al\mbox{.}(2024)]%
