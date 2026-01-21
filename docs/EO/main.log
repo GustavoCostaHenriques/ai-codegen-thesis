@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  9 JAN 2026 14:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  21 JAN 2026 15:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1476,70 +1476,74 @@ Class acmart Warning: A possible image without description on input line 387.
 
 
 
+Underfull \hbox (badness 10000) in paragraph at lines 478--478
+
+ []
+
+
 
 [10.10 <../../img/pipeline_proposal_modules/backend.pdf> <../../img/pipeline_proposal_modules/frontend.pdf> <../../img/pipeline_proposal_modules/infraestructure.pdf>]
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 5.5pt on input line 485.
+(Font)              scaled to size 5.5pt on input line 489.
 
 
-Package natbib Warning: Citation `CODEBLEUBERTSCORE' on page 11 undefined on input line 497.
+Package natbib Warning: Citation `CODEBLEUBERTSCORE' on page 11 undefined on input line 501.
 
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 10.0pt on input line 504.
+(Font)              scaled to size 10.0pt on input line 508.
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 7.3pt on input line 504.
+(Font)              scaled to size 7.3pt on input line 508.
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 5.5pt on input line 504.
+(Font)              scaled to size 5.5pt on input line 508.
+
+Underfull \hbox (badness 10000) in paragraph at lines 526--526
+
+ []
 
 
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 8.0pt on input line 543.
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
-(Font)              scaled to size 6.0pt on input line 543.
+Underfull \hbox (badness 10000) in paragraph at lines 526--526
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 526--526
+
+ []
+
+
+
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
 [11.11{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/libertine/lbtn_fygcup.enc}]
-Overfull \hbox (3.52701pt too wide) in paragraph at lines 567--567
-[]|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Mar
- []
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
+(Font)              scaled to size 8.0pt on input line 549.
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/sb/n' will be
+(Font)              scaled to size 6.0pt on input line 549.
 
 
-Overfull \hbox (2.32162pt too wide) in paragraph at lines 567--567
-[]|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Abr
- []
+<../../img/planeamento.png, id=393, 1445.4pt x 813.0375pt>
+File: ../../img/planeamento.png Graphic file (type png)
+<use ../../img/planeamento.png>
+Package pdftex.def Info: ../../img/planeamento.png  used on input line 565.
+(pdftex.def)             Requested size: 252.92673pt x 148.5735pt.
 
-
-Overfull \hbox (2.69821pt too wide) in paragraph at lines 567--567
-[]|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Mai
- []
-
-
-Overfull \hbox (1.32622pt too wide) in paragraph at lines 567--568
-[]|\T1/LinuxLibertineT-TLF/b/n/10 (-20) Jun
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 575--575
-[]|\T1/LinuxLibertineT-TLF/m/n/10 (+20) Redação do do-cu-
- []
-
-
-Overfull \hbox (2.9714pt too wide) in paragraph at lines 564--580
+Overfull \hbox (11.98174pt too wide) in paragraph at lines 565--566
  [][] 
  []
 
 
-Underfull \vbox (badness 1436) has occurred while \output is active []
-
-
+Class acmart Warning: A possible image without description on input line 568.
 
 (main.bbl
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/it' will be
 (Font)              scaled to size 8.0pt on input line 57.
 LaTeX Info: Redefining \tempurl on input line 172.
+
+
+[12.12 <../../img/planeamento.png (PNG copy)>]
 LaTeX Info: Redefining \tempurl on input line 190.
 
 Underfull \hbox (badness 2057) in paragraph at lines 179--193
@@ -1552,19 +1556,17 @@ Underfull \hbox (badness 1062) in paragraph at lines 179--193
  []
 
 
-
-[12.12]
 Underfull \hbox (badness 1406) in paragraph at lines 307--312
 []\T1/LinuxLibertineT-TLF/m/n/8 (+20) Ggaliwango Mar-vin, Na-kayiza Hel-len, Daudi Jjingo, and Joyce
  []
 
-LaTeX Info: Redefining \tempurl on input line 389.
-LaTeX Info: Redefining \tempurl on input line 407.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
+LaTeX Info: Redefining \tempurl on input line 389.
+LaTeX Info: Redefining \tempurl on input line 407.
 LaTeX Info: Redefining \tempurl on input line 491.
 
 Underfull \hbox (badness 1509) in paragraph at lines 478--494
@@ -1573,7 +1575,12 @@ Underfull \hbox (badness 1509) in paragraph at lines 478--494
 
 LaTeX Info: Redefining \tempurl on input line 536.
 LaTeX Info: Redefining \tempurl on input line 553.
-)
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+[13.13])
 
 Package natbib Warning: There were undefined citations.
 
@@ -1583,10 +1590,8 @@ Class acmart Warning: Some images may lack descriptions.
 
 
 
-Package balance Warning: You have called \balance in second column
-(balance)                Columns might not be balanced.
 
-[13.13] (main.aux)
+[14.14] (main.aux)
  ***********
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
@@ -1595,17 +1600,17 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: E7259AB0A3A6A16ECC5B62B5C71C3DC9;3828.
  ) 
 Here is how much of TeX's memory you used:
- 32743 strings out of 468080
- 603169 string characters out of 5423836
- 1018011 words of memory out of 5000000
+ 32741 strings out of 468080
+ 603162 string characters out of 5423836
+ 1018024 words of memory out of 5000000
  60002 multiletter control sequences out of 15000+600000
- 799259 words of font info for 458 fonts, out of 8000000 for 9000
+ 798994 words of font info for 456 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 90i,11n,131p,1701b,753s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,131p,1701b,800s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/LibertineMathMI.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/LibertineMathMI7.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinBiolinumT.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineT.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTB.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTBI.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTI.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/libertine/LinLibertineTZ.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/txexs.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/txmiaX.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/txsys.pfb>
-Output written on main.pdf (13 pages, 1950358 bytes).
+Output written on main.pdf (14 pages, 2027654 bytes).
 PDF statistics:
- 544 PDF objects out of 1000 (max. 8388607)
- 115 named destinations out of 1000 (max. 500000)
- 86767 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 549 PDF objects out of 1000 (max. 8388607)
+ 116 named destinations out of 1000 (max. 500000)
+ 86772 words of extra memory for PDF output out of 89155 (max. 10000000)
 

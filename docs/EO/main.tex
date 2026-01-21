@@ -125,7 +125,7 @@ Esta secção serve como base teórica para clarificar alguns conceitos importan
 
 \noindent{Apesar} do potencial das LLMs na geração de código, a construção de um produto de software envolve um conjunto mais amplo de fases, cuja natureza e formalização variam consoante o contexto organizacional. Para contextualizar o papel da automatização, é necessário compreender o ciclo de vida do desenvolvimento de software\cite{ALLLIFECYCLE} e identificar as etapas onde esta pode ser introduzida.\\\par
 
-\noindent{Estas} etapas incluem, em primeiro lugar, a elicitação e análise de requisitos, que visam garantir que as necessidades do cliente sejam adequadamente compreendidas, estruturadas e documentadas. O processo de elicitação de requisitos envolve diversas técnicas, incluindo entrevistas e revisões literárias, como evidenciado por Lim et al.\cite{RE}, que destacam a importância de métodos eficazes para alcançar uma compreensão abrangente das necessidades dos utilizadores, uma vez que os requisitos devidamente capturados constituem a base sobre a qual todo o ciclo de vida do software é construído.\par
+\noindent{Estas} etapas incluem, em primeiro lugar, o levantamento e análise de requisitos, que visam garantir que as necessidades do cliente sejam adequadamente compreendidas, estruturadas e documentadas. O processo de levantamento de requisitos envolve diversas técnicas, incluindo entrevistas e revisões literárias, como evidenciado por Lim et al.\cite{RE}, que destacam a importância de métodos eficazes para alcançar uma compreensão abrangente das necessidades dos utilizadores, uma vez que os requisitos devidamente capturados constituem a base sobre a qual todo o ciclo de vida do software é construído.\par
 
 \noindent{Com} os requisitos definidos, a modelação funcional e estrutural do sistema surge como etapa subsequente, frequentemente suportada por linguagens formais e semi-formais de representação como a UML (Unified Modeling Language), BPMN (Business Process Model and Notation) para processos de negócio ou SysML (Systems Modeling Language) para sistemas complexos. Estas linguagens permitem traduzir requisitos textuais em representações visuais, facilitando a análise, validação e comunicação entre equipas técnicas e não técnicas. Os modelos UML desempenham um papel crítico na documentação e validação de requisitos, servindo como elementos centrais de coordenação entre diferentes perspetivas do sistema\cite{UML}. Esta modelação inclui diagramas de casos de uso, classes, atividades ou sequência, que complementam a descrição funcional do sistema e ajudam a desenhar o comportamento desejado. Neste contexto, a conceção de interfaces e fluxos de interação emerge como um artefacto fundamental, permitindo validar o comportamento esperado do sistema do ponto de vista do utilizador e servindo de base para decisões técnicas subsequentes, nomeadamente ao nível da definição de APIs e da implementação.\par
 
@@ -188,11 +188,11 @@ A presente secção reúne o estado da arte relevante para esta tese, apresentan
 
 \noindent{Adicionalmente}, o StarCoder\cite{StarCoder} e a sua evolução, o StarCoder2\cite{StarCoder2}, foram treinados em larga escala no dataset The Stack, destacando-se pelo suporte multilinguagem, janelas de contexto alargadas e mecanismos de treino orientados para segurança e transparência. Estas características tornam-nos referências relevantes para compreender boas práticas na construção de LLMs orientados para código e na conversão fiável de descrições em implementações executáveis.\\\par
 
-\noindent{Para} além dos modelos dedicados à geração de código, têm surgido ferramentas práticas de assistência ao programador integradas diretamente nas IDEs (ambientes de desenvolvimento integrado). Um exemplo marcante é o GitHub Copilot\footnote{\href{https://github.com/features/copilot}{https://github.com/features/copilot}}, inicialmente alimentado pelo modelo Codex. Com a evolução da ferramenta, o Copilot passou também a incorporar modelos mais avançados, como o GPT-4 e GPT-4o. Hoje em dia já inclui modos autónomos como o modo de agente e o agente de programação, capazes de executar ações dentro da IDE ou desenvolver tarefas completas de forma assistida. Ziegler et al.\cite{GitHubCopilot} estudaram empiricamente a ferramenta analisando o comportamento da mesma e o seu impacto no processo de desenvolvimento, evidenciando como o preenchimento incremental pode acelerar tarefas de rotina e reduzir o esforço cognitivo do programador.\par
+\noindent{Para} além dos modelos dedicados à geração de código, têm surgido ferramentas práticas de assistência ao programador integradas diretamente nos IDEs (ambientes de desenvolvimento integrado). Um exemplo marcante é o GitHub Copilot\footnote{\href{https://github.com/features/copilot}{https://github.com/features/copilot}}, inicialmente alimentado pelo modelo Codex. Com a evolução da ferramenta, o Copilot passou também a incorporar modelos mais avançados, como o GPT-4 e GPT-4o. Hoje em dia já inclui modos autónomos como o modo de agente e o agente de programação, capazes de executar ações dentro da IDE ou desenvolver tarefas completas de forma assistida. Ziegler et al.\cite{GitHubCopilot} estudaram empiricamente a ferramenta analisando o comportamento da mesma e o seu impacto no processo de desenvolvimento, evidenciando como o preenchimento incremental pode acelerar tarefas de rotina e reduzir o esforço cognitivo do programador.\par
 
 \noindent{De} forma semelhante, a Amazon apresentou o CodeWhisperer\footnote{\href{https://aws.amazon.com/pt/q/developer/}{https://aws.amazon.com/pt/q/developer/}}, um assistente de programação concebido para gerar sugestões de código contextualizadas em múltiplas linguagens. Yetistiren et al.\cite{AmazonCodeWhisperer} compararam o CodeWhisperer com outras ferramentas, incluindo o Copilot e o ChatGPT, avaliando a qualidade, correção e segurança das sugestões produzidas. Tal como o Copilot, o CodeWhisperer opera principalmente como um mecanismo de preenchimento inteligente dentro da IDE, contribuindo para automatizar partes do fluxo de escrita de código e acelerar tarefas repetitivas.\par
 
-\noindent{A} integração crescente destas ferramentas nas IDEs evidencia a adoção prática dos LLMs no desenvolvimento de software, contribuindo para acelerar tarefas rotineiras e aumentar a produtividade dos programadores\cite{CopilotRole}.\\
+\noindent{A} integração crescente destas ferramentas nos IDEs evidencia a adoção prática dos LLMs no desenvolvimento de software, contribuindo para acelerar tarefas rotineiras e aumentar a produtividade dos programadores\cite{CopilotRole}.\\
 
 \noindent{Recentemente}, surgiram também ferramentas que suportam \textit{Spec-Driven Development} (SDD). A ideia chave do SDD é, em vez de se implementar o código primeiro e documentá-lo posteriormente, começa-se por definir as especificações que irão servir de guia para os agentes de IA. Estas especificações assumem-se como a fonte central de orientação do processo, podendo incluir listas de requisitos, componentes, tarefas e decisões tecnológicas que, em abordagens tradicionais, estariam distribuídas por diversos artefactos de análise e planeamento. Assim, uma parte significativa das atividades que antecedem a implementação é formalizada diretamente nestes ficheiros. Entre as ferramentas que suportam o SDD destaca-se o Spec-Kit\footnote{\href{https://github.com/github/spec-kit}{https://github.com/github/spec-kit}}, desenvolvido pela equipa de IA do GitHub, uma ferramenta que fornece uma interface de linha de comandos para criar e organizar especificações, planos e tarefas capazes de guiar modelos generativos ao longo de um fluxo de desenvolvimento. De forma complementar, o Kiro\footnote{\href{https://kiro.dev}{https://kiro.dev}}, desenvolvido pela Kiro Labs, apresenta-se como um ambiente integrado que combina edição de especificações com agentes capazes de gerar e atualizar código com base nesses ficheiros estruturados. Embora ainda recentes, ambas as ferramentas ilustram uma nova tendência no desenvolvimento de software onde se criam fluxos automáticos que partem de especificações estruturadas para produzir componentes coerentes.\par
 
@@ -473,6 +473,10 @@ Esta secção descreve o processo de controlo de qualidade aplicado aos artefact
 
 \subsubsection{Avaliação dos Artefactos Gerados}
 
+A avaliação dos artefactos produzidos pela pipeline proposta é realizada de forma incremental e integrada no próprio processo de desenvolvimento da solução. À medida que cada módulo da pipeline é implementado, os artefactos por si gerados são avaliados antes de se avançar para o módulo seguinte, permitindo identificar limitações, introduzir ajustes e reduzir a propagação de erros ao longo do processo.
+
+\noindent{Esta} avaliação é conduzida tendo como referência um projeto representativo da Trust Systems, que funciona como caso de estudo para validar a adequação dos artefactos produzidos em cada etapa. Dependendo da natureza do artefacto, a avaliação recorre a métricas automáticas, validação humana ou a uma combinação de ambas, conforme descrito de seguida.\\\par
+
 \noindent\textbf{Métricas Automáticas}
 
 \noindent{A} avaliação automática incide sobre a qualidade do código gerado, recorrendo a métricas amplamente utilizadas na investigação em geração automática de código, nomeadamente o \textit{CodeBLEU}\cite{CODEBLEU} e o \textit{CodeBERTScore}\cite{CODEBERTSCORE}. Ambas derivam de métricas originalmente propostas para linguagem natural, tendo sido adaptadas para capturar propriedades estruturais e semânticas específicas de programas.
@@ -519,11 +523,13 @@ O \textit{CodeBERTScore}\cite{CODEBLEUBERTSCORE} adapta o \textit{BERTScore}\cit
          {\text{Precision} + \text{Recall}}.
 \end{equation}
 
-\noindent{Ao} capturar relações semânticas para além da correspondência textual, o \textit{CodeBERTScore} revela-se particularmente adequado em cenários onde existem múltiplas implementações corretas para o mesmo problema, complementando a avaliação estrutural fornecida pelo \textit{CodeBLEU}.
+\noindent{Ao} capturar relações semânticas para além da correspondência textual, o \textit{CodeBERTScore} revela-se particularmente adequado em cenários onde existem múltiplas implementações corretas para o mesmo problema, complementando a avaliação estrutural fornecida pelo \textit{CodeBLEU}.\\\\\\\par
 
 \noindent\textbf{Validação Humana}
 
-\noindent{Para} além das métricas automáticas, a avaliação da qualidade dos artefactos gerados integra igualmente uma componente de apreciação humana. Esta permite analisar aspetos não totalmente capturados por métricas quantitativas, como clareza, adequação ao enunciado, legibilidade e conformidade com boas práticas de programação. A combinação entre métricas automáticas e validação humana assegura uma análise mais completa e representativa da qualidade global das soluções geradas.
+\noindent{Para} além das métricas automáticas, todos os artefactos gerados pela pipeline são sujeitos a validação humana. Esta validação permite avaliar aspetos que não são totalmente capturados por métricas quantitativas, como clareza, coerência, adequação aos requisitos e conformidade com boas práticas de desenvolvimento.
+
+\noindent{A} validação humana desempenha igualmente um papel fundamental no processo incremental adotado, uma vez que o feedback recolhido após a avaliação de cada módulo é utilizado para refinar os artefactos produzidos antes da progressão para as etapas seguintes. Desta forma, a combinação entre métricas automáticas e validação humana assegura uma avaliação mais completa e representativa da qualidade global da solução desenvolvida.
 
 
 \subsubsection{Refinamento}
@@ -548,38 +554,19 @@ O processo de refinamento tem como objetivo melhorar progressivamente a qualidad
 
 \section{Planeamento do Trabalho} \label{sec:planeamento}
 
-\noindent{O} trabalho a desenvolver no projeto organiza-se em três grandes etapas.\par
+\noindent{O} processo de desenvolvimento tem início com a construção do módulo de interpretação de requisitos, seguindo-se de forma sequencial os módulos de geração de interfaces, especificação da API, backend, frontend e infraestrutura. Cada um dos módulos será avaliado e ajustado antes de ser integrado na \textit{pipeline}.\par
 
-\noindent{A} primeira etapa consiste no desenvolvimento do protótipo. Nesta fase será implementada a \textit{pipeline} proposta,  definindo, integrando e articulando os diferentes módulos que serão necessários para a geração de artefactos das diferentes etapas de desenvolvimento de software. Esta fase culminará numa primeira versão funcional da solução.\par
+\noindent{A} partir do mês de abril, inicia-se em paralelo a redação do documento final, que acompanha o desenvolvimento e a avaliação da solução. Esta fase inclui a consolidação dos resultados obtidos, a descrição da metodologia adotada e a discussão dos contributos e limitações do trabalho.\par
 
-\noindent{Segue-se} uma etapa de avaliação e testes, durante a qual serão analisados os resultados produzidos pela \textit{pipeline}. Serão comparadas diferentes estratégias de prompting e avaliados diversos modelos de linguagem. Esta fase inclui também o refinamento e melhoria da solução sempre que necessário, garantindo maior coerência entre os artefactos gerados e maior robustez no comportamento da pipeline.\par
+\noindent A Figura \ref{fig:planeamento} apresenta o cronograma das atividades previstas, permitindo visualizar a sequência dos módulos da pipeline e a sobreposição temporal com a escrita do documento final.
 
-\noindent{Por} fim, terá lugar a redação e revisão do documento final, que incorpora a consolidação dos resultados obtidos, a descrição detalhada da metodologia seguida e a discussão das limitações e contributos do trabalho.\par
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.23\textheight, width=0.5\textwidth]{../../img/planeamento.png}
+    \caption{Cronograma das atividades previstas.}
+    \label{fig:planeamento}
+\end{figure}
 
-\noindent A Tabela \ref{tableCronograma} apresenta o cronograma das atividades previstas, 
-permitindo visualizar a sequência das fases do trabalho e o tempo alocado a cada etapa do projeto.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|p{3cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|} 
-\hline
-\rowcolor{headergray}
-\textbf{Descrição das atividades} & \textbf{Jan 26} & \textbf{Fev 26} & \textbf{Mar 26} & \textbf{Abr 26} & \textbf{Mai 26} & \textbf{Jun 26} \\
-\hline
-\cellcolor{headergray}Desenvolvimento do protótipo & \cellcolor{ganttblue} & \cellcolor{ganttblue} & \cellcolor{ganttblue} & \cellcolor{ganttblue} & & \\ 
-\hline
-\cellcolor{headergray}Avaliação e testes & & & & \cellcolor{ganttblue} & \cellcolor{ganttblue} & \\ 
-\hline
-\cellcolor{headergray}Análise e ajuste do protótipo & & & & & \cellcolor{ganttblue} & \\ 
-\hline
-\cellcolor{headergray}Redação do documento final & & & & \cellcolor{ganttblue} & \cellcolor{ganttblue} & \cellcolor{ganttblue} \\ 
-\hline
-\cellcolor{headergray}Revisão final da tese e preparação da defesa & & & & & & \cellcolor{ganttblue} \\ 
-\hline
-\end{tabular} 
-\caption{Cronograma de atividades}
-\label{tableCronograma}
-\end{table}
 
 %%\section{«Other Section(s) as Appropriate»} \label{sec:work1}
 
