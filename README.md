@@ -53,7 +53,7 @@ A detailed justification of this choice is available in
 ## 📁 Repository Structure
 
 - `docs/` — academic documents, presentations, and technical decisions  
-- `pipeline/` — incremental implementation of pipeline modules  
+- `modules/` — all the information relating to each of the modules
 
 ---
 
