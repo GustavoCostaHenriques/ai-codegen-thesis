@@ -43,7 +43,7 @@ Each module:
 
 ## 🛠️ Orchestration Tool
 
-The pipeline is orchestrated using **Flowise (self-hosted)**.
+The pipeline is orchestrated using **Flowise**.
 
 A detailed justification of this choice is available in  
 [`docs/technical_decisions/orchestration_tool.md`](docs/technical_decisions/orchestration_tool.md)
@@ -54,6 +54,20 @@ A detailed justification of this choice is available in
 
 - `docs/` — academic documents, presentations, and technical decisions  
 - `modules/` — all the information relating to each of the modules
+
+---
+
+## 🚧 Implementation Status
+
+The implementation of the pipeline is being carried out incrementally.  
+Each module will be developed, validated, and refined individually before full integration.
+
+- [ ] Requirements Structuring Module  
+- [ ] Interface Generation Module  
+- [ ] API Specification Generation Module  
+- [ ] Backend Code Generation  
+- [ ] Frontend Code Generation  
+- [ ] Infrastructure Generation  
 
 ---
 
