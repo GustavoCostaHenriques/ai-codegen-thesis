@@ -37,7 +37,7 @@ Each module:
 
 ### Pipeline Overview
 
-![Proposed pipeline](docs/pipeline_design/proposed_pipeline_overview.png)
+![Proposed pipeline](assets/pipeline_design/proposed_pipeline_overview.png)
 
 ---
 
@@ -52,6 +52,7 @@ A detailed justification of this choice is available in
 
 ## 📁 Repository Structure
 
+- `assets/` — shared visual resources (logos, diagrams, and images) used across documentation and module pages  
 - `docs/` — academic documents, presentations, and technical decisions  
 - `modules/` — all the information relating to each of the modules
 
@@ -77,7 +78,7 @@ The project objectives are documented in
 [`docs/planning/objectives_and_timeline.pdf`](docs/planning/schedule_objective.pdf)
 
 ### Timeline Overview
-![Timeline overview](docs/planning/timeline.png)
+![Timeline overview](assets/timeline.png)
 
 ---
 
