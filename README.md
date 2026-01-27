@@ -62,7 +62,7 @@ A detailed justification of this choice is available in
 The implementation of the pipeline is being carried out incrementally.  
 Each module will be developed, validated, and refined individually before full integration.
 
-- [ ] Requirements Structuring Module  
+- [🚧] Requirements Structuring Module  
 - [ ] Interface Generation Module  
 - [ ] API Specification Generation Module  
 - [ ] Backend Code Generation  
