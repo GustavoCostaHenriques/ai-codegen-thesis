@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Insert Tournament Information</h2>
+
+<mat-dialog-content class="dialog-content">
+  <form [formGroup]="tournamentForm" class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tournament.name' | translate }}</mat-label>
+      <input matInput formControlName="name" placeholder="Enter tournament name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tournament.location' | translate }}</mat-label>
+      <input matInput formControlName="location" placeholder="Enter location" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tournament.category' | translate }}</mat-label>
+      <mat-select formControlName="category" placeholder="Select category">
+        <mat-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'tournament.prize' | translate }}</mat-label>
+      <input type="number" matInput formControlName="prize" placeholder="Enter prize amount (€)" />
+    </mat-form-field>
+
+    <mat-checkbox formControlName="active">Active Tournament</mat-checkbox>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button color="warn" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="tournamentForm.invalid" (click)="onSave()">Save</button>
+</mat-dialog-actions>

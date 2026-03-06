@@ -1,0 +1,21 @@
+{
+  "global.cancel": "Cancel",
+  "global.unknownError": "An unexpected error occurred.",
+  "validation.required": "This field is required.",
+  "validation.usernameMin": "Username must have at least 3 characters.",
+  "validation.passwordMin": "Password must have at least 8 characters.",
+  "nav.weeksOverview": "Weeks Overview",
+  "nav.personManagement": "Person Management",
+  "nav.projectManagement": "Project Management",
+  "nav.logout": "Logout",
+  "login.title": "Sign In",
+  "login.username": "Username",
+  "login.password": "Password",
+  "login.language": "Language",
+  "login.submit": "Login",
+  "login.createAccount": "Create Account",
+  "account.createTitle": "Create Account",
+  "account.role": "Role",
+  "account.create": "Create",
+  "account.createSuccess": "Account created. You can now log in with the new credentials."
+}

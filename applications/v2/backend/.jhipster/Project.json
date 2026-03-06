@@ -1,0 +1,41 @@
+{
+  "annotations": {
+    "changelogDate": "20260210152612"
+  },
+  "applications": ["weeklyplanning"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "id",
+      "fieldType": "UUID"
+    },
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "code",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "ProjectStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "ACTIVE,INACTIVE"
+    }
+  ],
+  "name": "Project",
+  "relationships": [
+    {
+      "otherEntityName": "person",
+      "relationshipName": "owner",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

@@ -1,0 +1,23 @@
+﻿<div class="pagination" *ngIf="pageMetadata">
+  <button
+    type="button"
+    class="page-btn"
+    [disabled]="pageMetadata.page <= 0"
+    (click)="previousPage()"
+  >
+    {{ 'pagination.previous' | t }}
+  </button>
+
+  <div class="page-info">
+    {{ 'pagination.info' | t : { page: pageMetadata.page + 1, totalPages: pageMetadata.totalPages || 1 } }}
+  </div>
+
+  <button
+    type="button"
+    class="page-btn"
+    [disabled]="pageMetadata.page >= pageMetadata.totalPages - 1"
+    (click)="nextPage()"
+  >
+    {{ 'pagination.next' | t }}
+  </button>
+</div>

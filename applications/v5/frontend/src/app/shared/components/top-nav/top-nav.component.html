@@ -1,0 +1,64 @@
+<section class="gra-background-white gra-padding-m gra-margin-bottom-m">
+  <div class="d-flex justify-content-between align-items-center">
+
+    <!-- Título -->
+    <h1 class="gra-font-2xl gra-text-blue-800 m-0">
+      {{ titleKey | t }}
+    </h1>
+
+    <!-- Menu -->
+    <div class="top-nav-actions d-flex align-items-center gap-2">
+
+      <button
+        type="button"
+        class="gra-btn btn-secondary"
+        routerLink="/weeks"
+        [class.active]="currentRoute.startsWith('/weeks')">
+        {{ 'app.weeks' | t }}
+      </button>
+
+      <button
+        type="button"
+        class="gra-btn btn-secondary"
+        routerLink="/people"
+        [class.active]="currentRoute.startsWith('/people')">
+        {{ 'app.people' | t }}
+      </button>
+
+      <button
+        type="button"
+        class="gra-btn btn-secondary"
+        routerLink="/projects"
+        [class.active]="currentRoute.startsWith('/projects')">
+        {{ 'app.projects' | t }}
+      </button>
+
+      <button
+        *ngIf="isAdmin"
+        type="button"
+        class="gra-btn btn-secondary"
+        (click)="onOpenStatistics()">
+        {{ 'app.statistics' | t }}
+      </button>
+
+      <select
+        id="nav-language-select"
+        class="top-nav-language-select gra-select gra-simple-select form-select"
+        [value]="currentLanguage"
+        (change)="onLanguageChange($event)">
+        <option value="en">EN</option>
+        <option value="pt">PT</option>
+      </select>
+
+      <button
+        type="button"
+        class="gra-btn btn-primary-error"
+        [disabled]="logoutLoading"
+        (click)="onLogout()">
+        <span *ngIf="!logoutLoading">{{ 'app.logout' | t }}</span>
+        <span *ngIf="logoutLoading">{{ 'app.loading' | t }}</span>
+      </button>
+
+    </div>
+  </div>
+</section>

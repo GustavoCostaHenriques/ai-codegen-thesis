@@ -1,0 +1,28 @@
+{
+  "escolaApp": {
+    "studentAddress": {
+      "home": {
+        "title": "Student Addresses",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Student Address",
+        "createOrEditLabel": "Create or edit a Student Address",
+        "notFound": "No Student Addresses found"
+      },
+      "created": "A new Student Address is created with identifier {{ param }}",
+      "updated": "A Student Address is updated with identifier {{ param }}",
+      "deleted": "A Student Address is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Student Address {{ id }}?"
+      },
+      "detail": {
+        "title": "Student Address"
+      },
+      "id": "ID",
+      "adressLine": "Adress Line",
+      "postalCode": "Postal Code",
+      "city": "City",
+      "country": "Country",
+      "student": "Student"
+    }
+  }
+}

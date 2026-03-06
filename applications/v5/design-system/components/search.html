@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search Input - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="pageContent gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Search Input</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="search-default">Titulo do campo</label>
+            <div class="gra-search-container">
+              <input id="search-default" class="form form-control" type="search" placeholder="Procure aqui">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Default</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label class="required-label" for="search-required">Titulo do campo</label>
+            <div class="gra-search-container">
+              <input id="search-required" class="form form-control required-field" type="search" placeholder="Procure aqui">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Mandatorio</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="search-disabled">Titulo do campo</label>
+            <div class="gra-search-container">
+              <input id="search-disabled" class="form form-control required-field" value="Design system" disabled type="search" placeholder="Procure aqui">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Desativado</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="search-info-label">Titulo do campo <i class="icon-circle-info iconLabel"></i></label>
+            <div class="gra-search-container">
+              <input id="search-info-label" class="form form-control required-field" type="search" placeholder="Procure aqui">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Informativo</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="search-readonly">Titulo do campo</label>
+            <div class="gra-search-container">
+              <input id="search-readonly" class="form form-control required-field" value="Design system" readonly type="search" placeholder="Procure aqui">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Apenas leitura</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label class="required-label" for="search-error">Titulo do campo</label>
+            <div class="gra-search-container">
+              <input id="search-error" class="form form-control required-field error" value="Design system" type="search" placeholder="Procure aqui">
+              <span class="graRequiredField">Campo obrigatorio</span>
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Mensagem de erro</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="search-info-message">Titulo do campo</label>
+            <div class="gra-search-container">
+              <input id="search-info-message" class="form form-control" type="search" placeholder="Procure aqui">
+            </div>
+            <span class="graInfoField">Mensagem de informacao</span>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Mensagem de informacao</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

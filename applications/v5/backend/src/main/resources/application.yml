@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: weekly-planning-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/weekly_planning}
+    username: ${DB_USERNAME:weekly}
+    password: ${DB_PASSWORD:weekly}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  bootstrap:
+    admin-username: ${APP_BOOTSTRAP_ADMIN_USERNAME:admin}
+    admin-email: ${APP_BOOTSTRAP_ADMIN_EMAIL:admin@weekly.local}
+    admin-name: ${APP_BOOTSTRAP_ADMIN_NAME:Administrator}
+    admin-password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:admin12345}
+  security:
+    jwt:
+      secret: ${APP_JWT_SECRET}
+      access-token-expiration-seconds: ${APP_JWT_EXPIRATION_SECONDS:900}
+    password:
+      min-length: ${APP_PASSWORD_MIN_LENGTH:8}
+      require-uppercase: ${APP_PASSWORD_REQUIRE_UPPERCASE:false}
+      require-lowercase: ${APP_PASSWORD_REQUIRE_LOWERCASE:true}
+      require-digit: ${APP_PASSWORD_REQUIRE_DIGIT:true}
+      require-special: ${APP_PASSWORD_REQUIRE_SPECIAL:false}
+    bruteforce:
+      max-attempts: ${APP_BRUTE_FORCE_MAX_ATTEMPTS:5}
+      window-seconds: ${APP_BRUTE_FORCE_WINDOW_SECONDS:300}
+      lock-duration-seconds: ${APP_BRUTE_FORCE_LOCK_DURATION_SECONDS:600}
+  planning:
+    task-min-length: ${APP_TASK_MIN_LENGTH:1}
+
+logging:
+  level:
+    root: INFO
+    com.example.weeklyplanning: INFO

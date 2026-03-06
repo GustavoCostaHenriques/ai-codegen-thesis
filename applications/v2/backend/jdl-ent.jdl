@@ -1,0 +1,67 @@
+entity Person {
+  id UUID
+  name String required
+  email String required
+  role String required
+  status PersonStatus required
+}
+
+entity Project {
+  id UUID
+  name String required
+  code String required
+  status ProjectStatus required
+}
+
+entity Week {
+  id UUID
+  startDate LocalDate required
+  endDate LocalDate required
+  status WeekStatus required
+}
+
+entity DayPlan {
+  id UUID
+  date LocalDate required
+}
+
+entity DayPerson {
+  id UUID
+}
+
+entity DayPersonProject {
+  id UUID
+}
+
+entity Task {
+  id UUID
+  description String required minlength(1)
+}
+
+enum PersonStatus {
+  ACTIVE,
+  INACTIVE
+}
+
+enum ProjectStatus {
+  ACTIVE,
+  INACTIVE
+}
+
+enum WeekStatus {
+  PLANNED,
+  COMPLETED
+}
+
+relationship OneToMany {
+  Week{dayPlans} to DayPlan{week required}
+  DayPlan{people} to DayPerson{dayPlan required}
+  DayPerson{projects} to DayPersonProject{dayPerson required}
+  DayPersonProject{tasks} to Task{dayPersonProject required}
+}
+
+relationship ManyToOne {
+  DayPerson{person required} to Person
+  DayPersonProject{project required} to Project
+  Project{owner required} to Person
+}

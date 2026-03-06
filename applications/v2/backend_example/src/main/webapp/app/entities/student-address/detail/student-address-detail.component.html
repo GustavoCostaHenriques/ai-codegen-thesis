@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (studentAddress(); as studentAddressRef) {
+      <div>
+        <h2 data-cy="studentAddressDetailsHeading"><span jhiTranslate="escolaApp.studentAddress.detail.title">Student Address</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ studentAddressRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="escolaApp.studentAddress.adressLine">Adress Line</span></dt>
+          <dd>
+            <span>{{ studentAddressRef.adressLine }}</span>
+          </dd>
+          <dt><span jhiTranslate="escolaApp.studentAddress.postalCode">Postal Code</span></dt>
+          <dd>
+            <span>{{ studentAddressRef.postalCode }}</span>
+          </dd>
+          <dt><span jhiTranslate="escolaApp.studentAddress.city">City</span></dt>
+          <dd>
+            <span>{{ studentAddressRef.city }}</span>
+          </dd>
+          <dt><span jhiTranslate="escolaApp.studentAddress.country">Country</span></dt>
+          <dd>
+            <span>{{ studentAddressRef.country }}</span>
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/student-address', studentAddressRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

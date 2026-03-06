@@ -1,0 +1,198 @@
+<section class="planning-page">
+  <h2 class="planning-title" *ngIf="board">Planning for the week - {{ weekTitleCode }}</h2>
+
+  <div class="ui-alert" *ngIf="boardError">{{ boardError.message }}</div>
+
+  <div class="calendar app-card" *ngIf="!boardLoading && board">
+    <section class="day-column" *ngFor="let dayPlan of dayPlans; trackBy: trackDayPlan">
+      <header class="day-header">{{ dayLabel(dayPlan) }}</header>
+
+      <div class="day-content">
+        <article class="person-card" *ngFor="let dayPerson of dayPlan.dayPersons; trackBy: trackDayPerson">
+          <header class="person-header">
+            <strong>{{ dayPerson.person.name }}</strong>
+            <button
+              *ngIf="canEdit"
+              type="button"
+              class="icon-remove"
+              (click)="openRemovePerson(dayPlan, dayPerson)"
+              aria-label="Remove person">
+              X
+            </button>
+          </header>
+
+          <section class="project-block" *ngFor="let dayProject of dayPerson.dayPersonProjects; trackBy: trackProject">
+            <header class="project-header">
+              <span>{{ dayProject.project.name }}</span>
+              <button
+                *ngIf="canEdit"
+                type="button"
+                class="icon-remove"
+                (click)="openRemoveProject(dayPlan, dayPerson, dayProject)"
+                aria-label="Remove project">
+                X
+              </button>
+            </header>
+
+            <div class="task-row" *ngFor="let task of dayProject.tasks; trackBy: trackTask">
+              <span class="task-text">{{ task.description }}</span>
+              <button
+                *ngIf="canEdit"
+                type="button"
+                class="icon-remove"
+                (click)="openRemoveTask(dayPlan, dayPerson, dayProject, task)"
+                aria-label="Remove task">
+                X
+              </button>
+            </div>
+
+            <button
+              *ngIf="canEdit"
+              type="button"
+              class="ui-btn ui-btn-task compact"
+              (click)="openAddTask(dayPlan, dayPerson, dayProject)">
+              Add Task
+            </button>
+          </section>
+
+          <button
+            *ngIf="canEdit"
+            type="button"
+            class="ui-btn ui-btn-project compact"
+            (click)="openAddProject(dayPlan, dayPerson)">
+            Add Project
+          </button>
+        </article>
+      </div>
+
+      <button *ngIf="canAddPerson(dayPlan)" type="button" class="ui-btn ui-btn-success add-person" (click)="openAddPerson(dayPlan)">
+        Add Person
+      </button>
+    </section>
+  </div>
+</section>
+
+<app-modal-shell *ngIf="addPersonContext" title="Add Person to Day" [dirty]="addPersonForm.dirty" (closeRequested)="clearModals()">
+  <div modal-body>
+    <form [formGroup]="addPersonForm" class="modal-form">
+      <div class="ui-field">
+        <label class="ui-label">Day</label>
+        <input class="ui-input" readonly [value]="dayLabel(addPersonContext.dayPlan)" />
+      </div>
+      <div class="ui-field">
+        <label class="ui-label">Person</label>
+        <select class="ui-select" formControlName="personId">
+          <option value="">Select</option>
+          <option *ngFor="let person of activePersons" [value]="person.personId">{{ person.name }} ({{ person.email }})</option>
+        </select>
+        <div class="ui-error" *ngIf="addPersonForm.controls.personId.touched && addPersonForm.controls.personId.invalid">Required field</div>
+      </div>
+      <div class="ui-alert" *ngIf="modalError">{{ modalError.message }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button class="ui-btn ui-btn-secondary" type="button" (click)="clearModals()">Cancel</button>
+    <button class="ui-btn ui-btn-primary" type="button" [disabled]="actionBusy" (click)="confirmAddPerson()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="addProjectContext" title="Add Project to Person" [dirty]="addProjectForm.dirty" (closeRequested)="clearModals()">
+  <div modal-body>
+    <form [formGroup]="addProjectForm" class="modal-form">
+      <div class="ui-field">
+        <label class="ui-label">Day</label>
+        <input class="ui-input" readonly [value]="dayLabel(addProjectContext.dayPlan)" />
+      </div>
+      <div class="ui-field">
+        <label class="ui-label">Person</label>
+        <input class="ui-input" readonly [value]="addProjectContext.dayPerson.person.name" />
+      </div>
+      <div class="ui-field">
+        <label class="ui-label">Project</label>
+        <select class="ui-select" formControlName="projectId">
+          <option value="">Select</option>
+          <option *ngFor="let project of activeProjects" [value]="project.projectId">{{ project.name }} ({{ project.code }})</option>
+        </select>
+        <div class="ui-error" *ngIf="addProjectForm.controls.projectId.touched && addProjectForm.controls.projectId.invalid">Required field</div>
+      </div>
+      <div class="ui-alert" *ngIf="modalError">{{ modalError.message }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button class="ui-btn ui-btn-secondary" type="button" (click)="clearModals()">Cancel</button>
+    <button class="ui-btn ui-btn-primary" type="button" [disabled]="actionBusy" (click)="confirmAddProject()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="addTaskContext" title="Add Task" [dirty]="addTaskForm.dirty" (closeRequested)="clearModals()">
+  <div modal-body>
+    <form [formGroup]="addTaskForm" class="modal-form">
+      <div class="ui-field">
+        <label class="ui-label">Day</label>
+        <input class="ui-input" readonly [value]="dayLabel(addTaskContext.dayPlan)" />
+      </div>
+      <div class="same-line">
+        <div class="ui-field">
+          <label class="ui-label">Person</label>
+          <input class="ui-input" readonly [value]="addTaskContext.dayPerson.person.name" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label">Project</label>
+          <input class="ui-input" readonly [value]="addTaskContext.dayPersonProject.project.name" />
+        </div>
+      </div>
+      <div class="ui-field">
+        <label class="ui-label">Task Description</label>
+        <textarea class="ui-textarea" formControlName="description"></textarea>
+        <div class="ui-error" *ngIf="addTaskForm.controls.description.touched && addTaskForm.controls.description.invalid">
+          Required field (1 to 2000 chars)
+        </div>
+      </div>
+      <div class="ui-alert" *ngIf="modalError">{{ modalError.message }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button class="ui-btn ui-btn-secondary" type="button" (click)="clearModals()">Cancel</button>
+    <button class="ui-btn ui-btn-primary" type="button" [disabled]="actionBusy" (click)="confirmAddTask()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="removeTaskContext" title="Remove Task" (closeRequested)="clearModals()">
+  <div modal-body>
+    <p class="confirm-copy">
+      Task "{{ removeTaskContext.task.description }}" for project "{{ removeTaskContext.dayPersonProject.project.name }}" will be removed.
+    </p>
+    <div class="ui-alert" *ngIf="modalError">{{ modalError.message }}</div>
+  </div>
+  <div modal-footer>
+    <button class="ui-btn ui-btn-secondary" type="button" (click)="clearModals()">Cancel</button>
+    <button class="ui-btn ui-btn-primary" type="button" [disabled]="actionBusy" (click)="confirmRemoveTask()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="removePersonContext" title="Remove Person" (closeRequested)="clearModals()">
+  <div modal-body>
+    <p class="confirm-copy">
+      Person "{{ removePersonContext.dayPerson.person.name }}" will be removed from {{ dayLabel(removePersonContext.dayPlan) }}.
+    </p>
+    <div class="ui-alert" *ngIf="modalError">{{ modalError.message }}</div>
+  </div>
+  <div modal-footer>
+    <button class="ui-btn ui-btn-secondary" type="button" (click)="clearModals()">Cancel</button>
+    <button class="ui-btn ui-btn-primary" type="button" [disabled]="actionBusy" (click)="confirmRemovePerson()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="removeProjectContext" title="Remove Project" (closeRequested)="clearModals()">
+  <div modal-body>
+    <p class="confirm-copy">
+      Project "{{ removeProjectContext.dayPersonProject.project.name }}" will be removed from person
+      "{{ removeProjectContext.dayPerson.person.name }}".
+    </p>
+    <div class="ui-alert" *ngIf="modalError">{{ modalError.message }}</div>
+  </div>
+  <div modal-footer>
+    <button class="ui-btn ui-btn-secondary" type="button" (click)="clearModals()">Cancel</button>
+    <button class="ui-btn ui-btn-primary" type="button" [disabled]="actionBusy" (click)="confirmRemoveProject()">Confirm</button>
+  </div>
+</app-modal-shell>

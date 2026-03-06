@@ -1,0 +1,19 @@
+@if (!isLoading) {
+  <div class="tournaments-container">
+    <div class="header-section">
+      <h1 class="page-title">Tournaments Information</h1>
+      <button mat-raised-button class="add-button" (click)="openAddTournamentDialog()">Add Tournament</button>
+    </div>
+
+    <div>
+      <lib-dynamic-table
+        [frontEndPaginator]="true"
+        [columnsSchema]="columnsSchema"
+        [displayOrderColumns]="displayedColumns"
+        [isLoadingTable]="isLoadingTable"
+        [tableDataSource]="tournaments"
+        [buttonsArray]="buttonsArray"
+      />
+    </div>
+  </div>
+}

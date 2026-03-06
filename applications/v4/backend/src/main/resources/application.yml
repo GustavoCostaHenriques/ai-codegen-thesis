@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: weekly-planning-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/weekly_planning}
+    username: ${DB_USERNAME:weekly}
+    password: ${DB_PASSWORD:weekly}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  security:
+    jwt-secret: ${APP_JWT_SECRET}
+    jwt-expiration-seconds: ${APP_JWT_EXPIRATION_SECONDS:900}
+    brute-force:
+      max-attempts: ${APP_BRUTE_FORCE_MAX_ATTEMPTS:5}
+      lock-minutes: ${APP_BRUTE_FORCE_LOCK_MINUTES:15}
+    password-policy:
+      min-length: ${APP_PASSWORD_MIN_LENGTH:8}
+      require-uppercase: ${APP_PASSWORD_REQUIRE_UPPERCASE:false}
+      require-lowercase: ${APP_PASSWORD_REQUIRE_LOWERCASE:false}
+      require-digit: ${APP_PASSWORD_REQUIRE_DIGIT:false}
+      require-special: ${APP_PASSWORD_REQUIRE_SPECIAL:false}
+
+logging:
+  level:
+    root: ERROR
+    com.example.weeklyplanning: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate: ERROR
+

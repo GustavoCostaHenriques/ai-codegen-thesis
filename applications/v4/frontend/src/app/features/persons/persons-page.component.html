@@ -1,0 +1,107 @@
+<section class="persons-page">
+  <div class="header-actions" *ngIf="isAdmin">
+    <button type="button" class="ui-btn ui-btn-success" (click)="openCreateModal()">Create Person</button>
+  </div>
+
+  <div class="ui-alert" *ngIf="error">{{ error.message }}</div>
+
+  <div class="table-wrap app-card">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let person of persons">
+          <td>{{ person.name }}</td>
+          <td>{{ person.email }}</td>
+          <td>{{ person.role }}</td>
+          <td>{{ person.status }}</td>
+          <td *ngIf="isAdmin">
+            <div class="ui-actions">
+              <button type="button" class="ui-btn ui-btn-secondary" (click)="openEditModal(person)">Edit</button>
+              <button type="button" class="ui-btn ui-btn-danger" (click)="openDeleteModal(person)">Delete</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && persons.length === 0">
+          <td [attr.colspan]="isAdmin ? 5 : 4">No persons found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<app-modal-shell
+  *ngIf="showFormModal"
+  title="Create / Edit Person"
+  [dirty]="personForm.dirty"
+  (closeRequested)="closeFormModal()">
+  <div modal-body>
+    <form [formGroup]="personForm" class="modal-form" novalidate>
+      <div class="ui-field">
+        <label class="ui-label">Name</label>
+        <input class="ui-input" formControlName="name" [class.invalid]="!!controlError('name')" />
+        <div class="ui-error">{{ controlError('name') }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label">Password</label>
+        <input class="ui-input" type="password" formControlName="password" [class.invalid]="!!controlError('password')" [placeholder]="isEditMode ? 'Not editable in update API' : ''" />
+        <div class="ui-error">{{ controlError('password') }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label">Email</label>
+        <input class="ui-input" type="email" formControlName="email" [class.invalid]="!!controlError('email')" />
+        <div class="ui-error">{{ controlError('email') }}</div>
+      </div>
+
+      <div class="picker-row">
+        <div class="ui-field picker-field">
+          <label class="ui-label">Role</label>
+          <button type="button" class="ui-btn ui-btn-secondary picker-btn" (click)="showRoleDialog = !showRoleDialog">
+            {{ selectedRole }}
+          </button>
+          <div class="picker-dialog" *ngIf="showRoleDialog">
+            <app-option-dialog [options]="roleOptions" [activeValue]="selectedRole" (selected)="setRole($event)"></app-option-dialog>
+          </div>
+        </div>
+
+        <div class="ui-field picker-field">
+          <label class="ui-label">Status</label>
+          <button type="button" class="ui-btn ui-btn-secondary picker-btn" (click)="showStatusDialog = !showStatusDialog">
+            {{ selectedStatus }}
+          </button>
+          <div class="picker-dialog" *ngIf="showStatusDialog">
+            <app-option-dialog [options]="statusOptions" [activeValue]="selectedStatus" (selected)="setStatus($event)"></app-option-dialog>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui-alert" *ngIf="formError">{{ formError.message }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeFormModal()">Cancel</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isSaving" (click)="savePerson()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="showDeleteModal" title="Remove Person" (closeRequested)="closeDeleteModal()">
+  <div modal-body>
+    <p class="confirm-copy" *ngIf="deletingPerson">
+      Person <strong>{{ deletingPerson.name }}</strong> ({{ deletingPerson.email }}) will be removed.
+    </p>
+    <div class="ui-alert" *ngIf="deleteError">{{ deleteError.message }}</div>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isDeleting" (click)="deletePerson()">Confirm</button>
+  </div>
+</app-modal-shell>

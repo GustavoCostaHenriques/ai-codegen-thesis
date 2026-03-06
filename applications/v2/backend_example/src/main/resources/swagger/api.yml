@@ -1,0 +1,192 @@
+# API-first development with OpenAPI
+# This file will be used at compile time to generate Spring-MVC endpoint stubs using openapi-generator
+openapi: '3.0.1'
+info:
+  title: 'escola'
+  version: 0.0.1
+servers:
+  - url: http://localhost:25000/api
+    description: Development server
+  - url: https://localhost:25000/api
+    description: Development server with TLS Profile
+paths:
+  /student/byname/{name}:
+    get:
+      description: get student by name
+      operationId: getStudentByName
+      tags:
+        - student
+      parameters:
+        - name: name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+
+  /student/ageAndName/projection/{id}:
+    get:
+      description: get student info by id
+      operationId: getStudentInfoByIdProjection
+      tags:
+        - student
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        200:
+          $ref: '#/components/responses/StudentInfoResponse'
+
+  /student/ageAndName/{id}:
+    get:
+      description: get student info by id
+      operationId: getStudentInfoById
+      tags:
+        - student
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        200:
+          $ref: '#/components/responses/StudentInfoResponse'
+
+  /student/criteria:
+    get:
+      description: get student list
+      operationId: listStudents
+      x-spring-paginated: true
+      parameters:
+        - $ref: '#/components/parameters/age'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/sort'
+      tags:
+        - student
+      responses:
+        200:
+          $ref: '#/components/responses/StudentListResponse'
+
+  /student/{id}:
+    put:
+      description: update student
+      operationId: updateStudent
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      tags:
+        - student
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateStudentRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CreateStudentResponse'
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      schema:
+        type: integer
+        format: int64
+      required: true
+    age:
+      name: age
+      in: query
+      schema:
+        type: integer
+      required: false
+    size:
+      name: size
+      in: query
+      schema:
+        type: integer
+      required: false
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+      required: false
+    sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+      required: false
+
+  responses:
+    StudentInfoResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudentInfoRest'
+
+    CreateStudentResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudentDTO'
+
+    StudentListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/StudentDTO'
+
+  schemas:
+    StudentInfoRest:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+        country:
+          type: string
+
+    CreateStudentRest:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+
+    StudentDTO:
+      type: object
+
+    StudentAddressDTO:
+      type: object
+
+    CourseDTO:
+      type: object
+
+    GenreEnum:
+      type: string
+
+  requestBodies:
+    CreateStudentRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateStudentRest'
+
+    UpdateStudentRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: UpdateStudent
+            properties:
+              request:
+                $ref: '#/components/schemas/StudentDTO'

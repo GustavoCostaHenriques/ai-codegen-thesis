@@ -1,0 +1,230 @@
+<app-top-nav [planningWeekId]="weekId"></app-top-nav>
+
+<section class="page">
+  <header class="header">
+    <h1>Weekly Planning</h1>
+    @if (week) {
+      <p>{{ week.label }} | {{ week.startDate }} - {{ week.endDate }}</p>
+    }
+    <div class="actions">
+      <button type="button" (click)="openAddUserModal()">Add User to Day</button>
+      <button type="button" (click)="openAssignProjectModal()">Assign Project</button>
+      <button type="button" (click)="openAddTaskModal()">Add Task</button>
+      <button type="button" (click)="openRemoveModal()">Remove</button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  }
+
+  <section class="board">
+    @for (day of dayPlans; track day.date) {
+      <article class="day" [class.focused]="isFocusedDay(day)">
+        <h2>{{ day.dayOfWeek }}</h2>
+        <p>{{ day.date }}</p>
+
+        @for (dayUser of day.users; track dayUser.user.id) {
+          <div class="user-card">
+            <strong>User: {{ dayUser.user.name }}</strong>
+
+            @for (dayProject of dayUser.projects; track dayProject.project.id) {
+              <div class="project-block">
+                <span>Project: {{ dayProject.project.name }}</span>
+                <ul>
+                  @for (task of dayProject.tasks; track task.id) {
+                    <li>{{ task.text }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+      </article>
+    }
+  </section>
+</section>
+
+@if (addUserModalOpen) {
+  <section class="modal">
+    <form class="dialog" [formGroup]="addUserForm" (ngSubmit)="addUserToDay()">
+      <h2>Add User to Day</h2>
+      <label>
+        Day
+        <select formControlName="date">
+          @for (day of dayPlans; track day.date) {
+            <option [value]="day.date">{{ day.date }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        User
+        <select formControlName="userId">
+          <option value="">Select</option>
+          @for (user of users; track user.id) {
+            <option [value]="user.id">{{ user.name }}</option>
+          }
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit">Save</button>
+        <button type="button" (click)="closeAddUserModal()">Cancel</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (assignProjectModalOpen) {
+  <section class="modal">
+    <form class="dialog" [formGroup]="assignProjectForm" (ngSubmit)="assignProjectToUser()">
+      <h2>Assign Project to User</h2>
+      <label>
+        Day
+        <select formControlName="date">
+          @for (day of dayPlans; track day.date) {
+            <option [value]="day.date">{{ day.date }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        User
+        <select formControlName="userId">
+          <option value="">Select</option>
+          @for (dayUser of usersForDay(assignProjectForm.controls.date.value); track dayUser.user.id) {
+            <option [value]="dayUser.user.id">{{ dayUser.user.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Project
+        <select formControlName="projectId">
+          <option value="">Select</option>
+          @for (project of projects; track project.id) {
+            <option [value]="project.id">{{ project.name }}</option>
+          }
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit">Save</button>
+        <button type="button" (click)="closeAssignProjectModal()">Cancel</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (addTaskModalOpen) {
+  <section class="modal">
+    <form class="dialog" [formGroup]="addTaskForm" (ngSubmit)="addTask()">
+      <h2>Add Task</h2>
+      <label>
+        Day
+        <select formControlName="date">
+          @for (day of dayPlans; track day.date) {
+            <option [value]="day.date">{{ day.date }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        User
+        <select formControlName="userId">
+          <option value="">Select</option>
+          @for (dayUser of usersForDay(addTaskForm.controls.date.value); track dayUser.user.id) {
+            <option [value]="dayUser.user.id">{{ dayUser.user.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Project
+        <select formControlName="projectId">
+          <option value="">Select</option>
+          @for (
+            dayProject of projectsForDayUser(addTaskForm.controls.date.value, addTaskForm.controls.userId.value);
+            track dayProject.project.id
+          ) {
+            <option [value]="dayProject.project.id">{{ dayProject.project.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Task
+        <textarea formControlName="text" rows="3"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit">Save</button>
+        <button type="button" (click)="closeAddTaskModal()">Cancel</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (removeModalOpen) {
+  <section class="modal">
+    <form class="dialog" [formGroup]="removeForm" (ngSubmit)="removeItem()">
+      <h2>Confirm Remove</h2>
+      <label>
+        Item Type
+        <select formControlName="itemType">
+          <option value="TASK">Task</option>
+          <option value="PROJECT">Project</option>
+          <option value="USER">User</option>
+        </select>
+      </label>
+      <label>
+        Day
+        <select formControlName="date">
+          @for (day of dayPlans; track day.date) {
+            <option [value]="day.date">{{ day.date }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        User
+        <select formControlName="userId">
+          <option value="">Select</option>
+          @for (dayUser of usersForDay(removeForm.controls.date.value); track dayUser.user.id) {
+            <option [value]="dayUser.user.id">{{ dayUser.user.name }}</option>
+          }
+        </select>
+      </label>
+
+      @if (removeForm.controls.itemType.value !== 'USER') {
+        <label>
+          Project
+          <select formControlName="projectId">
+            <option value="">Select</option>
+            @for (
+              dayProject of projectsForDayUser(removeForm.controls.date.value, removeForm.controls.userId.value);
+              track dayProject.project.id
+            ) {
+              <option [value]="dayProject.project.id">{{ dayProject.project.name }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      @if (removeForm.controls.itemType.value === 'TASK') {
+        <label>
+          Task
+          <select formControlName="taskId">
+            <option value="">Select</option>
+            @for (
+              task of tasksForDayUserProject(
+                removeForm.controls.date.value,
+                removeForm.controls.userId.value,
+                removeForm.controls.projectId.value
+              );
+              track task.id
+            ) {
+              <option [value]="task.id">{{ task.text }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <div class="dialog-actions">
+        <button type="submit">Confirm</button>
+        <button type="button" (click)="closeRemoveModal()">Cancel</button>
+      </div>
+    </form>
+  </section>
+}

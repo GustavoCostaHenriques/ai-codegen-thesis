@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="001-01-create-account" author="codex">
+        <createTable tableName="account">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(80)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_account_username"/>
+            </column>
+            <column name="email" type="varchar(160)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_account_email"/>
+            </column>
+            <column name="password_hash" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>ALTER TABLE account ADD CONSTRAINT ck_account_role CHECK (role in ('ADMIN','VIEWER'));</sql>
+    </changeSet>
+
+    <changeSet id="001-02-create-person" author="codex">
+        <createTable tableName="person">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="account_id" type="uuid">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_person_account"/>
+            </column>
+            <column name="name" type="varchar(120)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="person"
+                                 baseColumnNames="account_id"
+                                 constraintName="fk_person_account"
+                                 referencedTableName="account"
+                                 referencedColumnNames="id"/>
+        <sql>ALTER TABLE person ADD CONSTRAINT ck_person_status CHECK (status in ('ACTIVE','INACTIVE'));</sql>
+    </changeSet>
+
+    <changeSet id="001-03-create-project" author="codex">
+        <createTable tableName="project">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(120)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="varchar(40)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_project_code"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>ALTER TABLE project ADD CONSTRAINT ck_project_status CHECK (status in ('ACTIVE','INACTIVE'));</sql>
+    </changeSet>
+
+    <changeSet id="001-04-create-planning-week" author="codex">
+        <createTable tableName="planning_week">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(40)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_week_code"/>
+            </column>
+            <column name="week_start" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="week_end" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>ALTER TABLE planning_week ADD CONSTRAINT ck_week_status CHECK (status in ('PLANNED','COMPLETED'));</sql>
+    </changeSet>
+
+    <changeSet id="001-05-create-day-plan" author="codex">
+        <createTable tableName="day_plan">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="week_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_of_week" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="plan_date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="day_plan"
+                                 baseColumnNames="week_id"
+                                 constraintName="fk_day_plan_week"
+                                 referencedTableName="planning_week"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addUniqueConstraint tableName="day_plan" columnNames="week_id,day_of_week" constraintName="uk_day_plan_week_day"/>
+        <addUniqueConstraint tableName="day_plan" columnNames="week_id,plan_date" constraintName="uk_day_plan_week_date"/>
+        <sql>ALTER TABLE day_plan ADD CONSTRAINT ck_day_of_week CHECK (day_of_week in ('MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'));</sql>
+    </changeSet>
+
+    <changeSet id="001-06-create-day-project" author="codex">
+        <createTable tableName="day_project">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="day_plan_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="project_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="day_project"
+                                 baseColumnNames="day_plan_id"
+                                 constraintName="fk_day_project_day_plan"
+                                 referencedTableName="day_plan"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="day_project"
+                                 baseColumnNames="project_id"
+                                 constraintName="fk_day_project_project"
+                                 referencedTableName="project"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="day_project" columnNames="day_plan_id,project_id" constraintName="uk_day_project_unique"/>
+    </changeSet>
+
+    <changeSet id="001-07-create-assignment" author="codex">
+        <createTable tableName="planning_assignment">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="day_project_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="person_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="estimated_hours" type="double precision">
+                <constraints nullable="false"/>
+            </column>
+            <column name="actual_hours" type="double precision"/>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="planning_assignment"
+                                 baseColumnNames="day_project_id"
+                                 constraintName="fk_assignment_day_project"
+                                 referencedTableName="day_project"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="planning_assignment"
+                                 baseColumnNames="person_id"
+                                 constraintName="fk_assignment_person"
+                                 referencedTableName="person"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="planning_assignment" columnNames="day_project_id,person_id" constraintName="uk_assignment_unique"/>
+    </changeSet>
+
+    <changeSet id="001-08-create-task" author="codex">
+        <createTable tableName="task">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="assignment_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(2000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="task"
+                                 baseColumnNames="assignment_id"
+                                 constraintName="fk_task_assignment"
+                                 referencedTableName="planning_assignment"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="001-09-create-auth-session" author="codex">
+        <createTable tableName="auth_session">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="account_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_jti" type="varchar(120)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_auth_session_jti"/>
+            </column>
+            <column name="expires_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revoked_at" type="timestamp with time zone"/>
+            <column name="ip_address" type="varchar(64)"/>
+            <column name="user_agent" type="varchar(255)"/>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="auth_session"
+                                 baseColumnNames="account_id"
+                                 constraintName="fk_auth_session_account"
+                                 referencedTableName="account"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="001-10-create-audit-log" author="codex">
+        <createTable tableName="audit_log">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="occurred_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="actor_account_id" type="uuid"/>
+            <column name="actor_username" type="varchar(80)"/>
+            <column name="action" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_type" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_id" type="uuid"/>
+            <column name="details" type="varchar(4000)"/>
+            <column name="success" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="audit_log" indexName="idx_audit_log_occurred_at">
+            <column name="occurred_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

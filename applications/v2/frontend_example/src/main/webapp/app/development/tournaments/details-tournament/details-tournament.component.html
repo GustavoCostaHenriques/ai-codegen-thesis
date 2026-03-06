@@ -1,0 +1,8 @@
+@if (!isLoading) {
+  <h2 mat-dialog-title>
+    Details of: <span>{{ tournamentStats?.name }}</span>
+  </h2>
+  <lib-dynamic-form [fields]="formFields" [formObject]="tournamentStats" />
+  <button mat-raised-button [disabled]="disableSaveButton()" (click)="onSave()">Save</button>
+  <button mat-raised-button (click)="goBack()">Cancel</button>
+}

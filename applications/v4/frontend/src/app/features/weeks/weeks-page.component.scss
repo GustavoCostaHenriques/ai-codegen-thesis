@@ -1,0 +1,65 @@
+.weeks-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.table-wrap {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  overflow-x: auto;
+  background: #fff;
+}
+
+.ui-table tbody tr {
+  cursor: pointer;
+}
+
+.ui-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.status-picker {
+  position: relative;
+  max-width: 220px;
+}
+
+.status-btn {
+  width: 120px;
+}
+
+.status-dialog {
+  position: absolute;
+  top: 62px;
+  left: 0;
+  width: 180px;
+  z-index: 2;
+}
+
+.confirm-text {
+  margin: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

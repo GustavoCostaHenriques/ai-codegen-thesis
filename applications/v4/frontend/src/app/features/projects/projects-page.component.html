@@ -1,0 +1,87 @@
+<section class="projects-page">
+  <div class="header-actions" *ngIf="isAdmin">
+    <button type="button" class="ui-btn ui-btn-success" (click)="openCreateModal()">Create Project</button>
+  </div>
+
+  <div class="ui-alert" *ngIf="error">{{ error.message }}</div>
+
+  <div class="table-wrap app-card">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td>{{ project.name }}</td>
+          <td>{{ project.code }}</td>
+          <td>{{ project.status }}</td>
+          <td *ngIf="isAdmin">
+            <div class="ui-actions">
+              <button type="button" class="ui-btn ui-btn-secondary" (click)="openEditModal(project)">Edit</button>
+              <button type="button" class="ui-btn ui-btn-danger" (click)="openDeleteModal(project)">Delete</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && projects.length === 0">
+          <td [attr.colspan]="isAdmin ? 4 : 3">No projects found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<app-modal-shell
+  *ngIf="showFormModal"
+  title="Create / Edit Project"
+  [dirty]="projectForm.dirty"
+  (closeRequested)="closeFormModal()">
+  <div modal-body>
+    <form [formGroup]="projectForm" class="modal-form">
+      <div class="ui-field">
+        <label class="ui-label">Name</label>
+        <input class="ui-input" formControlName="name" [class.invalid]="!!controlError('name')" />
+        <div class="ui-error">{{ controlError('name') }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label">Code</label>
+        <input class="ui-input" formControlName="code" [class.invalid]="!!controlError('code')" />
+        <div class="ui-error">{{ controlError('code') }}</div>
+      </div>
+
+      <div class="ui-field picker-field">
+        <label class="ui-label">Status</label>
+        <button type="button" class="ui-btn ui-btn-secondary picker-btn" (click)="showStatusDialog = !showStatusDialog">
+          {{ selectedStatus }}
+        </button>
+        <div class="picker-dialog" *ngIf="showStatusDialog">
+          <app-option-dialog [options]="statusOptions" [activeValue]="selectedStatus" (selected)="setStatus($event)"></app-option-dialog>
+        </div>
+      </div>
+
+      <div class="ui-alert" *ngIf="formError">{{ formError.message }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeFormModal()">Cancel</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isSaving" (click)="saveProject()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="showDeleteModal" title="Remove Project" (closeRequested)="closeDeleteModal()">
+  <div modal-body>
+    <p class="confirm-copy" *ngIf="deletingProject">
+      Project <strong>{{ deletingProject.name }}</strong> ({{ deletingProject.code }}) will be removed.
+    </p>
+    <div class="ui-alert" *ngIf="deleteError">{{ deleteError.message }}</div>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isDeleting" (click)="deleteProject()">Confirm</button>
+  </div>
+</app-modal-shell>

@@ -1,0 +1,1 @@
+# Backend-only prototype: do not auto-start Docker/Testcontainers during tests.

@@ -1,0 +1,36 @@
+{
+  "annotations": {
+    "changelogDate": "20260203154354"
+  },
+  "applications": ["weeklyplanning"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "date",
+      "fieldType": "LocalDate",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "jpaMetamodelFiltering": true,
+  "name": "DayPlan",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "dayUser",
+      "otherEntityRelationshipName": "dayPlan",
+      "relationshipName": "dayUsers",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "week",
+      "otherEntityRelationshipName": "dayPlans",
+      "relationshipName": "week",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

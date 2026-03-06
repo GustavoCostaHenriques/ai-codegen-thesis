@@ -1,0 +1,59 @@
+entity Disciplina (class){
+  name String required unique
+  capacity Integer required
+  credits Integer required
+  teacherName String required
+}
+
+paginate Disciplina with pagination
+filter Disciplina
+
+entity Course{
+  name String required
+}
+paginate Course with pagination
+filter Course
+
+entity Student{
+  name String required
+  age Integer required min(0)
+  genre GenreEnum
+}
+paginate Student with pagination
+filter Student
+
+entity StudentAddress{
+  adressLine String
+  postalCode String
+  city String
+  country String
+}
+paginate StudentAddress with pagination
+filter StudentAddress
+
+entity Grade{
+  value Integer min(0) max(20)
+  finished Boolean
+}
+paginate Grade with pagination
+filter Grade
+
+enum GenreEnum{
+  MALE (Male),
+  FEMALE (Female),
+  OTHER (Other)
+}
+
+relationship OneToMany{
+  Course to Disciplina{Course required}
+  Student to Grade
+  Disciplina to Grade
+}
+
+relationship ManyToOne{
+  Student to Course
+}
+
+relationship OneToOne{
+  Student to StudentAddress
+}

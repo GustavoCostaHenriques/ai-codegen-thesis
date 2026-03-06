@@ -1,91 +1,75 @@
-# AI-based Pipeline for Automated Software Development
+# AI Codegen Thesis
 
-This repository contains all artefacts related to the development of a Master’s Oriented Study thesis in Computer Engineering, focused on the design and implementation of an AI-based pipeline for automated software development.
+Modular AI-assisted software generation research workspace, grounded in the Trust Systems development process.
 
-The project is developed within the MSc in Computer Engineering at the Faculty of Sciences of the University of Lisbon, in collaboration with Trust Systems.
+## Overview
 
-The core objective is to design, implement, and evaluate a modular pipeline based on Large Language Models (LLMs) capable of transforming user's descriptions into software artefacts.
+This repository supports the thesis work documented in:
 
----
+- `docs/oriented_study/oriented_study.pdf`
 
-## 🎯 Objectives
+Primary objective:
 
-The main objectives of this thesis are:
+- Design and evaluate a pipeline that uses LLMs plus prompt engineering to automate selected software development phases, with human validation between phases.
 
-- Design a modular and incremental pipeline for automating software development stages
-- Apply prompt engineering techniques to guide and control model behaviour
-- Evaluate the quality and consistency of generated artefacts
-- Integrate human-in-the-loop validation throughout the pipeline
+## Automation Scope
 
----
+| In Scope | Description |
+| --- | --- |
+| Requirements interpretation | Transform initial client input into structured requirements |
+| UI generation | Produce interface artifacts and interaction flows |
+| API generation | Build OpenAPI contracts aligned with validated requirements/UI |
+| Backend generation | Generate service logic and API implementation artifacts |
+| Frontend generation | Generate UI implementation aligned with API contracts |
+| Infrastructure generation | Generate runtime/deployment support artifacts |
+| Test support | Generate baseline tests integrated into generated modules |
 
-## 🧠 Proposed Pipeline
+Out of scope:
 
-The proposed solution is organised as an incremental pipeline composed of the following modules:
+- Business strategy and market viability analysis remain human-led.
 
-1. Requirements Structuring  
-2. Interface Generation  
-3. API Specification Generation  
-4. Backend Code Generation  
-5. Frontend Code Generation  
-6. Infrastructure Generation  
+## Pipeline View
 
-Each module:
-- consumes artefacts produced by the previous module,
-- produces structured and reusable outputs,
-- includes human validation before proceeding to the next stage.
+The process is sequential, artifact-driven, and validated incrementally.
 
-### Pipeline Overview
+![Proposed Pipeline](assets/pipeline_design/proposed_pipeline_overview.png)
 
-![Proposed pipeline](assets/pipeline_design/proposed_pipeline_overview.png)
+Control principles used across this project:
 
----
+- Human-in-the-loop validation
+- Prompt-driven iterative refinement
+- Incremental module progression
+- Mixed evaluation (automatic metrics + expert review)
 
-## 🛠️ Orchestration Tool
+## Repository Structure
 
-The pipeline is orchestrated using **Flowise**.
+```text
+ai-codegen-thesis/
+|- applications/                 # Generated software versions (v1..v6)
+|- assets/                       # Visual assets used by docs and reports
+|- docs/                         # Oriented study, dissertation, analyses
+|- prompts/                      # Prompt history (initial + refinements)
+|- workflows/n8n-progress/daily/ # Daily n8n workflow JSON snapshots
+```
 
-A detailed justification of this choice is available in  
-[`docs/technical_decisions/orchestration_tool.md`](docs/technical_decisions/orchestration_tool.md)
+Quick references:
 
----
+- Applications details: `applications/README.md`
+- Prompt usage guide: `prompts/README.md`
+- n8n progress guide: `workflows/n8n-progress/README.md`
 
-## 📁 Repository Structure
+## Generated Application Versions
 
-- `assets/` — shared visual resources (logos, diagrams, and images) used across documentation and module pages  
-- `docs/` — academic documents, presentations, and technical decisions  
-- `modules/` — all the information relating to each of the modules
+The versions in `applications/` (`v1` to `v6`) were produced with Codex in VS Code via prompt engineering, where each phase was generated from a single prompt.
 
----
+## Working Method
 
-## 🚧 Implementation Status
+1. Define a prompt for one module.
+2. Generate the artifact.
+3. Validate output quality.
+4. Refine prompt and regenerate when needed.
+5. Store artifacts, prompts, and workflow snapshots.
 
-The implementation of the pipeline is being carried out incrementally.  
-Each module will be developed, validated, and refined individually before full integration.
+## Supporting Timeline
 
-- [🚧] Requirements Structuring Module  
-- [ ] Interface Generation Module  
-- [ ] API Specification Generation Module  
-- [ ] Backend Code Generation  
-- [ ] Frontend Code Generation  
-- [ ] Infrastructure Generation  
-
----
-
-## 📅 Planning
-
-The project objectives are documented in  
-[`docs/planning/objectives_and_timeline.pdf`](docs/planning/schedule_objective.pdf)
-
-### Timeline Overview
-![Timeline overview](assets/timeline.png)
-
----
-
-## 👤 Author
-
-**Gustavo Henriques**  
-MSc in Computer Engineering  
-Faculty of Sciences, University of Lisbon
-
-
+![Planning Timeline](assets/timeline.png)

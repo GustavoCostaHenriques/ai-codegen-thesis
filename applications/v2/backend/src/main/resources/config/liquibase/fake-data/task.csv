@@ -1,0 +1,12 @@
+id;description;day_person_project_id
+fffffff1-ffff-4fff-8fff-fffffffffff1;Finalize API response contracts;eeeeeee1-eeee-4eee-8eee-eeeeeeeeeee1
+fffffff2-ffff-4fff-8fff-fffffffffff2;Review pull requests from integration branch;eeeeeee1-eeee-4eee-8eee-eeeeeeeeeee1
+fffffff3-ffff-4fff-8fff-fffffffffff3;Automate smoke tests for login flow;eeeeeee2-eeee-4eee-8eee-eeeeeeeeeee2
+fffffff4-ffff-4fff-8fff-fffffffffff4;Validate regression scenarios on staging;eeeeeee2-eeee-4eee-8eee-eeeeeeeeeee2
+fffffff5-ffff-4fff-8fff-fffffffffff5;Prepare weekly status report for leadership;eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3
+fffffff6-ffff-4fff-8fff-fffffffffff6;Document data mapping decisions;eeeeeee4-eeee-4eee-8eee-eeeeeeeeeee4
+fffffff7-ffff-4fff-8fff-fffffffffff7;Close release checklist for sprint 12;eeeeeee5-eeee-4eee-8eee-eeeeeeeeeee5
+fffffff8-ffff-4fff-8fff-fffffffffff8;Run compatibility tests on Android 14;eeeeeee6-eeee-4eee-8eee-eeeeeeeeeee6
+fffffff9-ffff-4fff-8fff-fffffffffff9;Publish dashboard snapshots to stakeholders;eeeeeee7-eeee-4eee-8eee-eeeeeeeeeee7
+fffffff0-ffff-4fff-8fff-fffffffffff0;Archive legacy migration notes;eeeeeee8-eeee-4eee-8eee-eeeeeeeeeee8
+fffffffb-ffff-4fff-8fff-fffffffffffb;Coordinate bug triage with QA and support;eeeeeee9-eeee-4eee-8eee-eeeeeeeeeee9

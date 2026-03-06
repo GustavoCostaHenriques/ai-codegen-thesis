@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Progress Bar - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Progress Bar</h1>
+
+    <section id="exemplos" class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="gra-row-bs">
+            <div class="gra-col-bs-xl-2">
+              <div class="gra-progress-bar" data-progress-default="50">
+                <span class="progressPercentage"></span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar"></div>
+                </div>
+                <label for="progress-input-1" class="gra-margin-top-xs">Progresso</label><br>
+                <input id="progress-input-1" class="form form-control progressInput" type="text" placeholder="Experimente um valor de 0 a 100">
+              </div>
+            </div>
+            <div class="gra-col-bs-xl-2">
+              <p>Barra informativa</p>
+            </div>
+          </div>
+
+          <div class="gra-row-bs gra-margin-top-l">
+            <div class="gra-col-bs-xl-2">
+              <div class="gra-progress-bar" data-progress-default="75">
+                <span class="progressPercentage"></span>
+                <div class="progress-bar-container error">
+                  <div class="progress-bar"></div>
+                </div>
+                <label for="progress-input-2" class="gra-margin-top-xs">Progresso</label><br>
+                <input id="progress-input-2" class="form form-control progressInput" type="text" placeholder="Experimente um valor de 0 a 100">
+              </div>
+            </div>
+            <div class="gra-col-bs-xl-2">
+              <p>Feedback erro</p>
+            </div>
+          </div>
+
+          <p class="gra-margin-top-l">Os inputs acima sao apenas para verificar a dinamica do progress bar.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

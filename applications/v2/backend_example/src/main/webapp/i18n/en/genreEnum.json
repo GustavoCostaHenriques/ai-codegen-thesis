@@ -1,0 +1,10 @@
+{
+  "escolaApp": {
+    "GenreEnum": {
+      "null": "",
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "OTHER": "Other"
+    }
+  }
+}

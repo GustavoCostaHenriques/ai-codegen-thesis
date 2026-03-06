@@ -1,0 +1,1628 @@
+openapi: 3.0.3
+info:
+  title: Weekly Planning API
+  version: 1.0.0
+  description: >
+    API contract for weekly work planning, including authentication,
+    person/account management, project management, week planning,
+    and statistics export.
+servers:
+  - url: http://localhost
+tags:
+  - name: Authentication
+    description: Session and password operations.
+  - name: Profile
+    description: Authenticated user profile operations.
+  - name: People
+    description: Person and linked account management.
+  - name: Projects
+    description: Project management operations.
+  - name: Weeks
+    description: Week lifecycle and overview operations.
+  - name: Planning
+    description: Weekly planning board operations.
+  - name: Statistics
+    description: Statistics export operations.
+security:
+  - bearerAuth: []
+paths:
+  /sessions:
+    post:
+      tags: [Authentication]
+      summary: Authenticate and create a session
+      operationId: createSession
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/SessionCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+  /sessions/current:
+    delete:
+      tags: [Authentication]
+      summary: Invalidate current session
+      operationId: deleteCurrentSession
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+  /me:
+    get:
+      tags: [Profile]
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      responses:
+        '200':
+          $ref: '#/components/responses/CurrentUserResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+  /password-changes:
+    post:
+      tags: [Authentication]
+      summary: Change password for authenticated user
+      operationId: createPasswordChange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /people:
+    get:
+      tags: [People]
+      summary: List persons
+      description: Returns paginated persons. Passwords are never exposed.
+      operationId: listPeople
+      x-spring-paginated: true
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/personStatus'
+        - $ref: '#/components/parameters/accountRole'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          $ref: '#/components/responses/PeoplePageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags: [People]
+      summary: Create person with linked account
+      description: ADMIN only. Creates Person and Account in a 1:1 relationship.
+      operationId: createPerson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PersonCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /people/{personId}:
+    get:
+      tags: [People]
+      summary: Get person by ID
+      operationId: getPersonById
+      parameters:
+        - $ref: '#/components/parameters/personId'
+      responses:
+        '200':
+          $ref: '#/components/responses/PersonResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags: [People]
+      summary: Update person and linked account attributes
+      description: ADMIN only.
+      operationId: updatePerson
+      parameters:
+        - $ref: '#/components/parameters/personId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PersonResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      tags: [People]
+      summary: Remove person
+      description: >
+        ADMIN only. Removes person from active management lists.
+        Linked account access is deactivated.
+      operationId: deletePerson
+      parameters:
+        - $ref: '#/components/parameters/personId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+      operationId: listProjects
+      x-spring-paginated: true
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/projectStatus'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectsPageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags: [Projects]
+      summary: Create project
+      description: ADMIN only.
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ProjectCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /projects/{projectId}:
+    get:
+      tags: [Projects]
+      summary: Get project by ID
+      operationId: getProjectById
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags: [Projects]
+      summary: Update project
+      description: ADMIN only.
+      operationId: updateProject
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      tags: [Projects]
+      summary: Remove project
+      description: ADMIN only. Removes project and related planning associations.
+      operationId: deleteProject
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks:
+    get:
+      tags: [Weeks]
+      summary: List weeks
+      operationId: listWeeks
+      x-spring-paginated: true
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/weekStatus'
+        - $ref: '#/components/parameters/weekStartFrom'
+        - $ref: '#/components/parameters/weekStartTo'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeeksPageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags: [Weeks]
+      summary: Create week
+      description: ADMIN only. New weeks are created as PLANNED.
+      operationId: createWeek
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WeekCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /weeks/{weekId}:
+    get:
+      tags: [Weeks]
+      summary: Get week by ID
+      operationId: getWeekById
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags: [Weeks]
+      summary: Update week
+      description: ADMIN only. Setting status to COMPLETED makes planning read-only.
+      operationId: updateWeek
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      tags: [Weeks]
+      summary: Remove week
+      description: ADMIN only.
+      operationId: deleteWeek
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks/{weekId}/duplicates:
+    post:
+      tags: [Weeks]
+      summary: Duplicate week into a new week
+      description: ADMIN only.
+      operationId: createWeekDuplicate
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DuplicateWeekRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WeekCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/planning-board:
+    get:
+      tags: [Planning]
+      summary: Get weekly planning board
+      description: >
+        Returns day plans for the week (Monday-Friday), projects per day,
+        assignments, task cards, and hours.
+        VIEWER users only receive assignments belonging to their own person.
+      operationId: getWeekPlanningBoard
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekPlanningBoardResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks/{weekId}/day-plans:
+    get:
+      tags: [Planning]
+      summary: List day plans for a week
+      operationId: listWeekDayPlans
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayPlanListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks/{weekId}/day-plans/{dayPlanId}:
+    get:
+      tags: [Planning]
+      summary: Get day plan by ID
+      operationId: getDayPlanById
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayPlanResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks/{weekId}/day-plans/{dayPlanId}/projects/{projectId}:
+    put:
+      tags: [Planning]
+      summary: Ensure project exists on a day plan
+      description: ADMIN only. Idempotent operation that adds or keeps the project in the day plan.
+      operationId: upsertDayPlanProject
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayProjectResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+    delete:
+      tags: [Planning]
+      summary: Remove project from a day plan
+      description: ADMIN only. Removes the day-project association and related assignments/tasks.
+      operationId: deleteDayPlanProject
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/day-plans/{dayPlanId}/projects/{projectId}/assignments:
+    post:
+      tags: [Planning]
+      summary: Assign person to project in a day plan and create first task
+      description: ADMIN only. Person cannot be duplicated for the same project/day.
+      operationId: createPlanningAssignment
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/AssignmentCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /weeks/{weekId}/day-plans/{dayPlanId}/projects/{projectId}/assignments/{assignmentId}:
+    put:
+      tags: [Planning]
+      summary: Update assignment hours
+      description: ADMIN can update estimatedHours and actualHours. Assigned person can update actualHours.
+      operationId: updatePlanningAssignment
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+        - $ref: '#/components/parameters/assignmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AssignmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      tags: [Planning]
+      summary: Remove assignment from project/day
+      description: ADMIN only. Removes assignment and all linked tasks.
+      operationId: deletePlanningAssignment
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+        - $ref: '#/components/parameters/assignmentId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/day-plans/{dayPlanId}/projects/{projectId}/assignments/{assignmentId}/tasks:
+    post:
+      tags: [Planning]
+      summary: Create task card for assignment
+      operationId: createAssignmentTask
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+        - $ref: '#/components/parameters/assignmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/TaskCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+  /weeks/{weekId}/day-plans/{dayPlanId}/projects/{projectId}/assignments/{assignmentId}/tasks/{taskId}:
+    put:
+      tags: [Planning]
+      summary: Update task card
+      operationId: updateAssignmentTask
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+        - $ref: '#/components/parameters/assignmentId'
+        - $ref: '#/components/parameters/taskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      tags: [Planning]
+      summary: Remove task card
+      operationId: deleteAssignmentTask
+      parameters:
+        - $ref: '#/components/parameters/weekId'
+        - $ref: '#/components/parameters/dayPlanId'
+        - $ref: '#/components/parameters/projectId'
+        - $ref: '#/components/parameters/assignmentId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /statistics-exports:
+    post:
+      tags: [Statistics]
+      summary: Export application statistics as Excel
+      description: ADMIN only.
+      operationId: createStatisticsExport
+      responses:
+        '200':
+          $ref: '#/components/responses/StatisticsExportResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    personId:
+      name: personId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    projectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    weekId:
+      name: weekId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    dayPlanId:
+      name: dayPlanId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    assignmentId:
+      name: assignmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    taskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    page:
+      name: page
+      in: query
+      required: false
+      description: Zero-based page index.
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    size:
+      name: size
+      in: query
+      required: false
+      description: Page size.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 200
+        default: 20
+    sort:
+      name: sort
+      in: query
+      required: false
+      description: >
+        Sorting criteria in the format property,(asc|desc). Repeat parameter
+        for multiple sort fields.
+      schema:
+        type: array
+        items:
+          type: string
+          pattern: '^[a-zA-Z][a-zA-Z0-9]*,(asc|desc)$'
+      style: form
+      explode: true
+    accountRole:
+      name: role
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/AccountRole'
+    personStatus:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/PersonStatus'
+    projectStatus:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/ProjectStatus'
+    weekStatus:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/WeekStatus'
+    search:
+      name: search
+      in: query
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 120
+    weekStartFrom:
+      name: weekStartFrom
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+    weekStartTo:
+      name: weekStartTo
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+  responses:
+    SessionCreatedResponse:
+      description: Session created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Session'
+    CurrentUserResponse:
+      description: Authenticated user profile.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticatedUser'
+    PeoplePageResponse:
+      description: Paginated persons.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagedPeople'
+    PersonCreatedResponse:
+      description: Person created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Person'
+    PersonResponse:
+      description: Person details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Person'
+    ProjectsPageResponse:
+      description: Paginated projects.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagedProjects'
+    ProjectCreatedResponse:
+      description: Project created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Project'
+    ProjectResponse:
+      description: Project details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Project'
+    WeeksPageResponse:
+      description: Paginated weeks.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagedWeeks'
+    WeekCreatedResponse:
+      description: Week created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Week'
+    WeekResponse:
+      description: Week details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Week'
+    WeekPlanningBoardResponse:
+      description: Weekly planning board.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WeekPlanningBoard'
+    DayPlanListResponse:
+      description: Day plans for a week.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DayPlan'
+    DayPlanResponse:
+      description: Day plan details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayPlan'
+    DayProjectResponse:
+      description: Day-project association details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayProject'
+    AssignmentCreatedResponse:
+      description: Assignment created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanningAssignment'
+    AssignmentResponse:
+      description: Assignment details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanningAssignment'
+    TaskCreatedResponse:
+      description: Task created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    TaskResponse:
+      description: Task details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    StatisticsExportResponse:
+      description: Statistics document in Excel format.
+      content:
+        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+          schema:
+            type: string
+            format: binary
+    NoContentResponse:
+      description: Operation completed successfully.
+    BadRequestResponse:
+      description: Invalid request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedResponse:
+      description: Authentication required or invalid credentials.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenResponse:
+      description: Operation not allowed for current user role or ownership context.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundResponse:
+      description: Requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ConflictResponse:
+      description: Request conflicts with resource state or invariants.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationErrorResponse:
+      description: Request validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+  schemas:
+    AccountRole:
+      type: string
+      enum: [ADMIN, VIEWER]
+    PersonStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+    ProjectStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+    WeekStatus:
+      type: string
+      enum: [PLANNED, COMPLETED]
+    DayOfWeek:
+      type: string
+      enum: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]
+    SessionTokenType:
+      type: string
+      enum: [Bearer]
+    SessionCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 80
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+    Session:
+      type: object
+      additionalProperties: false
+      required: [accessToken, tokenType, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+        tokenType:
+          $ref: '#/components/schemas/SessionTokenType'
+        expiresIn:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Access token expiry in seconds.
+        user:
+          $ref: '#/components/schemas/AuthenticatedUser'
+    AuthenticatedUser:
+      type: object
+      additionalProperties: false
+      required: [accountId, personId, name, username, email, role, status]
+      properties:
+        accountId:
+          type: string
+          format: uuid
+          readOnly: true
+        personId:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          readOnly: true
+        username:
+          type: string
+          minLength: 1
+          maxLength: 80
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 160
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/AccountRole'
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+    PasswordChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [username, currentPassword, newPassword, confirmNewPassword]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 80
+        currentPassword:
+          type: string
+          minLength: 1
+          maxLength: 200
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 200
+        confirmNewPassword:
+          type: string
+          minLength: 8
+          maxLength: 200
+    PersonCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [name, username, email, password, role, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        username:
+          type: string
+          minLength: 1
+          maxLength: 80
+        email:
+          type: string
+          format: email
+          maxLength: 160
+        password:
+          type: string
+          minLength: 8
+          maxLength: 200
+        role:
+          $ref: '#/components/schemas/AccountRole'
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+    PersonUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [name, username, email, role, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        username:
+          type: string
+          minLength: 1
+          maxLength: 80
+        email:
+          type: string
+          format: email
+          maxLength: 160
+        password:
+          type: string
+          minLength: 8
+          maxLength: 200
+          description: Optional administrator reset password.
+        role:
+          $ref: '#/components/schemas/AccountRole'
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+    PersonSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name, email, role, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/AccountRole'
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+    Person:
+      type: object
+      additionalProperties: false
+      required: [id, accountId, name, username, email, role, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        accountId:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/AccountRole'
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+    ProjectCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [name, code, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          minLength: 1
+          maxLength: 40
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+    ProjectUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [name, code, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          minLength: 1
+          maxLength: 40
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+    ProjectSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name, code, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+    Project:
+      type: object
+      additionalProperties: false
+      required: [id, name, code, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+    WeekCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [weekStart, weekEnd]
+      properties:
+        weekStart:
+          type: string
+          format: date
+        weekEnd:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+          description: Must be PLANNED when creating a week.
+    WeekUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [weekStart, weekEnd, status]
+      properties:
+        weekStart:
+          type: string
+          format: date
+        weekEnd:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+    DuplicateWeekRequest:
+      type: object
+      additionalProperties: false
+      required: [weekStart, weekEnd]
+      properties:
+        weekStart:
+          type: string
+          format: date
+        weekEnd:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+          description: Defaults to PLANNED when omitted.
+    WeekSummary:
+      type: object
+      additionalProperties: false
+      required: [id, code, weekStart, weekEnd, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          pattern: '^W[0-9A-Za-z]+$'
+          readOnly: true
+        weekStart:
+          type: string
+          format: date
+          readOnly: true
+        weekEnd:
+          type: string
+          format: date
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+    Week:
+      type: object
+      additionalProperties: false
+      required: [id, code, weekStart, weekEnd, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          pattern: '^W[0-9A-Za-z]+$'
+          readOnly: true
+        weekStart:
+          type: string
+          format: date
+          readOnly: true
+        weekEnd:
+          type: string
+          format: date
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+    WeekPlanningBoard:
+      type: object
+      additionalProperties: false
+      required: [week, readOnly, dayPlans]
+      properties:
+        week:
+          $ref: '#/components/schemas/WeekSummary'
+        readOnly:
+          type: boolean
+          description: True when week status is COMPLETED.
+        dayPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPlan'
+    DayPlan:
+      type: object
+      additionalProperties: false
+      required: [id, dayOfWeek, date, projects]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeek'
+        date:
+          type: string
+          format: date
+          readOnly: true
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayProject'
+    DayProject:
+      type: object
+      additionalProperties: false
+      required: [id, project, assignments]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          $ref: '#/components/schemas/ProjectSummary'
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanningAssignment'
+    PlanningAssignment:
+      type: object
+      additionalProperties: false
+      required: [id, person, estimatedHours, tasks]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        person:
+          $ref: '#/components/schemas/PersonSummary'
+        estimatedHours:
+          type: number
+          format: double
+          minimum: 0
+        actualHours:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+    AssignmentCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [personId, estimatedHours, taskDescription]
+      properties:
+        personId:
+          type: string
+          format: uuid
+        estimatedHours:
+          type: number
+          format: double
+          minimum: 0
+        actualHours:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+        taskDescription:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: >
+            Task text for the first task card. Minimum length may be configured
+            by server policy.
+    AssignmentUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [estimatedHours]
+      properties:
+        estimatedHours:
+          type: number
+          format: double
+          minimum: 0
+        actualHours:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+    Task:
+      type: object
+      additionalProperties: false
+      required: [id, description, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+    TaskCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [description]
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Task text. Minimum length may be configured by server policy.
+    TaskUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [description]
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    PageMetadata:
+      type: object
+      additionalProperties: false
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+        totalPages:
+          type: integer
+          format: int32
+          minimum: 0
+        sort:
+          type: array
+          items:
+            type: string
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
+    PagedPeople:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonSummary'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    PagedProjects:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectSummary'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    PagedWeeks:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeekSummary'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          format: int32
+        error:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+    FieldError:
+      type: object
+      additionalProperties: false
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          additionalProperties: false
+          required: [fieldErrors]
+          properties:
+            fieldErrors:
+              type: array
+              items:
+                $ref: '#/components/schemas/FieldError'

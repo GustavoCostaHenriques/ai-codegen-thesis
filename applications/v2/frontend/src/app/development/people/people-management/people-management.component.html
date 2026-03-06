@@ -1,0 +1,101 @@
+<section class="screen">
+  <div class="screen-header">
+    <h2>Person Management</h2>
+    <button type="button" *ngIf="isAdmin()" (click)="openCreateModal()">Create Person</button>
+  </div>
+
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th *ngIf="isAdmin()">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="isLoading">
+        <td [attr.colspan]="isAdmin() ? 5 : 4">Loading people...</td>
+      </tr>
+      <tr *ngFor="let person of people">
+        <td>{{ person.name }}</td>
+        <td>{{ person.email }}</td>
+        <td>{{ person.role }}</td>
+        <td>{{ person.status }}</td>
+        <td class="action-cell" *ngIf="isAdmin()">
+          <button type="button" class="secondary" (click)="openEditModal(person)">Edit</button>
+          <button type="button" class="danger" (click)="openDeleteModal(person)">Delete</button>
+        </td>
+      </tr>
+      <tr *ngIf="!isLoading && people.length === 0">
+        <td [attr.colspan]="isAdmin() ? 5 : 4">No people available.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<app-modal-shell *ngIf="isPersonModalOpen" title="Create / Edit Person" width="560px" (close)="closePersonModal()">
+  <form [formGroup]="personForm" (ngSubmit)="savePerson()" novalidate>
+    <div class="field-group">
+      <label for="person-name">Name</label>
+      <input
+        id="person-name"
+        type="text"
+        formControlName="name"
+        [class.invalid]="submitted && personForm.controls.name.invalid"
+      />
+      <p class="field-error" *ngIf="submitted && personForm.controls.name.invalid">Name is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="person-email">Email</label>
+      <input
+        id="person-email"
+        type="email"
+        formControlName="email"
+        [class.invalid]="submitted && personForm.controls.email.invalid"
+      />
+      <p class="field-error" *ngIf="submitted && personForm.controls.email.errors?.['required']">Email is required.</p>
+      <p class="field-error" *ngIf="submitted && personForm.controls.email.errors?.['email']">Email must be valid.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="person-role">Role</label>
+      <input
+        id="person-role"
+        type="text"
+        formControlName="role"
+        [class.invalid]="submitted && personForm.controls.role.invalid"
+      />
+      <p class="field-error" *ngIf="submitted && personForm.controls.role.invalid">Role is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="person-status">Status</label>
+      <select
+        id="person-status"
+        formControlName="status"
+        [class.invalid]="submitted && personForm.controls.status.invalid"
+      >
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="INACTIVE">INACTIVE</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSaving">Save Person</button>
+      <button type="button" class="secondary" (click)="closePersonModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="isDeleteModalOpen" title="Confirm Delete Person" width="420px" (close)="closeDeleteModal()">
+  <p *ngIf="personPendingDeletion">Delete person {{ personPendingDeletion.name }}?</p>
+  <div class="modal-actions">
+    <button type="button" class="danger" (click)="confirmDeletePerson()" [disabled]="isDeleting">Delete</button>
+    <button type="button" class="secondary" (click)="closeDeleteModal()">Cancel</button>
+  </div>
+</app-modal-shell>

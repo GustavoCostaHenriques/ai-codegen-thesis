@@ -1,0 +1,19 @@
+{
+  "name": "weekly-planning-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Black-box Playwright E2E suite for Weekly Planning",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.10.2",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.7.2"
+  }
+}

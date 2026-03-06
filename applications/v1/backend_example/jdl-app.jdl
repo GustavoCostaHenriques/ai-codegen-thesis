@@ -1,0 +1,48 @@
+application {
+  config {
+    baseName escola
+    applicationType monolith
+    authenticationType jwt
+
+    packageName pt.formacao.escola
+
+    buildTool maven
+
+    clientFramework angularX
+    clientPackageManager npm
+    clientTheme none
+
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+
+    dtoSuffix DTO
+
+    enableSwaggerCodegen true
+    enableTranslation true
+
+    entitySuffix Entity
+    jhiPrefix jhi
+
+    languages [en]
+    nativeLanguage en
+
+    cacheProvider redis
+    enableHibernateCache true
+
+    reactive false
+    serverPort 25000
+
+    serviceDiscoveryType no
+
+    skipClient false
+    skipServer false
+    skipUserManagement true
+
+    testFrameworks []
+  }
+  entities *
+}
+
+service * with serviceImpl
+dto * with mapstruct

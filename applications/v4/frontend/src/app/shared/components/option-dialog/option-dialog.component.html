@@ -1,0 +1,11 @@
+<div class="dialog-list" role="listbox">
+  <button
+    type="button"
+    class="dialog-option"
+    *ngFor="let option of options; let index = index"
+    [class.active]="option.value === activeValue"
+    [attr.data-index]="index"
+    (click)="select(option)">
+    {{ option.label }}
+  </button>
+</div>

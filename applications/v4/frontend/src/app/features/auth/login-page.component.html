@@ -1,0 +1,179 @@
+<div class="login-page">
+  <section class="auth-card app-card">
+    <div class="language-block">
+      <label class="ui-label">{{ 'language' | t }}</label>
+      <button class="ui-btn ui-btn-secondary lang-btn" type="button" (click)="showLanguageDialog = !showLanguageDialog">
+        {{ currentLanguage }}
+      </button>
+      <div class="language-dialog" *ngIf="showLanguageDialog">
+        <app-option-dialog
+          [options]="languageOptions"
+          [activeValue]="currentLanguage"
+          (selected)="setLanguage($event)"></app-option-dialog>
+      </div>
+    </div>
+
+    <h1>{{ 'login' | t }}</h1>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+      <div class="ui-field">
+        <label class="ui-label" for="login-username">{{ 'username' | t }}</label>
+        <input
+          id="login-username"
+          class="ui-input"
+          [class.invalid]="!!controlError(loginForm, 'username', loginError)"
+          type="text"
+          formControlName="username" />
+        <div class="ui-error">{{ controlError(loginForm, 'username', loginError) }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="login-password">{{ 'password' | t }}</label>
+        <input
+          id="login-password"
+          class="ui-input"
+          [class.invalid]="!!controlError(loginForm, 'password', loginError)"
+          type="password"
+          formControlName="password" />
+        <div class="ui-error">{{ controlError(loginForm, 'password', loginError) }}</div>
+      </div>
+
+      <button type="button" class="ui-inline-link" (click)="openChangePassword()">
+        {{ 'changePassword' | t }}
+      </button>
+
+      <div class="ui-alert" *ngIf="loginError">{{ formError(loginError) }}</div>
+
+      <button class="ui-btn ui-btn-primary full" type="submit" [disabled]="isLoggingIn">
+        {{ 'login' | t }}
+      </button>
+    </form>
+
+    <button class="ui-btn ui-btn-success full" type="button" (click)="openCreateAccount()">
+      {{ 'createAccount' | t }}
+    </button>
+  </section>
+</div>
+
+<app-modal-shell
+  *ngIf="showCreateAccountModal"
+  [title]="'createAccount' | t"
+  [dirty]="createAccountForm.dirty"
+  (closeRequested)="closeCreateModal()">
+  <div modal-body>
+    <form [formGroup]="createAccountForm" class="modal-form" novalidate>
+      <div class="ui-field">
+        <label class="ui-label" for="new-username">{{ 'username' | t }}</label>
+        <input
+          id="new-username"
+          class="ui-input"
+          [class.invalid]="!!controlError(createAccountForm, 'username', createAccountError)"
+          formControlName="username"
+          type="text" />
+        <div class="ui-error">{{ controlError(createAccountForm, 'username', createAccountError) }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="new-email">{{ 'email' | t }}</label>
+        <input
+          id="new-email"
+          class="ui-input"
+          [class.invalid]="!!controlError(createAccountForm, 'email', createAccountError)"
+          formControlName="email"
+          type="email" />
+        <div class="ui-error">{{ controlError(createAccountForm, 'email', createAccountError) }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="new-password">{{ 'password' | t }}</label>
+        <input
+          id="new-password"
+          class="ui-input"
+          [class.invalid]="!!controlError(createAccountForm, 'password', createAccountError)"
+          formControlName="password"
+          type="password" />
+        <div class="ui-error">{{ controlError(createAccountForm, 'password', createAccountError) }}</div>
+      </div>
+
+      <div class="ui-alert" *ngIf="createAccountError">{{ formError(createAccountError) }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeCreateModal()">{{ 'cancel' | t }}</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isCreatingAccount" (click)="submitCreateAccount()">
+      {{ 'confirm' | t }}
+    </button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell
+  *ngIf="showChangePasswordModal"
+  [title]="'changePassword' | t"
+  [dirty]="changePasswordForm.dirty"
+  (closeRequested)="closeChangePasswordModal()">
+  <div modal-body>
+    <form [formGroup]="changePasswordForm" class="modal-form" novalidate>
+      <div class="ui-field">
+        <label class="ui-label" for="cp-username">{{ 'username' | t }}</label>
+        <input
+          id="cp-username"
+          class="ui-input"
+          [class.invalid]="!!controlError(changePasswordForm, 'username', changePasswordError)"
+          formControlName="username"
+          type="text" />
+        <div class="ui-error">{{ controlError(changePasswordForm, 'username', changePasswordError) }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="cp-current">{{ 'currentPassword' | t }}</label>
+        <input
+          id="cp-current"
+          class="ui-input"
+          [class.invalid]="!!controlError(changePasswordForm, 'currentPassword', changePasswordError)"
+          formControlName="currentPassword"
+          type="password" />
+        <div class="ui-error">{{ controlError(changePasswordForm, 'currentPassword', changePasswordError) }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="cp-new">{{ 'newPassword' | t }}</label>
+        <input
+          id="cp-new"
+          class="ui-input"
+          [class.invalid]="!!controlError(changePasswordForm, 'newPassword', changePasswordError)"
+          formControlName="newPassword"
+          type="password" />
+        <div class="ui-error">{{ controlError(changePasswordForm, 'newPassword', changePasswordError) }}</div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="cp-confirm">{{ 'confirmNewPassword' | t }}</label>
+        <input
+          id="cp-confirm"
+          class="ui-input"
+          [class.invalid]="
+            !!controlError(changePasswordForm, 'confirmNewPassword', changePasswordError) ||
+            (changePasswordForm.hasError('mustMatch') && changePasswordForm.controls.confirmNewPassword.touched)
+          "
+          formControlName="confirmNewPassword"
+          type="password" />
+        <div class="ui-error">
+          {{
+            controlError(changePasswordForm, 'confirmNewPassword', changePasswordError) ||
+              (changePasswordForm.hasError('mustMatch') && changePasswordForm.controls.confirmNewPassword.touched
+                ? 'Passwords must match'
+                : '')
+          }}
+        </div>
+      </div>
+
+      <div class="ui-alert" *ngIf="changePasswordError">{{ formError(changePasswordError) }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeChangePasswordModal()">{{ 'cancel' | t }}</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isChangingPassword" (click)="submitChangePassword()">
+      {{ 'confirm' | t }}
+    </button>
+  </div>
+</app-modal-shell>

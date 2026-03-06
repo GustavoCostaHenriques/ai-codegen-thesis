@@ -1,0 +1,10 @@
+.auth-language-select {
+  width: 96px;
+  min-width: 96px;
+}
+
+.auth-change-password-btn {
+  min-width: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+}

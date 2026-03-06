@@ -1,0 +1,21 @@
+{
+  "global.cancel": "Cancelar",
+  "global.unknownError": "Ocorreu um erro inesperado.",
+  "validation.required": "Este campo e obrigatorio.",
+  "validation.usernameMin": "O nome de utilizador deve ter pelo menos 3 caracteres.",
+  "validation.passwordMin": "A palavra-passe deve ter pelo menos 8 caracteres.",
+  "nav.weeksOverview": "Visao Semanas",
+  "nav.personManagement": "Gestao Pessoas",
+  "nav.projectManagement": "Gestao Projetos",
+  "nav.logout": "Sair",
+  "login.title": "Entrar",
+  "login.username": "Utilizador",
+  "login.password": "Palavra-passe",
+  "login.language": "Idioma",
+  "login.submit": "Entrar",
+  "login.createAccount": "Criar Conta",
+  "account.createTitle": "Criar Conta",
+  "account.role": "Perfil",
+  "account.create": "Criar",
+  "account.createSuccess": "Conta criada. Pode iniciar sessao com as novas credenciais."
+}

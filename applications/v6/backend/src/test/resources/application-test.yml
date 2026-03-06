@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/test
+    username: test
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    enabled: true
+
+app:
+  security:
+    jwt:
+      secret: test-secret-key-with-at-least-thirty-two-bytes
+      access-token-expiration-seconds: 900
+    password:
+      min-length: 8
+      require-uppercase: false
+      require-lowercase: true
+      require-digit: true
+      require-special: false

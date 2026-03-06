@@ -1,0 +1,109 @@
+﻿<app-top-nav titleKey="weeks.title"></app-top-nav>
+
+<section class="page-container">
+  <div class="actions-row" *ngIf="canManageWeeks">
+    <button type="button" class="btn-success" (click)="openCreateWeekModal()">{{ 'weeks.create' | t }}</button>
+  </div>
+
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <div class="table-frame">
+    <table class="base-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>{{ 'weeks.weekCode' | t }}</th>
+          <th>{{ 'weeks.weekRange' | t }}</th>
+          <th>{{ 'weeks.status' | t }}</th>
+          <th *ngIf="canManageWeeks">{{ 'common.actions' | t }}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let week of weeks" (click)="openPlanning(week)">
+          <td>{{ getWeekCode(week) }}</td>
+          <td>{{ getWeekRange(week) }}</td>
+          <td>{{ ('status.' + week.status) | t }}</td>
+          <td class="actions-cell" *ngIf="canManageWeeks" (click)="$event.stopPropagation()">
+            <button type="button" class="btn-secondary compact" (click)="openPlanning(week)">
+              {{ 'common.open' | t }}
+            </button>
+            <button type="button" class="btn-secondary compact" (click)="openEditWeekModal(week)">
+              {{ 'common.edit' | t }}
+            </button>
+            <button type="button" class="btn-danger compact" (click)="openDeleteWeekModal(week)">
+              {{ 'common.delete' | t }}
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="weeks.length === 0">
+          <td class="empty-row" [attr.colspan]="canManageWeeks ? 4 : 3">{{ 'common.noData' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="loading-state" *ngIf="loading">{{ 'common.loading' | t }}</div>
+  </div>
+
+  <app-pagination [pageMetadata]="pageMetadata" (pageChange)="loadWeeks($event)"></app-pagination>
+</section>
+
+<app-modal
+  [open]="isWeekModalOpen"
+  [title]="'weeks.modal.createEdit' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="isWeekModalOpen = false"
+>
+  <form [formGroup]="weekForm" (ngSubmit)="submitWeek()" class="modal-form">
+    <label for="week-start">{{ 'weeks.weekStart' | t }}</label>
+    <input id="week-start" class="field-input" type="date" formControlName="weekStart" />
+
+    <label for="week-end">{{ 'weeks.weekEnd' | t }}</label>
+    <input id="week-end" class="field-input" type="date" formControlName="weekEnd" />
+
+    <label for="week-status">{{ 'weeks.status' | t }}</label>
+    <select id="week-status" class="field-input" formControlName="status">
+      <option *ngFor="let option of statusOptions" [value]="option">{{ ('status.' + option) | t }}</option>
+    </select>
+
+    <p class="feedback error" *ngIf="formErrorMessage">{{ formErrorMessage }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isWeekModalOpen = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="submitting">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [open]="isDeleteModalOpen"
+  [title]="'weeks.modal.remove' | t"
+  [closeOnBackdrop]="true"
+  (closeModal)="isDeleteModalOpen = false"
+>
+  <div class="modal-form" *ngIf="selectedWeek">
+    <p>
+      {{
+        'weeks.modal.removeText'
+          | t
+            : {
+                weekCode: getWeekCode(selectedWeek),
+                weekRange: getWeekRange(selectedWeek)
+              }
+      }}
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isDeleteModalOpen = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="button" class="btn-primary" [disabled]="deleting" (click)="confirmDeleteWeek()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>

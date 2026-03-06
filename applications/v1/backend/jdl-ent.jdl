@@ -1,0 +1,41 @@
+entity AppUser {
+  name String required
+}
+
+entity Project {
+  name String required
+}
+
+entity Week {
+  label String required
+  startDate LocalDate required
+  endDate LocalDate required
+}
+
+entity DayPlan {
+  date LocalDate required
+}
+
+entity DayUser
+
+entity DayUserProject
+
+entity Task {
+  text String required
+}
+
+relationship OneToMany {
+  Week{dayPlans} to DayPlan{week required}
+  DayPlan{dayUsers} to DayUser{dayPlan required}
+  DayUser{assignments} to DayUserProject{dayUser required}
+  Project{assignments} to DayUserProject{project required}
+  DayUserProject{tasks} to Task{dayUserProject required}
+}
+
+relationship ManyToOne {
+  DayUser{user required} to AppUser
+}
+
+paginate * with pagination
+filter *
+

@@ -1,0 +1,23 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "weeklyplanning",
+    "buildTool": "maven",
+    "cacheProvider": "redis",
+    "databaseType": "sql",
+    "devDatabaseType": "postgresql",
+    "enableHibernateCache": true,
+    "enableTranslation": true,
+    "entities": ["Person", "Project", "Week", "DayPlan", "DayPerson", "DayPersonProject", "Task"],
+    "jhipsterVersion": "8.11.0",
+    "jwtSecretKey": "MDc0MjUyMTBmZjY2NzRkZDg4NGIxY2ZiZTA0MWI1MTE5YTAzZGQwYTU5YzQ1MDY1ZTJmYTMyNGRmZWRkMzk4ODk3MWFmODRiNjY1ZmQ4ZTI5OTk1Y2VmYjFmY2UzNWY3NWRkMzU3NzU5Mjk3NjMyMzhiMjA2NzUyZDU1NDA3ZDA=",
+    "languages": ["pt-pt", "en"],
+    "lastLiquibaseTimestamp": 1770737472000,
+    "nativeLanguage": "pt-pt",
+    "packageName": "com.weeklyplanning",
+    "prodDatabaseType": "postgresql",
+    "skipClient": true,
+    "skipUserManagement": true
+  }
+}

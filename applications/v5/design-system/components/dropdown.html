@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dropdown - GRA Design System</title>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Dropdown</h1>
+
+    <section id="simpleSelect" class="gra-margin-top-xl">
+      <h2>Select simples</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-default">Titulo do campo</label>
+            <select id="dropdown-default" class="gra-select gra-simple-select form-select">
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Default</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label class="required-label" for="dropdown-required">Titulo do campo</label>
+            <select id="dropdown-required" class="gra-select gra-simple-select form-select required-field">
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Mandatorio</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-disabled">Titulo do campo</label>
+            <select id="dropdown-disabled" class="gra-select gra-simple-select form-select disabled" disabled>
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Desativado</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-info">Titulo do campo <i class="icon-circle-info iconLabel"></i></label>
+            <select id="dropdown-info" class="gra-select gra-simple-select form-select">
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Informativo</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-readonly">Titulo do campo</label>
+            <select id="dropdown-readonly" class="gra-select gra-simple-select form-select" readonly disabled>
+              <option value="">Selecione</option>
+              <option value="lorem1" selected>Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Apenas leitura</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-msg">Titulo do campo</label>
+            <select id="dropdown-msg" class="gra-select gra-simple-select form-select">
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+            <span class="graInfoField">Mensagem de informacao</span>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Mensagem de informacao</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-access">Titulo do campo</label>
+            <select id="dropdown-access" class="gra-select gra-simple-select form-select form-accessibility">
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Acessibilidade</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="dropdown-search">Titulo do campo</label>
+            <select id="dropdown-search" class="gra-select gra-simple-select with-search form-select">
+              <option value="" selected>Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Pesquisa</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="multipleSelect1">Titulo do campo</label>
+            <select class="gra-select gra-multiple-select with-checkbox form-select" multiple id="multipleSelect1">
+              <option value="">Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Multi select com checkbox</p>
+        </div>
+      </div>
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <div class="gra-padding-s">
+            <label for="multipleSelect2">Titulo do campo</label>
+            <select class="gra-select gra-multiple-select with-radiobox form-select" multiple id="multipleSelect2">
+              <option value="">Selecione</option>
+              <option value="lorem1">Lorem ipsum 1</option>
+              <option value="lorem2">Lorem ipsum 2</option>
+              <option value="lorem3">Lorem ipsum 3</option>
+              <option value="lorem4">Lorem ipsum 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <p class="gra-font-bold">Multi select com radiobox</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<div>
+  <h2 id="page-heading" data-cy="DayUserHeading">
+    <span jhiTranslate="weeklyplanningApp.dayUser.home.title">Day Users</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="weeklyplanningApp.dayUser.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-day-user"
+        [routerLink]="['/day-user/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="weeklyplanningApp.dayUser.home.createLabel">Create a new Day User</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error />
+
+  <jhi-alert />
+
+  <jhi-filter [filters]="filters" />
+
+  @if (dayUsers().length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="weeklyplanningApp.dayUser.home.notFound">No Day Users found</span>
+    </div>
+  } @else {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [(sortState)]="sortState" (sortChange)="navigateToWithComponentValues($event)">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="user.id">
+              <div class="d-flex">
+                <span jhiTranslate="weeklyplanningApp.dayUser.user">User</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="dayPlan.id">
+              <div class="d-flex">
+                <span jhiTranslate="weeklyplanningApp.dayUser.dayPlan">Day Plan</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (dayUser of dayUsers(); track trackId(dayUser)) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/day-user', dayUser.id, 'view']">{{ dayUser.id }}</a>
+              </td>
+              <td>
+                @if (dayUser.user) {
+                  <div>
+                    <a [routerLink]="['/app-user', dayUser.user.id, 'view']">{{ dayUser.user.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
+                @if (dayUser.dayPlan) {
+                  <div>
+                    <a [routerLink]="['/day-plan', dayUser.dayPlan.id, 'view']">{{ dayUser.dayPlan.id }}</a>
+                  </div>
+                }
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <button
+                    type="submit"
+                    [routerLink]="['/day-user-project']"
+                    [queryParams]="{ 'filter[dayUserId.in]': dayUser.id }"
+                    class="btn btn-info btn-sm"
+                    data-cy="filterOtherEntityButton"
+                  >
+                    <fa-icon icon="eye"></fa-icon>
+                    <span
+                      class="d-none d-md-inline"
+                      jhiTranslate="entity.action.show"
+                      [translateValues]="{ otherEntity: ('weeklyplanningApp.dayUser.assignments' | translate) }"
+                      >Show Assignments</span
+                    >
+                  </button>
+                  <a [routerLink]="['/day-user', dayUser.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                  </a>
+
+                  <a [routerLink]="['/day-user', dayUser.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+                    <fa-icon icon="pencil-alt"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                  </a>
+
+                  <button type="submit" (click)="delete(dayUser)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                    <fa-icon icon="times"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  @if (dayUsers().length > 0) {
+    <div>
+      <div class="d-flex justify-content-center">
+        <jhi-item-count [params]="{ page, totalItems, itemsPerPage }" />
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <ngb-pagination
+          [collectionSize]="totalItems"
+          [page]="page"
+          [pageSize]="itemsPerPage"
+          [maxSize]="5"
+          [rotate]="true"
+          [boundaryLinks]="true"
+          (pageChange)="navigateToPage($event)"
+        ></ngb-pagination>
+      </div>
+    </div>
+  }
+</div>

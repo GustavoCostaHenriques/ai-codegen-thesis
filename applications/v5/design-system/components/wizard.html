@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wizard - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="pageContent gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Wizard</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <h3>Numerico sem descricao</h3>
+          <div class="gra-wizard-container gra-box-shadow-l">
+            <div class="steps-indicator">
+              <div class="step" data-step="0"><span>1</span></div>
+              <div class="line"></div>
+              <div class="step disabled" data-step="1"><span>2</span></div>
+              <div class="line"></div>
+              <div class="step disabled" data-step="2"><span>3</span></div>
+              <div class="line"></div>
+              <div class="step disabled" data-step="3"><span>4</span></div>
+            </div>
+
+            <form class="wizard-form">
+              <div class="wizard-step active" data-step="0">
+                <h2>Step 1: Dados Pessoais</h2>
+                <label class="required-label" for="wiz1-name">Nome</label>
+                <input class="form form-control required-field" type="text" id="wiz1-name" name="wiz1-name" placeholder="Introduza aqui o nome">
+                <br>
+                <label class="required-label" for="wiz1-email">Email</label>
+                <input class="form form-control required-field" type="email" id="wiz1-email" name="wiz1-email" placeholder="Introduza aqui o email">
+                <br>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="1">
+                <h2>Step 2: Morada</h2>
+                <label class="required-label" for="wiz1-street">Rua</label>
+                <input class="form form-control required-field" type="text" id="wiz1-street" name="wiz1-street" placeholder="Introduza aqui a rua">
+                <br>
+                <label class="required-label" for="wiz1-postal">Codigo postal</label>
+                <input class="form form-control required-field" type="text" id="wiz1-postal" name="wiz1-postal" placeholder="Introduza aqui codigo postal">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="2">
+                <h2>Step 3: Preferencias</h2>
+                <label class="required-label" for="wiz1-color">Cor favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz1-color" name="wiz1-color" placeholder="Introduza aqui a cor">
+                <br>
+                <label class="required-label" for="wiz1-food">Comida favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz1-food" name="wiz1-food" placeholder="Introduza aqui a comida favorita">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="3">
+                <h2>Step 4: Confirmacao</h2>
+                <p>Revise suas informacoes antes de enviar.</p>
+                <div id="summary-w1"></div>
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="submit" class="gra-btn btn-primary">Submeter</button>
+              </div>
+            </form>
+          </div>
+
+          <h3 class="gra-margin-top-l">Numerico com descricao</h3>
+          <div class="gra-wizard-container gra-box-shadow-l">
+            <div class="steps-indicator">
+              <div class="withLabelBottom">
+                <div class="step" data-step="0"><span>1</span></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step disabled" data-step="1"><span>2</span></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step disabled" data-step="2"><span>3</span></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step disabled" data-step="3"><span>4</span></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+            </div>
+
+            <form class="wizard-form">
+              <div class="wizard-step active" data-step="0">
+                <h2>Step 1: Dados Pessoais</h2>
+                <label class="required-label" for="wiz2-name">Nome</label>
+                <input class="form form-control required-field" type="text" id="wiz2-name" name="wiz2-name" placeholder="Introduza aqui o nome">
+                <br>
+                <label class="required-label" for="wiz2-email">Email</label>
+                <input class="form form-control required-field" type="email" id="wiz2-email" name="wiz2-email" placeholder="Introduza aqui o email">
+                <br>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="1">
+                <h2>Step 2: Morada</h2>
+                <label class="required-label" for="wiz2-street">Rua</label>
+                <input class="form form-control required-field" type="text" id="wiz2-street" name="wiz2-street" placeholder="Introduza aqui a rua">
+                <br>
+                <label class="required-label" for="wiz2-postal">Codigo postal</label>
+                <input class="form form-control required-field" type="text" id="wiz2-postal" name="wiz2-postal" placeholder="Introduza aqui codigo postal">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="2">
+                <h2>Step 3: Preferencias</h2>
+                <label class="required-label" for="wiz2-color">Cor favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz2-color" name="wiz2-color" placeholder="Introduza aqui a cor">
+                <br>
+                <label class="required-label" for="wiz2-food">Comida favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz2-food" name="wiz2-food" placeholder="Introduza aqui a comida favorita">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="3">
+                <h2>Step 4: Confirmacao</h2>
+                <p>Revise suas informacoes antes de enviar.</p>
+                <div id="summary-w2"></div>
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="submit" class="gra-btn btn-primary">Submeter</button>
+              </div>
+            </form>
+          </div>
+
+          <h3 class="gra-margin-top-l">Icon sem descricao</h3>
+          <div class="gra-wizard-container gra-box-shadow-l">
+            <div class="steps-indicator">
+              <div class="step" data-step="0"><i class="icon-file"></i></div>
+              <div class="line"></div>
+              <div class="step disabled" data-step="1"><i class="icon-file"></i></div>
+              <div class="line"></div>
+              <div class="step disabled" data-step="2"><i class="icon-file"></i></div>
+              <div class="line"></div>
+              <div class="step disabled" data-step="3"><i class="icon-file"></i></div>
+            </div>
+
+            <form class="wizard-form">
+              <div class="wizard-step active" data-step="0">
+                <h2>Step 1: Dados Pessoais</h2>
+                <label class="required-label" for="wiz3-name">Nome</label>
+                <input class="form form-control required-field" type="text" id="wiz3-name" name="wiz3-name" placeholder="Introduza aqui o nome">
+                <br>
+                <label class="required-label" for="wiz3-email">Email</label>
+                <input class="form form-control required-field" type="email" id="wiz3-email" name="wiz3-email" placeholder="Introduza aqui o email">
+                <br>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="1">
+                <h2>Step 2: Morada</h2>
+                <label class="required-label" for="wiz3-street">Rua</label>
+                <input class="form form-control required-field" type="text" id="wiz3-street" name="wiz3-street" placeholder="Introduza aqui a rua">
+                <br>
+                <label class="required-label" for="wiz3-postal">Codigo postal</label>
+                <input class="form form-control required-field" type="text" id="wiz3-postal" name="wiz3-postal" placeholder="Introduza aqui codigo postal">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="2">
+                <h2>Step 3: Preferencias</h2>
+                <label class="required-label" for="wiz3-color">Cor favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz3-color" name="wiz3-color" placeholder="Introduza aqui a cor">
+                <br>
+                <label class="required-label" for="wiz3-food">Comida favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz3-food" name="wiz3-food" placeholder="Introduza aqui a comida favorita">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="3">
+                <h2>Step 4: Confirmacao</h2>
+                <p>Revise suas informacoes antes de enviar.</p>
+                <div id="summary-w3"></div>
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+              </div>
+            </form>
+          </div>
+
+          <h3 class="gra-margin-top-l">Icon com descricao</h3>
+          <div class="gra-wizard-container gra-box-shadow-l">
+            <div class="steps-indicator">
+              <div class="withLabelBottom">
+                <div class="step" data-step="0"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step disabled" data-step="1"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step disabled" data-step="2"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step disabled" data-step="3"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+            </div>
+
+            <form class="wizard-form">
+              <div class="wizard-step active" data-step="0">
+                <h2>Step 1: Dados Pessoais</h2>
+                <label class="required-label" for="wiz4-name">Nome</label>
+                <input class="form form-control required-field" type="text" id="wiz4-name" name="wiz4-name" placeholder="Introduza aqui o nome">
+                <br>
+                <label class="required-label" for="wiz4-email">Email</label>
+                <input class="form form-control required-field" type="email" id="wiz4-email" name="wiz4-email" placeholder="Introduza aqui o email">
+                <br>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="1">
+                <h2>Step 2: Morada</h2>
+                <label class="required-label" for="wiz4-street">Rua</label>
+                <input class="form form-control required-field" type="text" id="wiz4-street" name="wiz4-street" placeholder="Introduza aqui a rua">
+                <br>
+                <label class="required-label" for="wiz4-postal">Codigo postal</label>
+                <input class="form form-control required-field" type="text" id="wiz4-postal" name="wiz4-postal" placeholder="Introduza aqui codigo postal">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="2">
+                <h2>Step 3: Preferencias</h2>
+                <label class="required-label" for="wiz4-color">Cor favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz4-color" name="wiz4-color" placeholder="Introduza aqui a cor">
+                <br>
+                <label class="required-label" for="wiz4-food">Comida favorita</label>
+                <input class="form form-control required-field" type="text" id="wiz4-food" name="wiz4-food" placeholder="Introduza aqui a comida favorita">
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="3">
+                <h2>Step 4: Confirmacao</h2>
+                <p>Revise suas informacoes antes de enviar.</p>
+                <div id="summary-w4"></div>
+                <br>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="submit" class="gra-btn btn-primary">Submeter</button>
+              </div>
+            </form>
+          </div>
+
+          <h3 class="gra-margin-top-l">Comportamento steps para informacao</h3>
+          <p>Aqui neste exemplo nao necessita de validacao, apenas informacao em cada step.</p>
+          <div class="gra-wizard-container gra-box-shadow-l">
+            <div class="steps-indicator">
+              <div class="withLabelBottom">
+                <div class="step" data-step="0"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step" data-step="1"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step" data-step="2"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+              <div class="line"></div>
+              <div class="withLabelBottom">
+                <div class="step" data-step="3"><i class="icon-file"></i></div>
+                <div class="withDesc">Lorem</div>
+              </div>
+            </div>
+
+            <div class="wizard-steps-content">
+              <div class="wizard-step active" data-step="0">
+                <h2>Step 1: Info 1</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="1">
+                <h2>Step 2: Info 2</h2>
+                <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="2">
+                <h2>Step 3: Info 3</h2>
+                <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum.</p>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+              </div>
+
+              <div class="wizard-step" data-step="3">
+                <h2>Step 4: Info 4</h2>
+                <p>Debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae.</p>
+                <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="gra-margin-top-l">Comportamento vertical</h3>
+          <div class="gra-wizard-container wizard-vertical gra-box-shadow-l">
+            <div class="gra-row-bs">
+              <div class="gra-col-bs-xl-4">
+                <div class="steps-indicator">
+                  <div class="withLabelBottom">
+                    <div class="step" data-step="0"><i class="icon-file"></i></div>
+                    <div class="withDesc">Lorem</div>
+                  </div>
+                  <div class="line"></div>
+                  <div class="withLabelBottom">
+                    <div class="step disabled" data-step="1"><i class="icon-file"></i></div>
+                    <div class="withDesc">Lorem</div>
+                  </div>
+                  <div class="line"></div>
+                  <div class="withLabelBottom">
+                    <div class="step disabled" data-step="2"><i class="icon-file"></i></div>
+                    <div class="withDesc">Lorem</div>
+                  </div>
+                  <div class="line"></div>
+                  <div class="withLabelBottom">
+                    <div class="step disabled" data-step="3"><i class="icon-file"></i></div>
+                    <div class="withDesc">Lorem</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="gra-col-bs">
+                <form class="wizard-form">
+                  <div class="wizard-step active" data-step="0">
+                    <h2>Step 1: Dados Pessoais</h2>
+                    <label class="required-label" for="wiz5-name">Nome</label>
+                    <input class="form form-control required-field" type="text" id="wiz5-name" name="wiz5-name" placeholder="Introduza aqui o nome">
+                    <br>
+                    <label class="required-label" for="wiz5-email">Email</label>
+                    <input class="form form-control required-field" type="email" id="wiz5-email" name="wiz5-email" placeholder="Introduza aqui o email">
+                    <br>
+                    <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+                  </div>
+
+                  <div class="wizard-step" data-step="1">
+                    <h2>Step 2: Morada</h2>
+                    <label class="required-label" for="wiz5-street">Rua</label>
+                    <input class="form form-control required-field" type="text" id="wiz5-street" name="wiz5-street" placeholder="Introduza aqui a rua">
+                    <br>
+                    <label class="required-label" for="wiz5-postal">Codigo postal</label>
+                    <input class="form form-control required-field" type="text" id="wiz5-postal" name="wiz5-postal" placeholder="Introduza aqui codigo postal">
+                    <br>
+                    <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                    <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+                  </div>
+
+                  <div class="wizard-step" data-step="2">
+                    <h2>Step 3: Preferencias</h2>
+                    <label class="required-label" for="wiz5-color">Cor favorita</label>
+                    <input class="form form-control required-field" type="text" id="wiz5-color" name="wiz5-color" placeholder="Introduza aqui a cor">
+                    <br>
+                    <label class="required-label" for="wiz5-food">Comida favorita</label>
+                    <input class="form form-control required-field" type="text" id="wiz5-food" name="wiz5-food" placeholder="Introduza aqui a comida favorita">
+                    <br>
+                    <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                    <button type="button" class="gra-btn btn-primary nextStep">Seguinte</button>
+                  </div>
+
+                  <div class="wizard-step" data-step="3">
+                    <h2>Step 4: Confirmacao</h2>
+                    <p>Revise suas informacoes antes de enviar.</p>
+                    <div id="summary-w5"></div>
+                    <br>
+                    <button type="button" class="gra-btn btn-secondary gra-margin-right-xs prevStep">Anterior</button>
+                    <button type="submit" class="gra-btn btn-primary">Submeter</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

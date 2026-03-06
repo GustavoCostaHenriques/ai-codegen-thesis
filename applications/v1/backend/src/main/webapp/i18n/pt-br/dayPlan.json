@@ -1,0 +1,26 @@
+{
+  "weeklyplanningApp": {
+    "dayPlan": {
+      "home": {
+        "title": "Day Plans",
+        "refreshListLabel": "Atualizar lista",
+        "createLabel": "Criar novo Day Plan",
+        "createOrEditLabel": "Criar ou editar Day Plan",
+        "notFound": "Nenhum Day Plan encontrado"
+      },
+      "created": "Um novo Day Plan foi criado com o identificador {{ param }}",
+      "updated": "Um Day Plan foi atualizado com o identificador {{ param }}",
+      "deleted": "Um Day Plan foi excluído com o identificador {{ param }}",
+      "delete": {
+        "question": "Tem certeza de que deseja excluir Day Plan {{ id }}?"
+      },
+      "detail": {
+        "title": "Day Plan"
+      },
+      "id": "ID",
+      "date": "Date",
+      "dayUsers": "Day Users",
+      "week": "Week"
+    }
+  }
+}

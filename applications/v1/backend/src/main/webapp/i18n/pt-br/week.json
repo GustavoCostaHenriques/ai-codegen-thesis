@@ -1,0 +1,27 @@
+{
+  "weeklyplanningApp": {
+    "week": {
+      "home": {
+        "title": "Weeks",
+        "refreshListLabel": "Atualizar lista",
+        "createLabel": "Criar novo Week",
+        "createOrEditLabel": "Criar ou editar Week",
+        "notFound": "Nenhum Week encontrado"
+      },
+      "created": "Um novo Week foi criado com o identificador {{ param }}",
+      "updated": "Um Week foi atualizado com o identificador {{ param }}",
+      "deleted": "Um Week foi excluído com o identificador {{ param }}",
+      "delete": {
+        "question": "Tem certeza de que deseja excluir Week {{ id }}?"
+      },
+      "detail": {
+        "title": "Week"
+      },
+      "id": "ID",
+      "label": "Label",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "dayPlans": "Day Plans"
+    }
+  }
+}

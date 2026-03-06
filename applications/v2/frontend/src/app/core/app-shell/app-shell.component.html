@@ -1,0 +1,22 @@
+<header class="top-menu">
+  <div class="top-menu__title">{{ pageTitle() }}</div>
+
+  <nav class="top-menu__actions" aria-label="Main navigation">
+    <button type="button" [class.active]="isRouteActive('/weeks')" (click)="navigateTo('/weeks')">
+      {{ label('nav.weeksOverview') }}
+    </button>
+    <button type="button" [class.active]="isRouteActive('/people')" (click)="navigateTo('/people')">
+      {{ label('nav.personManagement') }}
+    </button>
+    <button type="button" [class.active]="isRouteActive('/projects')" (click)="navigateTo('/projects')">
+      {{ label('nav.projectManagement') }}
+    </button>
+    <button type="button" class="logout-button" (click)="logout()">
+      {{ label('nav.logout') }}
+    </button>
+  </nav>
+</header>
+
+<main class="shell-content">
+  <router-outlet></router-outlet>
+</main>

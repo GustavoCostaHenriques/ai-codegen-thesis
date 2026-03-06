@@ -1,0 +1,95 @@
+<section class="screen">
+  <div class="screen-header">
+    <h2>Weeks Overview</h2>
+    <button type="button" *ngIf="isAdmin()" (click)="openCreateWeekModal()">Create Week</button>
+  </div>
+
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Week</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="isLoading">
+        <td colspan="5">Loading weeks...</td>
+      </tr>
+      <tr *ngFor="let week of weeks">
+        <td>{{ weekLabel(week) }}</td>
+        <td>{{ week.startDate }}</td>
+        <td>{{ week.endDate }}</td>
+        <td>{{ week.status }}</td>
+        <td class="action-cell">
+          <button type="button" class="secondary" (click)="openWeek(week)">Open</button>
+          <button type="button" class="secondary" *ngIf="isAdmin()" (click)="openEditWeekModal(week)">Edit</button>
+          <button type="button" class="danger" *ngIf="isAdmin()" (click)="openDeleteModal(week)">Delete</button>
+        </td>
+      </tr>
+      <tr *ngIf="!isLoading && weeks.length === 0">
+        <td colspan="5">No weeks available.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<app-modal-shell
+  *ngIf="isWeekModalOpen"
+  [title]="weekModalTitle"
+  width="560px"
+  (close)="closeWeekModal()"
+>
+  <form [formGroup]="weekForm" (ngSubmit)="saveWeek()" novalidate>
+    <div class="field-group">
+      <label for="week-start">Week Start</label>
+      <input
+        id="week-start"
+        type="date"
+        formControlName="startDate"
+        [class.invalid]="weekFormSubmitted && weekForm.controls.startDate.invalid"
+      />
+      <p class="field-error" *ngIf="weekFormSubmitted && weekForm.controls.startDate.invalid">Week start is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="week-end">Week End</label>
+      <input
+        id="week-end"
+        type="date"
+        formControlName="endDate"
+        [class.invalid]="weekFormSubmitted && weekForm.controls.endDate.invalid"
+      />
+      <p class="field-error" *ngIf="weekFormSubmitted && weekForm.controls.endDate.invalid">Week end is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="week-status">Status</label>
+      <select
+        id="week-status"
+        formControlName="status"
+        [class.invalid]="weekFormSubmitted && weekForm.controls.status.invalid"
+      >
+        <option value="PLANNED">PLANNED</option>
+        <option value="COMPLETED">COMPLETED</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingWeek">Save Week</button>
+      <button type="button" class="secondary" (click)="closeWeekModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="isDeleteModalOpen" title="Confirm Delete Week" width="420px" (close)="closeDeleteModal()">
+  <p *ngIf="weekPendingDeletion">Delete week {{ weekLabel(weekPendingDeletion) }}?</p>
+  <div class="modal-actions">
+    <button type="button" class="danger" (click)="confirmDeleteWeek()" [disabled]="isDeletingWeek">Delete</button>
+    <button type="button" class="secondary" (click)="closeDeleteModal()">Cancel</button>
+  </div>
+</app-modal-shell>

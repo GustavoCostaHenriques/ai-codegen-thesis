@@ -1,0 +1,9 @@
+<nav class="top-nav app-card" aria-label="Primary">
+  <div class="nav-title">{{ title }}</div>
+  <div class="nav-actions">
+    <a class="ui-btn nav-btn" [class.active]="isActive('weeks')" routerLink="/weeks">Weeks</a>
+    <a class="ui-btn nav-btn" [class.active]="isActive('persons')" routerLink="/persons">Persons</a>
+    <a class="ui-btn nav-btn" [class.active]="isActive('projects')" routerLink="/projects">Projects</a>
+    <button type="button" class="ui-btn nav-btn" (click)="logoutRequested.emit()">Logout</button>
+  </div>
+</nav>

@@ -1,0 +1,416 @@
+<section class="planning-screen" (click)="closeWeekActions()">
+  <div class="planning-toolbar">
+    <div class="week-actions-anchor" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        *ngIf="isAdmin()"
+        [disabled]="!canOpenWeekActions()"
+        (click)="toggleWeekActions()"
+      >
+        Week Actions
+      </button>
+
+      <div class="week-actions-dialog" *ngIf="isWeekActionsOpen">
+        <button type="button" *ngFor="let action of weekActions" (click)="openModal(action.type)">
+          {{ action.label }}
+        </button>
+      </div>
+    </div>
+
+    <h2>{{ weekLabel() }}</h2>
+  </div>
+
+  <p class="week-warning" *ngIf="warningTextVisible()">Week is completed and planning actions are disabled.</p>
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <div class="calendar-loading" *ngIf="isLoading">Loading weekly planning...</div>
+
+  <section class="calendar" *ngIf="!isLoading && planning as week">
+    <article class="day-column" *ngFor="let day of week.days; trackBy: trackByDate">
+      <header class="day-header">{{ dayName(day.date) }}</header>
+      <p class="day-date">{{ day.date }}</p>
+
+      <div class="empty-day" *ngIf="day.people.length === 0">No people assigned.</div>
+
+      <div class="person-card" *ngFor="let assignment of day.people; let index = index" [style.backgroundColor]="cardColor(index)">
+        <div class="person-title">
+          <span class="icon">&#128100;</span>
+          <span>Person: {{ assignment.person.name }}</span>
+        </div>
+
+        <div class="project-block" *ngFor="let project of assignment.projects">
+          <div class="project-title">
+            <span class="icon">&#128193;</span>
+            <span>Project: {{ project.project.code }}</span>
+          </div>
+
+          <div class="task-item" *ngFor="let task of project.tasks">
+            <span class="icon">&#10003;</span>
+            <span>Task: {{ task.description }}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</section>
+
+<app-modal-shell *ngIf="activeModal === 'addPerson'" title="Add Person to Day" width="520px" (close)="closeModal()">
+  <form [formGroup]="addPersonForm" (ngSubmit)="submitAddPerson()" novalidate>
+    <div class="field-group">
+      <label for="add-person-day">Day</label>
+      <select
+        id="add-person-day"
+        formControlName="day"
+        (change)="onAddPersonSelectionChanged()"
+        [class.invalid]="modalSubmitted.addPerson && addPersonForm.controls.day.invalid"
+      >
+        <option *ngFor="let day of planningDays()" [value]="day.date">{{ day.label }}</option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.addPerson && addPersonForm.controls.day.invalid">Day is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="add-person-person">Person</label>
+      <select
+        id="add-person-person"
+        formControlName="personId"
+        [class.invalid]="modalSubmitted.addPerson && addPersonForm.controls.personId.invalid"
+      >
+        <option *ngFor="let person of availablePeopleForDay(addPersonForm.controls.day.value)" [value]="person.id">
+          {{ person.name }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.addPerson && addPersonForm.controls.personId.invalid">
+        Person is required.
+      </p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingAction">Add Person</button>
+      <button type="button" class="secondary" (click)="closeModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="activeModal === 'addProject'" title="Add Project to Person" width="560px" (close)="closeModal()">
+  <form [formGroup]="addProjectForm" (ngSubmit)="submitAddProject()" novalidate>
+    <div class="field-group">
+      <label for="add-project-day">Day</label>
+      <select
+        id="add-project-day"
+        formControlName="day"
+        (change)="onAddProjectSelectionChanged()"
+        [class.invalid]="modalSubmitted.addProject && addProjectForm.controls.day.invalid"
+      >
+        <option *ngFor="let day of planningDays()" [value]="day.date">{{ day.label }}</option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.addProject && addProjectForm.controls.day.invalid">Day is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="add-person-person">Person</label>
+
+      <ng-container *ngIf="availablePeopleForDay(addPersonForm.controls.day.value) as people">
+        <select
+          id="add-person-person"
+          formControlName="personId"
+          [disabled]="people.length === 0"
+          [class.invalid]="modalSubmitted.addPerson && addPersonForm.controls.personId.invalid"
+        >
+          <option value="" disabled>Select a person</option>
+
+          <option *ngFor="let person of people" [value]="person.id">
+            {{ person.name }}
+          </option>
+        </select>
+
+        <p class="field-error" *ngIf="people.length === 0">
+          No available people for this day.
+        </p>
+      </ng-container>
+
+      <p class="field-error" *ngIf="modalSubmitted.addPerson && addPersonForm.controls.personId.invalid">
+        Person is required.
+      </p>
+    </div>
+
+
+    <div class="field-group">
+      <label for="add-project-project">Project</label>
+      <select
+        id="add-project-project"
+        formControlName="projectId"
+        [class.invalid]="modalSubmitted.addProject && addProjectForm.controls.projectId.invalid"
+      >
+        <option
+          *ngFor="let project of availableProjectsForDayPerson(addProjectForm.controls.day.value, addProjectForm.controls.personId.value)"
+          [value]="project.id"
+        >
+          {{ project.code }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.addProject && addProjectForm.controls.projectId.invalid">Project is required.</p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingAction">Add Project</button>
+      <button type="button" class="secondary" (click)="closeModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="activeModal === 'addTask'" title="Add Task" width="620px" (close)="closeModal()">
+  <form [formGroup]="addTaskForm" (ngSubmit)="submitAddTask()" novalidate>
+    <div class="field-group">
+      <label for="add-task-day">Day</label>
+      <select
+        id="add-task-day"
+        formControlName="day"
+        (change)="onAddTaskSelectionChanged()"
+        [class.invalid]="modalSubmitted.addTask && addTaskForm.controls.day.invalid"
+      >
+        <option *ngFor="let day of planningDays()" [value]="day.date">{{ day.label }}</option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.addTask && addTaskForm.controls.day.invalid">Day is required.</p>
+    </div>
+
+    <div class="inline-fields">
+      <div class="field-group">
+        <label for="add-task-person">Person</label>
+        <select
+          id="add-task-person"
+          formControlName="personId"
+          (change)="onAddTaskSelectionChanged()"
+          [class.invalid]="modalSubmitted.addTask && addTaskForm.controls.personId.invalid"
+        >
+          <option *ngFor="let person of peopleForDay(addTaskForm.controls.day.value)" [value]="person.person.id">
+            {{ person.person.name }}
+          </option>
+        </select>
+        <p class="field-error" *ngIf="modalSubmitted.addTask && addTaskForm.controls.personId.invalid">Person is required.</p>
+      </div>
+
+      <div class="field-group">
+        <label for="add-task-project">Project</label>
+        <select
+          id="add-task-project"
+          formControlName="projectId"
+          [class.invalid]="modalSubmitted.addTask && addTaskForm.controls.projectId.invalid"
+        >
+          <option
+            *ngFor="let project of projectsForPerson(addTaskForm.controls.day.value, addTaskForm.controls.personId.value)"
+            [value]="project.project.id"
+          >
+            {{ project.project.code }}
+          </option>
+        </select>
+        <p class="field-error" *ngIf="modalSubmitted.addTask && addTaskForm.controls.projectId.invalid">Project is required.</p>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="add-task-description">Task Description</label>
+      <textarea
+        id="add-task-description"
+        rows="3"
+        formControlName="description"
+        [class.invalid]="modalSubmitted.addTask && addTaskForm.controls.description.invalid"
+      ></textarea>
+      <p class="field-error" *ngIf="modalSubmitted.addTask && addTaskForm.controls.description.invalid">
+        Task description is required.
+      </p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingAction">Add Task</button>
+      <button type="button" class="secondary" (click)="closeModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell
+  *ngIf="activeModal === 'removeTask'"
+  title="Remove Task from Project"
+  width="620px"
+  (close)="closeModal()"
+>
+  <form [formGroup]="removeTaskForm" (ngSubmit)="submitRemoveTask()" novalidate>
+    <div class="field-group">
+      <label for="remove-task-day">Day</label>
+      <select
+        id="remove-task-day"
+        formControlName="day"
+        (change)="onRemoveTaskSelectionChanged()"
+        [class.invalid]="modalSubmitted.removeTask && removeTaskForm.controls.day.invalid"
+      >
+        <option *ngFor="let day of planningDays()" [value]="day.date">{{ day.label }}</option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeTask && removeTaskForm.controls.day.invalid">Day is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="remove-task-person">Person</label>
+      <select
+        id="remove-task-person"
+        formControlName="personId"
+        (change)="onRemoveTaskSelectionChanged()"
+        [class.invalid]="modalSubmitted.removeTask && removeTaskForm.controls.personId.invalid"
+      >
+        <option *ngFor="let person of peopleForDay(removeTaskForm.controls.day.value)" [value]="person.person.id">
+          {{ person.person.name }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeTask && removeTaskForm.controls.personId.invalid">
+        Person is required.
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="remove-task-project">Project</label>
+      <select
+        id="remove-task-project"
+        formControlName="projectId"
+        (change)="onRemoveTaskSelectionChanged()"
+        [class.invalid]="modalSubmitted.removeTask && removeTaskForm.controls.projectId.invalid"
+      >
+        <option
+          *ngFor="let project of projectsForPerson(removeTaskForm.controls.day.value, removeTaskForm.controls.personId.value)"
+          [value]="project.project.id"
+        >
+          {{ project.project.code }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeTask && removeTaskForm.controls.projectId.invalid">
+        Project is required.
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="remove-task-id">Task</label>
+      <select
+        id="remove-task-id"
+        formControlName="taskId"
+        [class.invalid]="modalSubmitted.removeTask && removeTaskForm.controls.taskId.invalid"
+      >
+        <option
+          *ngFor="let task of tasksForProject(removeTaskForm.controls.day.value, removeTaskForm.controls.personId.value, removeTaskForm.controls.projectId.value)"
+          [value]="task.id"
+        >
+          {{ task.description }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeTask && removeTaskForm.controls.taskId.invalid">Task is required.</p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingAction">Remove</button>
+      <button type="button" class="secondary" (click)="closeModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell
+  *ngIf="activeModal === 'removePerson'"
+  title="Remove Person from Day"
+  width="520px"
+  (close)="closeModal()"
+>
+  <form [formGroup]="removePersonForm" (ngSubmit)="submitRemovePerson()" novalidate>
+    <div class="field-group">
+      <label for="remove-person-day">Day</label>
+      <select
+        id="remove-person-day"
+        formControlName="day"
+        (change)="onRemovePersonSelectionChanged()"
+        [class.invalid]="modalSubmitted.removePerson && removePersonForm.controls.day.invalid"
+      >
+        <option *ngFor="let day of planningDays()" [value]="day.date">{{ day.label }}</option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removePerson && removePersonForm.controls.day.invalid">Day is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="remove-person-id">Person</label>
+      <select
+        id="remove-person-id"
+        formControlName="personId"
+        [class.invalid]="modalSubmitted.removePerson && removePersonForm.controls.personId.invalid"
+      >
+        <option *ngFor="let person of peopleForDay(removePersonForm.controls.day.value)" [value]="person.person.id">
+          {{ person.person.name }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removePerson && removePersonForm.controls.personId.invalid">
+        Person is required.
+      </p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingAction">Remove</button>
+      <button type="button" class="secondary" (click)="closeModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell
+  *ngIf="activeModal === 'removeProject'"
+  title="Remove Project from Person"
+  width="560px"
+  (close)="closeModal()"
+>
+  <form [formGroup]="removeProjectForm" (ngSubmit)="submitRemoveProject()" novalidate>
+    <div class="field-group">
+      <label for="remove-project-day">Day</label>
+      <select
+        id="remove-project-day"
+        formControlName="day"
+        (change)="onRemoveProjectSelectionChanged()"
+        [class.invalid]="modalSubmitted.removeProject && removeProjectForm.controls.day.invalid"
+      >
+        <option *ngFor="let day of planningDays()" [value]="day.date">{{ day.label }}</option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeProject && removeProjectForm.controls.day.invalid">Day is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="remove-project-person">Person</label>
+      <select
+        id="remove-project-person"
+        formControlName="personId"
+        (change)="onRemoveProjectSelectionChanged()"
+        [class.invalid]="modalSubmitted.removeProject && removeProjectForm.controls.personId.invalid"
+      >
+        <option *ngFor="let person of peopleForDay(removeProjectForm.controls.day.value)" [value]="person.person.id">
+          {{ person.person.name }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeProject && removeProjectForm.controls.personId.invalid">
+        Person is required.
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="remove-project-id">Project</label>
+      <select
+        id="remove-project-id"
+        formControlName="projectId"
+        [class.invalid]="modalSubmitted.removeProject && removeProjectForm.controls.projectId.invalid"
+      >
+        <option
+          *ngFor="let project of projectsForPerson(removeProjectForm.controls.day.value, removeProjectForm.controls.personId.value)"
+          [value]="project.project.id"
+        >
+          {{ project.project.code }}
+        </option>
+      </select>
+      <p class="field-error" *ngIf="modalSubmitted.removeProject && removeProjectForm.controls.projectId.invalid">
+        Project is required.
+      </p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSavingAction">Remove</button>
+      <button type="button" class="secondary" (click)="closeModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>

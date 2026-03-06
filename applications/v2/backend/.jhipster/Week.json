@@ -1,0 +1,41 @@
+{
+  "annotations": {
+    "changelogDate": "20260210152712"
+  },
+  "applications": ["weeklyplanning"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "id",
+      "fieldType": "UUID"
+    },
+    {
+      "fieldName": "startDate",
+      "fieldType": "LocalDate",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "endDate",
+      "fieldType": "LocalDate",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "WeekStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "PLANNED,COMPLETED"
+    }
+  ],
+  "name": "Week",
+  "relationships": [
+    {
+      "otherEntityName": "dayPlan",
+      "otherEntityRelationshipName": "week",
+      "relationshipName": "dayPlans",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

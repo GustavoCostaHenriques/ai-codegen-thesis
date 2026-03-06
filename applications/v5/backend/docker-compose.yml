@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: weekly-planning-db
+    environment:
+      POSTGRES_DB: weekly_planning
+      POSTGRES_USER: weekly
+      POSTGRES_PASSWORD: weekly
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weekly -d weekly_planning"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: weekly-planning-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weekly-planning-backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/weekly_planning
+      DB_USERNAME: weekly
+      DB_PASSWORD: weekly
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?set_APP_JWT_SECRET}
+      APP_BOOTSTRAP_ADMIN_PASSWORD: admin12345
+      APP_BOOTSTRAP_ADMIN_EMAIL: admin@weekly.local
+      APP_BOOTSTRAP_ADMIN_USERNAME: admin
+    ports:
+      - "80:8080"
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,240 @@
+﻿<app-top-nav titleKey="planning.titleFallback"></app-top-nav>
+
+<section class="planning-page">
+  <h1 class="planning-title" *ngIf="planningBoard">
+    {{ 'planning.title' | t : weekTitleParams }}
+  </h1>
+
+  <p class="feedback error" *ngIf="pageError">{{ pageError }}</p>
+  <p class="feedback error" *ngIf="modalError">{{ modalError }}</p>
+
+  <div class="calendar-frame" *ngIf="!loading">
+    <div class="day-column" *ngFor="let dayPlan of dayPlans">
+      <header class="day-header">{{ dayHeader(dayPlan) }}</header>
+
+      <div class="day-body">
+        <article class="person-card" *ngFor="let dayPerson of dayPlan.dayPersons">
+          <div class="person-header">
+            <strong>{{ dayPerson.person.name }}</strong>
+            <button
+              *ngIf="canEditPlanning"
+              type="button"
+              class="icon-danger"
+              (click)="openRemovePerson(dayPlan, dayPerson)"
+            >
+              X
+            </button>
+          </div>
+
+          <section class="project-block" *ngFor="let dayPersonProject of dayPerson.dayPersonProjects">
+            <div class="project-header">
+              <span>{{ dayPersonProject.project.name }}</span>
+              <button
+                *ngIf="canEditPlanning"
+                type="button"
+                class="icon-danger"
+                (click)="openRemoveProject(dayPlan, dayPerson, dayPersonProject)"
+              >
+                X
+              </button>
+            </div>
+
+            <div class="task-row" *ngFor="let task of dayPersonProject.tasks">
+              <span class="task-text">{{ task.description }}</span>
+              <button
+                *ngIf="canEditPlanning"
+                type="button"
+                class="icon-danger"
+                (click)="openRemoveTask(dayPlan, dayPerson, dayPersonProject, task)"
+              >
+                X
+              </button>
+            </div>
+
+            <button
+              *ngIf="canEditPlanning"
+              type="button"
+              class="btn-task"
+              (click)="openAddTask(dayPlan, dayPerson, dayPersonProject)"
+            >
+              {{ 'planning.addTask' | t }}
+            </button>
+          </section>
+
+          <button *ngIf="canEditPlanning" type="button" class="btn-project" (click)="openAddProject(dayPlan, dayPerson)">
+            {{ 'planning.addProject' | t }}
+          </button>
+        </article>
+
+        <div class="day-empty" *ngIf="dayPlan.dayPersons.length === 0">{{ 'common.noData' | t }}</div>
+      </div>
+
+      <button *ngIf="canEditPlanning" type="button" class="btn-person" (click)="openAddPerson(dayPlan)">
+        {{ 'planning.addPerson' | t }}
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">{{ 'common.loading' | t }}</div>
+</section>
+
+<app-modal
+  [open]="showAddPersonModal"
+  [title]="'planning.modal.addPerson' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="showAddPersonModal = false"
+>
+  <div class="modal-form" *ngIf="addPersonDayPlan">
+    <label>{{ 'planning.day' | t }}</label>
+    <input class="field-input" [value]="dayHeader(addPersonDayPlan)" readonly />
+
+    <label>{{ 'planning.person' | t }}</label>
+    <select class="field-input" [(ngModel)]="selectedPersonId" [ngModelOptions]="{ standalone: true }">
+      <option *ngFor="let person of activePersons" [value]="person.personId">{{ person.name }}</option>
+    </select>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showAddPersonModal = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="confirmAddPerson()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="showAddProjectModal"
+  [title]="'planning.modal.addProject' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="showAddProjectModal = false"
+>
+  <div class="modal-form" *ngIf="addProjectContext">
+    <label>{{ 'planning.day' | t }}</label>
+    <input class="field-input" [value]="dayHeader(addProjectContext.dayPlan)" readonly />
+
+    <label>{{ 'planning.person' | t }}</label>
+    <input class="field-input" [value]="addProjectContext.dayPerson.person.name" readonly />
+
+    <label>{{ 'planning.project' | t }}</label>
+    <select class="field-input" [(ngModel)]="selectedProjectId" [ngModelOptions]="{ standalone: true }">
+      <option *ngFor="let project of activeProjects" [value]="project.projectId">{{ project.name }}</option>
+    </select>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showAddProjectModal = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="confirmAddProject()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="showAddTaskModal"
+  [title]="'planning.modal.addTask' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="showAddTaskModal = false"
+>
+  <div class="modal-form" *ngIf="addTaskContext">
+    <label>{{ 'planning.day' | t }}</label>
+    <input class="field-input" [value]="dayHeader(addTaskContext.dayPlan)" readonly />
+
+    <div class="inline-fields">
+      <div>
+        <label>{{ 'planning.person' | t }}</label>
+        <input class="field-input" [value]="addTaskContext.dayPerson.person.name" readonly />
+      </div>
+      <div>
+        <label>{{ 'planning.project' | t }}</label>
+        <input class="field-input" [value]="addTaskContext.dayPersonProject.project.name" readonly />
+      </div>
+    </div>
+
+    <label>{{ 'planning.taskDescription' | t }}</label>
+    <textarea
+      class="field-input"
+      rows="3"
+      [(ngModel)]="taskDescription"
+      [ngModelOptions]="{ standalone: true }"
+    ></textarea>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showAddTaskModal = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="confirmAddTask()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="showRemoveTaskModal"
+  [title]="'planning.modal.removeTask' | t"
+  [closeOnBackdrop]="true"
+  (closeModal)="showRemoveTaskModal = false"
+>
+  <div class="modal-form" *ngIf="removeTaskContext">
+    <p>{{ 'planning.modal.removeTaskText' | t }}</p>
+    <label>{{ 'planning.person' | t }}</label>
+    <input class="field-input" [value]="removeTaskContext.dayPerson.person.name" readonly />
+
+    <label>{{ 'planning.project' | t }}</label>
+    <input class="field-input" [value]="removeTaskContext.dayPersonProject.project.name" readonly />
+
+    <label>{{ 'planning.task' | t }}</label>
+    <input class="field-input" [value]="removeTaskContext.task.description" readonly />
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showRemoveTaskModal = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="confirmRemoveTask()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="showRemovePersonModal"
+  [title]="'planning.modal.removePerson' | t"
+  [closeOnBackdrop]="true"
+  (closeModal)="showRemovePersonModal = false"
+>
+  <div class="modal-form" *ngIf="removePersonContext">
+    <p>{{ 'planning.modal.removePersonText' | t }}</p>
+    <label>{{ 'planning.day' | t }}</label>
+    <input class="field-input" [value]="dayHeader(removePersonContext.dayPlan)" readonly />
+
+    <label>{{ 'planning.person' | t }}</label>
+    <input class="field-input" [value]="removePersonContext.dayPerson.person.name" readonly />
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showRemovePersonModal = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="confirmRemovePerson()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="showRemoveProjectModal"
+  [title]="'planning.modal.removeProject' | t"
+  [closeOnBackdrop]="true"
+  (closeModal)="showRemoveProjectModal = false"
+>
+  <div class="modal-form" *ngIf="removeProjectContext">
+    <p>{{ 'planning.modal.removeProjectText' | t }}</p>
+    <label>{{ 'planning.person' | t }}</label>
+    <input class="field-input" [value]="removeProjectContext.dayPerson.person.name" readonly />
+
+    <label>{{ 'planning.project' | t }}</label>
+    <input class="field-input" [value]="removeProjectContext.dayPersonProject.project.name" readonly />
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showRemoveProjectModal = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="confirmRemoveProject()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>

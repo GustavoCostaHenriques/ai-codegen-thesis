@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buttons - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="pageContent gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-l">Buttons</h1>
+
+    <section class="gra-margin-bottom-2xl">
+      <h2 class="gra-font-3xl gra-margin-bottom-xs">Primarios</h2>
+      <p class="gra-margin-bottom-l">
+        <strong>Botao Primario (Primary Button):</strong> Usado para a acao principal numa pagina ou dialogo.
+        Deve ser o mais proeminente e geralmente utiliza a cor principal do tema do design.
+      </p>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Texto</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-primary gra-margin-right-xs">Primario</button>
+          <button type="button" class="gra-btn btn-primary btn-primary-accessibility gra-margin-right-xs">Acessibilidade</button>
+          <button type="button" class="gra-btn btn-primary btn-primary-deactivated disabled gra-margin-right-xs" disabled>Desativado</button>
+          <button type="button" class="gra-btn btn-primary-error">Erro</button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon + Texto</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-primary gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Primario
+          </button>
+          <button type="button" class="gra-btn btn-primary btn-primary-accessibility gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Acessibilidade
+          </button>
+          <button type="button" class="gra-btn btn-primary btn-primary-deactivated disabled gra-margin-right-xs" disabled>
+            <i class="icon-chevron-left iconLeft"></i>Desativado
+          </button>
+          <button type="button" class="gra-btn btn-primary-error gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Erro
+          </button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Texto + Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-primary gra-margin-right-xs">
+            Primario<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-primary btn-primary-accessibility gra-margin-right-xs">
+            Acessibilidade<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-primary btn-primary-deactivated disabled gra-margin-right-xs" disabled>
+            Desativado<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-primary-error gra-margin-right-xs">
+            Erro<i class="icon-chevron-right iconRight"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon + Texto + Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-primary gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Primario<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-primary btn-primary-accessibility gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Acessibilidade<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-primary btn-primary-deactivated disabled gra-margin-right-xs" disabled>
+            <i class="icon-chevron-left iconLeft"></i>Desativado<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-primary-error gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Erro<i class="icon-chevron-right iconRight"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="icon icon-primary gra-margin-right-xs">
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="icon icon-primary icon-primary-accessibility gra-margin-right-xs">
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="icon icon-primary icon-primary-deactivated gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="icon icon-primary-error">
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="gra-margin-bottom-2xl">
+      <h2 class="gra-font-3xl gra-margin-bottom-xs">Secundarios</h2>
+      <p class="gra-margin-bottom-l">
+        <strong>Botao Secundario (Secondary Button):</strong> Usado para acoes secundarias que complementam
+        a acao principal. Menos proeminente que o botao primario, mas ainda importante.
+      </p>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Texto</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-secondary gra-margin-right-xs">Secundario</button>
+          <button type="button" class="gra-btn btn-secondary btn-secondary-deactivated gra-margin-right-xs disabled" disabled>Desativado</button>
+          <button type="button" class="gra-btn btn-secondary-error">Erro</button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon + Texto</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-secondary gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Secundario
+          </button>
+          <button type="button" class="gra-btn btn-secondary btn-secondary-deactivated gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-left iconLeft"></i>Desativado
+          </button>
+          <button type="button" class="gra-btn btn-secondary-error">
+            <i class="icon-chevron-left iconLeft"></i>Erro
+          </button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Texto + Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-secondary gra-margin-right-xs">
+            Secundario<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-secondary btn-secondary-deactivated gra-margin-right-xs disabled" disabled>
+            Desativado<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-secondary-error">
+            Erro<i class="icon-chevron-right iconRight"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon + Texto + Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="gra-btn btn-secondary gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Secundario<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-secondary btn-secondary-deactivated gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-left iconLeft"></i>Desativado<i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="gra-btn btn-secondary-error">
+            <i class="icon-chevron-left iconLeft"></i>Erro<i class="icon-chevron-right iconRight"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <button type="button" class="icon icon-secondary gra-margin-right-xs">
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="icon icon-secondary icon-secondary-deactivated gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+          <button type="button" class="icon icon-secondary-error">
+            <i class="icon-chevron-right iconRight"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="gra-margin-bottom-2xl">
+      <h2 class="gra-font-3xl gra-margin-bottom-xs">Link</h2>
+      <p class="gra-margin-bottom-l">
+        <strong>Botao Link (Link Button):</strong> E utilizado para acoes de navegacao que redirecionam o
+        utilizador para uma nova pagina ou seccao, sem a necessidade de um botao tradicional, integrando-se
+        de forma mais natural com o texto e conteudo da interface.
+      </p>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Texto</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <a href="#" class="gra-link gra-margin-right-xs">Default</a>
+          <a href="#" class="gra-link gra-margin-right-xs disabled" disabled>Desativado</a>
+          <a href="#" class="gra-link error">Erro</a>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon + Texto</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <a href="#" class="gra-link gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Default
+          </a>
+          <a href="#" class="gra-link gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-left iconLeft"></i>Desativado
+          </a>
+          <a href="#" class="gra-link error">
+            <i class="icon-chevron-left iconLeft"></i>Erro
+          </a>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Texto + Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <a href="#" class="gra-link gra-margin-right-xs">
+            Default<i class="icon-chevron-right iconRight"></i>
+          </a>
+          <a href="#" class="gra-link gra-margin-right-xs disabled" disabled>
+            Desativado<i class="icon-chevron-right iconRight"></i>
+          </a>
+          <a href="#" class="gra-link error">
+            Erro<i class="icon-chevron-right iconRight"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon + Texto + Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <a href="#" class="gra-link gra-margin-right-xs">
+            <i class="icon-chevron-left iconLeft"></i>Default<i class="icon-chevron-right iconRight"></i>
+          </a>
+          <a href="#" class="gra-link gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-left iconLeft"></i>Desativado<i class="icon-chevron-right iconRight"></i>
+          </a>
+          <a href="#" class="gra-link error">
+            <i class="icon-chevron-left iconLeft"></i>Erro<i class="icon-chevron-right iconRight"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="item gra-margin-bottom-l">
+        <h3 class="gra-font-2xl gra-margin-bottom-m">Icon</h3>
+        <div class="gra-margin-bottom-m" style="display:flex;flex-wrap:wrap;align-items:center;row-gap:12px;">
+          <a href="#" class="gra-link gra-margin-right-xs">
+            <i class="icon-chevron-right iconRight"></i>
+          </a>
+          <a href="#" class="gra-link gra-margin-right-xs disabled" disabled>
+            <i class="icon-chevron-right iconRight"></i>
+          </a>
+          <a href="#" class="gra-link error">
+            <i class="icon-chevron-right iconRight"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

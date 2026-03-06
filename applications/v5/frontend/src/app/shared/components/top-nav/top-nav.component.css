@@ -1,0 +1,13 @@
+.top-nav-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.top-nav-actions .gra-btn {
+  white-space: nowrap;
+}
+
+.top-nav-language-select {
+  width: 88px;
+  min-width: 88px;
+}

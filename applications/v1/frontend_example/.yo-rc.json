@@ -1,0 +1,32 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "FormacaoAngular",
+    "buildTool": "maven",
+    "cacheProvider": "no",
+    "clientFramework": "angular",
+    "clientPackageManager": "npm",
+    "clientTheme": "none",
+    "databaseType": "no",
+    "dtoSuffix": "DTO",
+    "enableHibernateCache": false,
+    "enableSwaggerCodegen": true,
+    "enableTranslation": true,
+    "entities": [],
+    "entitySuffix": "Entity",
+    "jhiPrefix": "jhi",
+    "jhipsterVersion": "8.9.0",
+    "languages": ["en"],
+    "nativeLanguage": "en",
+    "reactive": false,
+    "searchEngine": false,
+    "serverPort": "49001",
+    "serviceDiscoveryType": "no",
+    "skipClient": false,
+    "skipServer": true,
+    "skipUserManagement": false,
+    "testFrameworks": [],
+    "websocket": false
+  }
+}

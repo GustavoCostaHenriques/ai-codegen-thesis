@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Date Picker - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Date picker</h1>
+
+    <section id="defaultPicker" class="gra-margin-top-xl">
+      <h2>Default</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="default-range-1">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="default-range-1" class="form form-control daterangepickerInput rangeDatePicker" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text" data-format-date="YYYY-MM-DD">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="default-simple-1">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="default-simple-1" class="form form-control daterangepickerInput simpleDatePicker" placeholder="dd/mm/aaaa" type="text" data-format-date="YYYY-MM-DD">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="gra-margin-top-l">Formatos da data</h2>
+      <p>Pode colocar o formato da data que desejar, no exemplo abaixo colocamos o formato <b>YYYY-MM-DD</b> utilizando o data atributo <b>data-format-date</b>.</p>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="default-range-2">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="default-range-2" class="form form-control daterangepickerInput rangeDatePicker" placeholder="aaaa-mm-dd - aaaa-mm-dd" type="text" data-format-date="YYYY-MM-DD">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="default-simple-2">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="default-simple-2" class="form form-control daterangepickerInput simpleDatePicker" placeholder="aaaa-mm-dd" type="text" data-format-date="YYYY-MM-DD">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>Pode acrescentar tambem a hora, no exemplo abaixo colocamos o formato <b>YYYY-MM-DD HH:mm</b> utilizando o data atributo <b>data-format-date</b>.</p>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="default-range-3">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="default-range-3" class="form form-control daterangepickerInput rangeDatePicker" placeholder="aaaa-mm-dd - aaaa-mm-dd" type="text" data-format-date="YYYY-MM-DD HH:mm">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="default-simple-3">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="default-simple-3" class="form form-control daterangepickerInput simpleDatePicker" placeholder="aaaa-mm-dd" type="text" data-format-date="YYYY-MM-DD HH:mm">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="mandatoryPicker" class="gra-margin-top-xl">
+      <h2>Mandatorio</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label class="required-label" for="mandatory-range">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="mandatory-range" class="form form-control required-field daterangepickerInput rangeDatePicker" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label class="required-label" for="mandatory-simple">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="mandatory-simple" class="form form-control required-field daterangepickerInput simpleDatePicker" placeholder="dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="disabledPicker" class="gra-margin-top-xl">
+      <h2>Desativado</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="disabled-range">Titulo do campo</label>
+            <div class="gra-daterangepicker-container disabled">
+              <input id="disabled-range" class="form form-control required-field daterangepickerInput rangeDatePicker" disabled placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="disabled-simple">Titulo do campo</label>
+            <div class="gra-daterangepicker-container disabled">
+              <input id="disabled-simple" class="form form-control required-field daterangepickerInput simpleDatePicker" disabled placeholder="dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="infoPicker" class="gra-margin-top-xl">
+      <h2>Informativo</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="info-range">Titulo do campo <i class="icon-circle-info iconLabel"></i></label>
+            <div class="gra-daterangepicker-container">
+              <input id="info-range" class="form form-control daterangepickerInput rangeDatePicker" value="05/10/1987 - 07/10/1987" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="info-simple">Titulo do campo <i class="icon-circle-info iconLabel"></i></label>
+            <div class="gra-daterangepicker-container">
+              <input id="info-simple" class="form form-control daterangepickerInput simpleDatePicker" value="05/10/1987" placeholder="dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="readonlyPicker" class="gra-margin-top-xl">
+      <h2>Apenas leitura</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="readonly-range">Titulo do campo</label>
+            <div class="gra-daterangepicker-container readonly">
+              <input id="readonly-range" class="form form-control daterangepickerInput rangeDatePicker" readonly value="05/11/1989 - 07/11/1989" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="readonly-simple">Titulo do campo</label>
+            <div class="gra-daterangepicker-container readonly">
+              <input id="readonly-simple" class="form form-control daterangepickerInput simpleDatePicker" readonly value="05/11/1989" placeholder="dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="errorMessagePicker" class="gra-margin-top-xl">
+      <h2>Mensagem de erro</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label class="required-label" for="error-range">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="error-range" class="form form-control daterangepickerInput rangeDatePicker form-error" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+              <span class="graRequiredField">Campo obrigatorio</span>
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label class="required-label" for="error-simple">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="error-simple" class="form form-control daterangepickerInput simpleDatePicker form-error" placeholder="dd/mm/aaaa" type="text">
+              <span class="graRequiredField">Campo obrigatorio</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="infoMessagePicker" class="gra-margin-top-xl">
+      <h2>Mensagem de informacao</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="infomsg-range">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="infomsg-range" class="form form-control daterangepickerInput rangeDatePicker" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+            </div>
+            <span class="graInfoField">Mensagem de informacao</span>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="infomsg-simple">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="infomsg-simple" class="form form-control daterangepickerInput simpleDatePicker" placeholder="dd/mm/aaaa" type="text">
+            </div>
+            <span class="graInfoField">Mensagem de informacao</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="accessibilityPicker" class="gra-margin-top-xl">
+      <h2>Acessibilidade</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs align-items-center gra-margin-top-l">
+        <div class="gra-col-bs-xl-2">
+          <h3>Date range</h3>
+          <div class="gra-padding-s">
+            <label for="access-range">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="access-range" class="form form-control daterangepickerInput rangeDatePicker form-accessibility" placeholder="dd/mm/aaaa - dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="gra-col-bs-xl-2">
+          <h3>Simple</h3>
+          <div class="gra-padding-s">
+            <label for="access-simple">Titulo do campo</label>
+            <div class="gra-daterangepicker-container">
+              <input id="access-simple" class="form form-control daterangepickerInput simpleDatePicker form-accessibility" placeholder="dd/mm/aaaa" type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

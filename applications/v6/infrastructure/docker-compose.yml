@@ -1,0 +1,163 @@
+name: weekly-planning
+
+services:
+  traefik:
+    image: traefik:v3.3
+    restart: unless-stopped
+    command:
+      - --configfile=/etc/traefik/traefik.yml
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
+
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command:
+      - /bin/sh
+      - -ec
+      - redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"
+    volumes:
+      - redis_data:/data
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://database:5432/${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRATION_SECONDS: ${APP_JWT_EXPIRATION_SECONDS}
+      APP_BOOTSTRAP_ADMIN_USERNAME: ${APP_BOOTSTRAP_ADMIN_USERNAME}
+      APP_BOOTSTRAP_ADMIN_EMAIL: ${APP_BOOTSTRAP_ADMIN_EMAIL}
+      APP_BOOTSTRAP_ADMIN_NAME: ${APP_BOOTSTRAP_ADMIN_NAME}
+      APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD}
+      APP_PASSWORD_MIN_LENGTH: ${APP_PASSWORD_MIN_LENGTH}
+      APP_PASSWORD_REQUIRE_UPPERCASE: ${APP_PASSWORD_REQUIRE_UPPERCASE}
+      APP_PASSWORD_REQUIRE_LOWERCASE: ${APP_PASSWORD_REQUIRE_LOWERCASE}
+      APP_PASSWORD_REQUIRE_DIGIT: ${APP_PASSWORD_REQUIRE_DIGIT}
+      APP_PASSWORD_REQUIRE_SPECIAL: ${APP_PASSWORD_REQUIRE_SPECIAL}
+      APP_BRUTE_FORCE_MAX_ATTEMPTS: ${APP_BRUTE_FORCE_MAX_ATTEMPTS}
+      APP_BRUTE_FORCE_WINDOW_SECONDS: ${APP_BRUTE_FORCE_WINDOW_SECONDS}
+      APP_BRUTE_FORCE_LOCK_DURATION_SECONDS: ${APP_BRUTE_FORCE_LOCK_DURATION_SECONDS}
+      APP_TASK_MIN_LENGTH: ${APP_TASK_MIN_LENGTH}
+    networks:
+      - public
+      - private
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=weekly-planning-public
+
+      - traefik.http.services.backend.loadbalancer.server.port=8080
+
+      - traefik.http.routers.backend.entrypoints=web
+      - traefik.http.routers.backend.priority=100
+      - traefik.http.routers.backend.rule=Host(`localhost`) && (PathPrefix(`/sessions`) || PathPrefix(`/me`) || PathPrefix(`/password-changes`) || PathPrefix(`/statistics-exports`) || PathPrefix(`/people`) || PathPrefix(`/projects`) || PathPrefix(`/weeks`) || PathPrefix(`/actuator`))
+      - traefik.http.routers.backend.service=backend
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../infrastructure/frontend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/healthz | grep ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=weekly-planning-public
+
+      # Frontend service config
+      - traefik.http.services.frontend.loadbalancer.server.port=80
+      - traefik.http.services.frontend.loadbalancer.healthcheck.path=/healthz
+      - traefik.http.services.frontend.loadbalancer.healthcheck.interval=10s
+      - traefik.http.services.frontend.loadbalancer.healthcheck.timeout=3s
+
+      # HTTP router (baixa prioridade, apanha tudo o que não for API)
+      - traefik.http.routers.frontend-http.entrypoints=web
+      - traefik.http.routers.frontend-http.rule=Host(`${APP_HOST}`) && PathPrefix(`/`)
+      - traefik.http.routers.frontend-http.priority=1
+      - traefik.http.routers.frontend-http.service=frontend
+
+      # HTTPS router
+      - traefik.http.routers.frontend-https.entrypoints=websecure
+      - traefik.http.routers.frontend-https.rule=Host(`${APP_HOST}`) && PathPrefix(`/`)
+      - traefik.http.routers.frontend-https.priority=1
+      - traefik.http.routers.frontend-https.service=frontend
+      - traefik.http.routers.frontend-https.tls=true
+
+networks:
+  public:
+    name: weekly-planning-public
+  private:
+    name: weekly-planning-private
+    internal: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  traefik_letsencrypt:

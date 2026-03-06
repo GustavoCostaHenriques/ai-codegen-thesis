@@ -1,0 +1,29 @@
+application {
+  config {
+    baseName weeklyplanning
+    applicationType monolith
+    authenticationType jwt
+
+    packageName com.weeklyplanning
+
+    buildTool maven
+
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+
+    enableTranslation true
+    nativeLanguage pt-pt
+    languages [pt-pt, en]
+
+    cacheProvider redis
+    enableHibernateCache true
+
+    skipClient true
+    skipUserManagement true
+  }
+  entities *
+}
+
+service * with serviceImpl
+dto * with mapstruct

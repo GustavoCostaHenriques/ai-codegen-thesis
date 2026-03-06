@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Popup - GRA Design System</title>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Popup</h1>
+
+    <section id="exemplos" class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+
+          <div class="gra-row-bs">
+            <div class="gra-col-bs-xl-2">
+              <button class="openPopup gra-btn btn-primary" data-id-popup="popupText">Abrir Popup Texto</button>
+            </div>
+            <div class="gra-col-bs-xl-2">
+              <p>Popup de Texto</p>
+            </div>
+          </div>
+
+          <div class="gra-popup" id="popupText">
+            <div class="popupMask"></div>
+            <div class="popupContainer">
+              <div class="popupHeader no-border">Ut enim ad minim veniam quis nostrud</div>
+              <div class="popupContent">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="flexCheckPopupText" checked>
+                  <label class="form-check-label" for="flexCheckPopupText">Lorem ipsum</label>
+                </div>
+              </div>
+              <div class="popupFooter">
+                <div class="gra-hr-horizontal-dark-s gra-padding-bottom-xs"></div>
+                <div>
+                  <button type="button" class="gra-btn btn-secondary gra-margin-right-xs closePopup">Cancelar</button>
+                  <button type="button" class="gra-btn btn-primary">Primario</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gra-row-bs gra-margin-top-l">
+            <div class="gra-col-bs-xl-2">
+              <button class="openPopup gra-btn btn-primary" data-id-popup="popupCode">Abrir Popup Codigo</button>
+            </div>
+            <div class="gra-col-bs-xl-2">
+              <p>Popup de Codigo</p>
+            </div>
+          </div>
+
+          <div class="gra-popup" id="popupCode">
+            <div class="popupMask"></div>
+            <div class="popupContainer">
+              <div class="popupHeader no-border with-avatar">
+                <div class="graAvatarWithoutFoto">
+                  <i class="icon-user graAvatarLogo"></i>
+                </div>
+                Ut enim ad minim veniam quis nostrud
+              </div>
+              <div class="popupContent align-center">
+                <p>Foi enviado um codigo de validacao para o seguinte e-mail: <b>[email protected]</b></p>
+                <div class="gra-input-group-code">
+                  <input type="text" maxlength="1" class="form form-control input-code" placeholder="0">
+                  <input type="text" maxlength="1" class="form form-control input-code" placeholder="0">
+                  <input type="text" maxlength="1" class="form form-control input-code" placeholder="0">
+                  <input type="text" maxlength="1" class="form form-control input-code" placeholder="0">
+                  <input type="text" maxlength="1" class="form form-control input-code" placeholder="0">
+                  <input type="text" maxlength="1" class="form form-control input-code" placeholder="0">
+                </div>
+                <p class="gra-margin-top-xs">Nao recebeu o codigo? <a href="#" class="gra-link">Clica aqui para reenviar</a></p>
+              </div>
+              <div class="popupFooter">
+                <div class="gra-hr-horizontal-dark-s gra-padding-bottom-xs"></div>
+                <div>
+                  <button type="button" class="gra-btn btn-secondary gra-margin-right-xs closePopup">Cancelar</button>
+                  <button type="button" class="gra-btn btn-primary">Primario</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gra-row-bs gra-margin-top-l">
+            <div class="gra-col-bs-xl-2">
+              <button class="openPopup gra-btn btn-primary" data-id-popup="popupScroll">Abrir Popup Scroll</button>
+            </div>
+            <div class="gra-col-bs-xl-2">
+              <p>A altura maxima do popup sera de 700px, sempre que o conteudo exceder este tamanho devera ser colocado scroll.</p>
+            </div>
+          </div>
+
+          <div class="gra-popup" id="popupScroll">
+            <div class="popupMask"></div>
+            <div class="popupContainer">
+              <div class="popupHeader">Ut enim ad minim veniam quis nostrud</div>
+              <div class="popupGradient"></div>
+              <div class="popupContent">
+                <div class="gra-row-bs">
+                  <div class="gra-col-bs-xl-2">
+                    <label for="popup-scroll-input-1">Titulo do campo</label>
+                    <input id="popup-scroll-input-1" class="form form-control" type="text" placeholder="Introduza aqui o texto">
+                  </div>
+                  <div class="gra-col-bs-xl-2">
+                    <label for="popup-scroll-select-1">Titulo do campo</label>
+                    <select id="popup-scroll-select-1" class="gra-select gra-simple-select form-select">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="gra-row-bs gra-margin-top-m">
+                  <div class="gra-col-bs-xl-2">
+                    <label for="popup-scroll-input-2">Titulo do campo</label>
+                    <input id="popup-scroll-input-2" class="form form-control" type="text" placeholder="Introduza aqui o texto">
+                  </div>
+                  <div class="gra-col-bs-xl-2">
+                    <label for="popup-scroll-select-2">Titulo do campo</label>
+                    <select id="popup-scroll-select-2" class="gra-select gra-simple-select form-select">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="gra-margin-top-m">
+                  <label for="popup-scroll-textarea">Titulo do campo</label>
+                  <textarea id="popup-scroll-textarea" class="form form-control" rows="4" placeholder="Introduza aqui o texto"></textarea>
+                </div>
+                <p class="gra-margin-top-xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <p class="gra-margin-top-xs">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <div class="form-check gra-margin-top-m">
+                  <input class="form-check-input" type="checkbox" value="" id="flexCheckPopupScroll" checked>
+                  <label class="form-check-label" for="flexCheckPopupScroll">Lorem ipsum</label>
+                </div>
+              </div>
+              <div class="popupFooter">
+                <div class="gra-hr-horizontal-dark-s gra-padding-bottom-xs"></div>
+                <div>
+                  <button type="button" class="gra-btn btn-secondary gra-margin-right-xs closePopup">Cancelar</button>
+                  <button type="button" class="gra-btn btn-primary">Primario</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gra-row-bs gra-margin-top-l">
+            <div class="gra-col-bs-xl-2">
+              <button class="openPopup gra-btn btn-primary" data-id-popup="popupImagem">Abrir Popup Imagem</button>
+            </div>
+            <div class="gra-col-bs-xl-2">
+              <p>Popup com Imagem</p>
+            </div>
+          </div>
+
+          <div class="gra-popup" id="popupImagem">
+            <div class="popupMask"></div>
+            <div class="popupContainer">
+              <div class="popupImg">
+                <img src="https://gradesign.servicos.azores.gov.pt/img/exemplos/coroa-da-mata-pm.jpg" alt="Imagem popup">
+              </div>
+              <div class="popupHeader no-border">Ut enim ad minim veniam quis nostrud</div>
+              <div class="popupContent">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              </div>
+              <div class="popupFooter">
+                <div class="gra-hr-horizontal-dark-s gra-padding-bottom-xs"></div>
+                <div>
+                  <button type="button" class="gra-btn btn-secondary gra-margin-right-xs closePopup">Cancelar</button>
+                  <button type="button" class="gra-btn btn-primary">Primario</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

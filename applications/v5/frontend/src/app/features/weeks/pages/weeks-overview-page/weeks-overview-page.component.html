@@ -1,0 +1,232 @@
+<section class="gra-background-white gra-padding-m gra-margin-bottom-m">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <input
+        type="text"
+        class="form form-control"
+        [placeholder]="'common.search' | t"
+        [(ngModel)]="search"
+      />
+      <button type="button" class="gra-btn btn-secondary" (click)="searchWeeks()">
+        {{ 'common.search' | t }}
+      </button>
+    </div>
+    <button
+      *ngIf="isAdmin"
+      type="button"
+      class="gra-btn btn-primary"
+      (click)="openCreateModal()"
+    >
+      {{ 'weeks.create' | t }}
+    </button>
+  </div>
+</section>
+
+<div *ngIf="errorMessage" class="gra-feedback-msg error gra-margin-bottom-m">
+  <span class="text">{{ errorMessage }}</span>
+  <span class="closeIcon" (click)="errorMessage = ''"></span>
+</div>
+
+<div *ngIf="loading" class="d-flex justify-content-center gra-padding-l">
+  <div class="gra-spinner medium"></div>
+</div>
+
+<section *ngIf="!loading">
+  <div class="gra-table-wrapper">
+    <table class="gra-table" id="weeks-table">
+      <thead>
+        <tr>
+          <th>{{ 'weeks.code' | t }}</th>
+          <th>{{ 'weeks.range' | t }}</th>
+          <th>{{ 'weeks.status' | t }}</th>
+          <th>{{ 'weeks.actions' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let week of weeks" (click)="goToPlanning(week.id)">
+          <td>{{ week.code }}</td>
+          <td>{{ week.weekStart }} - {{ week.weekEnd }}</td>
+          <td>
+            <div
+              class="gra-status secondary"
+              [class.infoIcon]="week.status === 'PLANNED'"
+              [class.successIcon]="week.status === 'COMPLETED'"
+            >
+              <span class="icon"></span>
+              <span>{{ week.status }}</span>
+            </div>
+          </td>
+          <td class="options">
+            <div class="d-flex flex-wrap gap-1">
+              <button
+                type="button"
+                class="gra-btn btn-primary"
+                (click)="$event.stopPropagation(); goToPlanning(week.id)"
+              >
+                {{ 'weeks.open' | t }}
+              </button>
+              <button
+                *ngIf="isAdmin"
+                type="button"
+                class="gra-btn btn-secondary"
+                (click)="$event.stopPropagation(); openEditModal(week)"
+              >
+                {{ 'weeks.edit' | t }}
+              </button>
+              <button
+                *ngIf="isAdmin"
+                type="button"
+                class="gra-btn btn-primary btn-primary-accessibility"
+                (click)="$event.stopPropagation(); openDuplicateModal(week)"
+              >
+                {{ 'weeks.duplicate' | t }}
+              </button>
+              <button
+                *ngIf="isAdmin"
+                type="button"
+                class="gra-btn btn-primary-error"
+                (click)="$event.stopPropagation(); openRemoveModal(week)"
+              >
+                {{ 'weeks.delete' | t }}
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="weeks.length === 0">
+          <td colspan="4">{{ 'common.empty' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gra-pagination gra-margin-top-s">
+    <div class="results">
+      {{ 'weeks.pageSummary' | t : { from: fromIndex, to: toIndex, total: totalElements } }}
+    </div>
+    <div class="navigation">
+      <button
+        class="prev icon icon-secondary"
+        [disabled]="page === 0"
+        (click)="loadWeeks(page - 1)"
+      >
+        <i class="icon-chevron-left iconLeft"></i>
+      </button>
+      <div class="page-numbers">
+        <button
+          *ngFor="let pageNumber of pageNumbers"
+          type="button"
+          class="itemNumber"
+          [class.active]="page === pageNumber"
+          (click)="loadWeeks(pageNumber)"
+        >
+          {{ pageNumber + 1 }}
+        </button>
+      </div>
+      <button
+        class="next icon icon-secondary"
+        [disabled]="page + 1 >= totalPages"
+        (click)="loadWeeks(page + 1)"
+      >
+        <i class="icon-chevron-right iconRight"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<div *ngIf="weekModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeWeekModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'weeks.modal.create' | t }}
+      <button type="button" class="gra-link" (click)="closeWeekModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <form class="no-validate-form" [formGroup]="weekForm" (ngSubmit)="saveWeek()">
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'weeks.weekStart' | t }}</label>
+          <input
+            type="date"
+            class="form form-control"
+            formControlName="weekStart"
+            [class.error]="weekForm.controls.weekStart.touched && weekForm.controls.weekStart.invalid"
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'weeks.weekEnd' | t }}</label>
+          <input
+            type="date"
+            class="form form-control"
+            formControlName="weekEnd"
+            [class.error]="weekForm.controls.weekEnd.touched && weekForm.controls.weekEnd.invalid"
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label>{{ 'weeks.weekCodeAuto' | t }}</label>
+          <input
+            type="text"
+            class="form form-control"
+            [value]="selectedWeek?.code || ''"
+            readonly
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'weeks.status' | t }}</label>
+          <select
+            class="gra-select gra-simple-select form-select"
+            formControlName="status"
+            [disabled]="modalMode === 'create' || modalMode === 'duplicate'"
+          >
+            <option value="PLANNED">PLANNED</option>
+            <option value="COMPLETED">COMPLETED</option>
+          </select>
+        </div>
+
+        <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+          <span class="text">{{ modalError }}</span>
+          <span class="closeIcon" (click)="modalError = ''"></span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="gra-btn btn-secondary" (click)="closeWeekModal()">
+            {{ 'common.cancel' | t }}
+          </button>
+          <button type="submit" class="gra-btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ 'common.confirm' | t }}</span>
+            <span *ngIf="saving">{{ 'app.loading' | t }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="removeModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeRemoveModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'weeks.modal.remove' | t }}
+      <button type="button" class="gra-link" (click)="closeRemoveModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <p>{{ 'weeks.modal.removeMessage' | t : { code: selectedWeek?.code ?? '' } }}</p>
+      <p>{{ 'weeks.modal.removeWarning' | t }}</p>
+      <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+        <span class="text">{{ modalError }}</span>
+        <span class="closeIcon" (click)="modalError = ''"></span>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="gra-btn btn-secondary" (click)="closeRemoveModal()">
+          {{ 'common.cancel' | t }}
+        </button>
+        <button type="button" class="gra-btn btn-primary-error" [disabled]="deleting" (click)="deleteWeek()">
+          <span *ngIf="!deleting">{{ 'common.confirm' | t }}</span>
+          <span *ngIf="deleting">{{ 'app.loading' | t }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

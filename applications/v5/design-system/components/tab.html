@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tab - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="pageContent gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Tab</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <h3 class="gra-margin-bottom-m">Texto</h3>
+          <div class="gra-tabs">
+            <a href="#" class="gra-tab">Lorem ipsum</a>
+            <a href="#" class="gra-tab">Lorem ipsum</a>
+            <a href="#" class="gra-tab active">Lorem ipsum</a>
+            <a href="#" class="gra-tab disabled">Lorem ipsum</a>
+          </div>
+
+          <h3 class="gra-margin-bottom-m gra-margin-top-l">Icon + Texto</h3>
+          <div class="gra-tabs">
+            <a href="#" class="gra-tab iconText">
+              <i class="icon-files"></i>Lorem ipsum
+            </a>
+            <a href="#" class="gra-tab iconText">
+              <i class="icon-files"></i>Lorem ipsum
+            </a>
+            <a href="#" class="gra-tab iconText active">
+              <i class="icon-files"></i>Lorem ipsum
+            </a>
+            <a href="#" class="gra-tab iconText disabled">
+              <i class="icon-files"></i>Lorem ipsum
+            </a>
+          </div>
+
+          <h3 class="gra-margin-bottom-m gra-margin-top-l">Texto + Notificacao</h3>
+          <div class="gra-tabs">
+            <a href="#" class="gra-tab textNotif">
+              Lorem ipsum<span class="gra-badge danger">1</span>
+            </a>
+            <a href="#" class="gra-tab textNotif">
+              Lorem ipsum<span class="gra-badge danger">10</span>
+            </a>
+            <a href="#" class="gra-tab textNotif active">
+              Lorem ipsum<span class="gra-badge danger">100</span>
+            </a>
+            <a href="#" class="gra-tab textNotif disabled">
+              Lorem ipsum<span class="gra-badge danger">1000</span>
+            </a>
+          </div>
+
+          <h3 class="gra-margin-bottom-m gra-margin-top-l">Icon + Texto + Notificacao</h3>
+          <div class="gra-tabs">
+            <a href="#" class="gra-tab iconText textNotif">
+              <i class="icon-files"></i>Lorem ipsum<span class="gra-badge danger">1</span>
+            </a>
+            <a href="#" class="gra-tab iconText textNotif">
+              <i class="icon-files"></i>Lorem ipsum<span class="gra-badge danger">10</span>
+            </a>
+            <a href="#" class="gra-tab iconText textNotif active">
+              <i class="icon-files"></i>Lorem ipsum<span class="gra-badge danger">100</span>
+            </a>
+            <a href="#" class="gra-tab iconText textNotif disabled">
+              <i class="icon-files"></i>Lorem ipsum<span class="gra-badge danger">1000</span>
+            </a>
+          </div>
+
+          <h3 class="gra-margin-bottom-m gra-margin-top-l">Exemplo de tabs com conteudo</h3>
+          <div class="gra-tab-container" id="gra-tabs1">
+            <div class="gra-tabs">
+              <a href="#" class="gra-tab iconText" data-gra-tab="tab1">
+                <i class="icon-files"></i>Lorem ipsum
+              </a>
+              <a href="#" class="gra-tab iconText" data-gra-tab="tab2">
+                <i class="icon-files"></i>Lorem ipsum
+              </a>
+              <a href="#" class="gra-tab iconText active" data-gra-tab="tab3">
+                <i class="icon-files"></i>Lorem ipsum
+              </a>
+              <a href="#" class="gra-tab iconText disabled" data-gra-tab="tab4">
+                <i class="icon-files"></i>Lorem ipsum
+              </a>
+            </div>
+
+            <div id="gra-tabs1-tab1" class="tab-content">
+              <h3>Lorem ipsum Tab 1</h3>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            </div>
+
+            <div id="gra-tabs1-tab2" class="tab-content">
+              <h3>Lorem ipsum Tab 2</h3>
+              <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+            </div>
+
+            <div id="gra-tabs1-tab3" class="tab-content">
+              <h3>Lorem ipsum Tab 3</h3>
+              <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </div>
+
+            <div id="gra-tabs1-tab4" class="tab-content">
+              <h3>Lorem ipsum Tab 4</h3>
+              <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

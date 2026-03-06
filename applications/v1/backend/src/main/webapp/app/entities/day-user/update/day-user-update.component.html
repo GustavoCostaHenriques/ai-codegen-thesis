@@ -1,0 +1,81 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-day-user-heading" data-cy="DayUserCreateUpdateHeading" jhiTranslate="weeklyplanningApp.dayUser.home.createOrEditLabel">
+        Create or edit a Day User
+      </h2>
+
+      <div>
+        <jhi-alert-error />
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id" jhiTranslate="weeklyplanningApp.dayUser.id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label" for="field_user" jhiTranslate="weeklyplanningApp.dayUser.user">User</label>
+          <select class="form-control" id="field_user" data-cy="user" name="user" formControlName="user" [compareWith]="compareAppUser">
+            @if (!editForm.get('user')!.value) {
+              <option [ngValue]="null" selected></option>
+            }
+            @for (appUserOption of appUsersSharedCollection; track $index) {
+              <option [ngValue]="appUserOption">{{ appUserOption.id }}</option>
+            }
+          </select>
+        </div>
+        @if (editForm.get(['user'])!.invalid && (editForm.get(['user'])!.dirty || editForm.get(['user'])!.touched)) {
+          <div>
+            @if (editForm.get(['user'])?.errors?.required) {
+              <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+            }
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label" for="field_dayPlan" jhiTranslate="weeklyplanningApp.dayUser.dayPlan">Day Plan</label>
+          <select
+            class="form-control"
+            id="field_dayPlan"
+            data-cy="dayPlan"
+            name="dayPlan"
+            formControlName="dayPlan"
+            [compareWith]="compareDayPlan"
+          >
+            @if (editForm.get(['dayPlan'])!.value === null) {
+              <option [ngValue]="null" selected></option>
+            }
+            @for (dayPlanOption of dayPlansSharedCollection; track $index) {
+              <option [ngValue]="dayPlanOption">{{ dayPlanOption.id }}</option>
+            }
+          </select>
+        </div>
+        @if (editForm.get(['dayPlan'])!.invalid && (editForm.get(['dayPlan'])!.dirty || editForm.get(['dayPlan'])!.touched)) {
+          <div>
+            @if (editForm.get(['dayPlan'])?.errors?.required) {
+              <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+            }
+          </div>
+        }
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

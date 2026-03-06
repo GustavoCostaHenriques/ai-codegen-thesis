@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filters - GRA Design System</title>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Filters</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplo 1</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="gra-filter">
+            <div class="gra-filter-content">
+              <div class="gra-filter-input">
+                <input type="text" class="gra-input-filter" placeholder="Pesquise aqui">
+                <div id="suggestionsContainer" class="suggestions"></div>
+                <a href="#" class="gra-link openFilter">
+                  <span class="desktop">Filtrar<span class="countFilters"></span></span>
+                  <span class="mobile"><i class="icon-filter filterIconMobile"></i><span class="countFiltersMobile gra-badge error"></span></span>
+                </a>
+                <a href="#" class="gra-link closeFilter">
+                  <span class="desktop">Fechar<span class="countFilters"></span></span>
+                  <span class="mobile"><i class="icon-times closeIconMobile"></i><span class="countFiltersMobile gra-badge error"></span></span>
+                </a>
+                <button class="gra-btn btn-primary searchBtn desktop btn-primary-deactivated" disabled>Pesquisar</button>
+                <button class="icon icon-primary searchBtn mobile icon-primary-deactivated" disabled><i class="icon-search closeIcon"></i></button>
+              </div>
+              <span class="caption">Exemplos: Nome, Descricao, Tipologia, Entidade.</span>
+            </div>
+            <div class="gra-filter-box open">
+              <form action="#" class="gra-form-filter">
+                <div class="gra-row-bs">
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter1-text">Titulo do campo</label>
+                    <input id="filter1-text" class="form form-control" type="text" placeholder="Introduza aqui o texto">
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter1-select1">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter1-select1">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter1-select2">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter1-select2">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="gra-row-bs">
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter1-date">Titulo do campo</label>
+                    <div class="gra-daterangepicker-container">
+                      <input id="filter1-date" class="form form-control daterangepickerInput simpleDatePicker" placeholder="dd/mm/aaaa" type="text">
+                    </div>
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter1-select3">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter1-select3">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter1-select4">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter1-select4">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+              <div class="gra-hr-horizontal-dark-s"></div>
+              <div class="actions">
+                <a href="#" class="gra-link clearFilter">Limpar filtros</a>
+                <button class="gra-btn btn-primary submitFilter">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplo 2</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="gra-filter">
+            <div class="gra-filter-content inlineFilter">
+              <div class="gra-filter-input">
+                <div class="title">Tabela Lorem ipsum</div>
+                <div>
+                  <a href="#" class="gra-link openFilter">
+                    <span class="desktop">Filtrar<span class="countFilters"></span></span>
+                    <span class="mobile"><i class="icon-filter filterIconMobile"></i><span class="countFiltersMobile gra-badge error"></span></span>
+                  </a>
+                  <a href="#" class="gra-link closeFilter">
+                    <span class="desktop">Fechar<span class="countFilters"></span></span>
+                    <span class="mobile"><i class="icon-times closeIconMobile"></i><span class="countFiltersMobile gra-badge error"></span></span>
+                  </a>
+                </div>
+              </div>
+              <div class="gra-hr-horizontal-light-s"></div>
+            </div>
+            <div class="gra-filter-box">
+              <form action="#" class="gra-form-filter">
+                <div class="gra-row-bs">
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter2-text">Titulo do campo</label>
+                    <input id="filter2-text" class="form form-control" type="text" placeholder="Introduza aqui o texto">
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter2-select1">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter2-select1">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter2-select2">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter2-select2">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="gra-row-bs">
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter2-date">Titulo do campo</label>
+                    <div class="gra-daterangepicker-container">
+                      <input id="filter2-date" class="form form-control daterangepickerInput simpleDatePicker" placeholder="dd/mm/aaaa" type="text">
+                    </div>
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter2-select3">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter2-select3">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                  <div class="gra-col-bs-xl-3">
+                    <label for="filter2-select4">Titulo do campo</label>
+                    <select class="gra-select gra-simple-select form-select" id="filter2-select4">
+                      <option value="" selected>Selecione</option>
+                      <option value="lorem1">Lorem ipsum 1</option>
+                      <option value="lorem2">Lorem ipsum 2</option>
+                      <option value="lorem3">Lorem ipsum 3</option>
+                      <option value="lorem4">Lorem ipsum 4</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+              <div class="gra-hr-horizontal-dark-s"></div>
+              <div class="actions">
+                <a href="#" class="gra-link clearFilter">Limpar filtros</a>
+                <button class="gra-btn btn-primary submitFilter">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

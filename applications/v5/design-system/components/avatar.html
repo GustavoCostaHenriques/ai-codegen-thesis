@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avatar - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-l">Avatar</h1>
+
+    <section class="gra-margin-bottom-l">
+      <h2 class="gra-font-2xl gra-margin-bottom-s">Exemplo</h2>
+      <p class="gra-margin-bottom-m">
+        Exemplo dos tres tipos de avatar disponiveis. Para utilizar o avatar com foto,
+        o caminho da imagem e colocado no atributo <code>src</code> da tag <code>img</code>.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;">
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+          <span>Avatar com foto</span>
+          <div class="graAvatarWithFoto">
+            <img class="graAvatarFoto" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Avatar com foto">
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+          <span>Avatar sem foto</span>
+          <div class="graAvatarWithoutFoto">
+            <i class="icon-user graAvatarLogo"></i>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+          <span>Avatar com texto</span>
+          <div class="graAvatarWithText">AA</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+          <span>Avatar com texto</span>
+          <div class="graAvatarWithText">15</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<div class="weeks-page">
+  <div class="header-actions" *ngIf="isAdmin">
+    <button type="button" class="ui-btn ui-btn-success" (click)="openCreateModal()">Create Week</button>
+  </div>
+
+  <div class="ui-alert" *ngIf="error">{{ error.message }}</div>
+
+  <div class="table-wrap app-card">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Week Code</th>
+          <th>Range</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let week of weeks" (click)="openPlanning(week.weekId)">
+          <td>{{ weekCode(week) }}</td>
+          <td>{{ range(week) }}</td>
+          <td>{{ week.status }}</td>
+          <td *ngIf="isAdmin">
+            <div class="ui-actions" (click)="$event.stopPropagation()">
+              <button type="button" class="ui-btn ui-btn-secondary" (click)="openPlanning(week.weekId)">Open</button>
+              <button type="button" class="ui-btn ui-btn-secondary" (click)="openEditModal(week, $event)">Edit</button>
+              <button type="button" class="ui-btn ui-btn-danger" (click)="openDeleteModal(week, $event)">Delete</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && weeks.length === 0">
+          <td [attr.colspan]="isAdmin ? 4 : 3">No weeks found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-modal-shell
+  *ngIf="showFormModal"
+  title="Create / Edit Week"
+  [dirty]="weekForm.dirty"
+  (closeRequested)="closeFormModal()">
+  <div modal-body>
+    <form class="modal-form" [formGroup]="weekForm">
+      <div class="grid-2">
+        <div class="ui-field">
+          <label class="ui-label" for="week-start">Week Start</label>
+          <input id="week-start" type="date" class="ui-input" [class.invalid]="!!controlError('weekStart')" formControlName="weekStart" />
+          <div class="ui-error">{{ controlError('weekStart') }}</div>
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="week-end">Week End</label>
+          <input id="week-end" type="date" class="ui-input" [class.invalid]="!!controlError('weekEnd')" formControlName="weekEnd" />
+          <div class="ui-error">{{ controlError('weekEnd') }}</div>
+        </div>
+      </div>
+
+      <div class="ui-field status-picker">
+        <label class="ui-label">Status</label>
+        <button type="button" class="ui-btn ui-btn-secondary status-btn" (click)="showStatusDialog = !showStatusDialog">
+          {{ selectedStatus }}
+        </button>
+
+        <div class="status-dialog" *ngIf="showStatusDialog">
+          <app-option-dialog [options]="statusOptions" [activeValue]="selectedStatus" (selected)="setStatus($event)"></app-option-dialog>
+        </div>
+      </div>
+
+      <div class="ui-alert" *ngIf="formError">{{ formError.message }}</div>
+    </form>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeFormModal()">Cancel</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isSaving" (click)="saveWeek()">Confirm</button>
+  </div>
+</app-modal-shell>
+
+<app-modal-shell
+  *ngIf="showDeleteModal"
+  title="Remove Week"
+  (closeRequested)="closeDeleteModal()">
+  <div modal-body>
+    <p class="confirm-text" *ngIf="deletingWeek">
+      Week <strong>{{ weekCode(deletingWeek) }}</strong> ({{ deletingWeek.weekStart }} - {{ deletingWeek.weekEnd }}) will be removed.
+    </p>
+    <div class="ui-alert" *ngIf="formError">{{ formError.message }}</div>
+  </div>
+  <div modal-footer>
+    <button type="button" class="ui-btn ui-btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+    <button type="button" class="ui-btn ui-btn-primary" [disabled]="isDeleting" (click)="deleteWeek()">Confirm</button>
+  </div>
+</app-modal-shell>

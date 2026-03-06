@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/weekly_planning_test
+    username: weekly
+    password: weekly
+  liquibase:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+app:
+  security:
+    jwt-secret: test-secret-for-tests-only-with-32-chars!!
+    jwt-expiration-seconds: 900

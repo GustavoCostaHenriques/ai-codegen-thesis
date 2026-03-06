@@ -1,0 +1,32 @@
+.tournaments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.add-button {
+  background-color: #1976d2;
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #1565c0;
+}

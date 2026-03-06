@@ -1,0 +1,49 @@
+.screen-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.screen-header h2 {
+  margin: 0;
+}
+
+.feedback.error {
+  color: var(--color-danger);
+  margin: 0 0 12px;
+}
+
+.action-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.field-group {
+  margin-bottom: 14px;
+}
+
+.field-group label {
+  color: var(--color-muted);
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  margin: 6px 0 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 900px) {
+  .action-cell {
+    flex-wrap: wrap;
+  }
+}

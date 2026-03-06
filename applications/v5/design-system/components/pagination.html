@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pagination - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Pagination</h1>
+
+    <section id="exemplo" class="gra-margin-top-xl">
+      <h2>Exemplo</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="gra-table-wrapper">
+            <table class="gra-table" id="tableTest">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="content-item"><td>1</td><td>Item 1</td></tr>
+                <tr class="content-item"><td>2</td><td>Item 2</td></tr>
+                <tr class="content-item"><td>3</td><td>Item 3</td></tr>
+                <tr class="content-item"><td>4</td><td>Item 4</td></tr>
+                <tr class="content-item"><td>5</td><td>Item 5</td></tr>
+                <tr class="content-item"><td>6</td><td>Item 6</td></tr>
+                <tr class="content-item"><td>7</td><td>Item 7</td></tr>
+                <tr class="content-item"><td>8</td><td>Item 8</td></tr>
+                <tr class="content-item"><td>9</td><td>Item 9</td></tr>
+                <tr class="content-item"><td>10</td><td>Item 10</td></tr>
+                <tr class="content-item"><td>11</td><td>Item 11</td></tr>
+                <tr class="content-item"><td>12</td><td>Item 12</td></tr>
+                <tr class="content-item"><td>13</td><td>Item 13</td></tr>
+                <tr class="content-item"><td>14</td><td>Item 14</td></tr>
+                <tr class="content-item"><td>15</td><td>Item 15</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="gra-pagination" data-is-external-content="false" data-items-per-page="4" data-total-items="" data-element-id="tableTest">
+            <div class="results">
+              <span class="fromIndex">1</span> de <span class="showRows">10</span> dos <span class="totalRows"></span> resultados
+            </div>
+            <div class="resultsMobile">
+              <span class="fromIndex">1</span> de <span class="showRows">10</span> dos <span class="totalRows"></span>
+            </div>
+            <div class="navigation">
+              <button class="prev icon icon-secondary"><i class="icon-chevron-left iconLeft"></i></button>
+              <div class="page-numbers"></div>
+              <button class="next icon icon-secondary"><i class="icon-chevron-right iconRight"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

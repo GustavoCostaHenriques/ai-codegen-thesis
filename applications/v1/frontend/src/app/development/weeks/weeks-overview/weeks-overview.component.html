@@ -1,0 +1,87 @@
+<app-top-nav [planningWeekId]="selectedWeekId"></app-top-nav>
+
+<section class="page">
+  <header class="header">
+    <h1>Weeks Overview</h1>
+    <div class="actions">
+      <button type="button" (click)="openCreateWeekModal()">Create Week</button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  }
+
+  <table>
+    <thead>
+      <tr>
+        <th>Week</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (week of weeks; track week.id) {
+        <tr>
+          <td>{{ week.label }}</td>
+          <td>{{ week.startDate }}</td>
+          <td>{{ week.endDate }}</td>
+          <td>{{ week.status }}</td>
+          <td class="row-actions">
+            <button type="button" (click)="openWeek(week)">Open</button>
+            <button type="button" (click)="openEditWeekModal(week)">Edit</button>
+            <button type="button" (click)="duplicateWeek(week)">Duplicate</button>
+            <button type="button" (click)="openDeleteWeekModal(week)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+
+@if (modalOpen) {
+  <section class="modal">
+    <form class="dialog" [formGroup]="weekForm" (ngSubmit)="saveWeek()">
+      <h2>Create / Edit Week</h2>
+      <label>
+        Week Label
+        <input type="text" formControlName="label" />
+      </label>
+      <label>
+        Start Date
+        <input type="date" formControlName="startDate" />
+      </label>
+      <label>
+        End Date
+        <input type="date" formControlName="endDate" />
+      </label>
+      <label>
+        Status
+        <select formControlName="status">
+          <option value="DRAFT">Draft</option>
+          <option value="PUBLISHED">Published</option>
+          <option value="LOCKED">Locked</option>
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit">Save</button>
+        <button type="button" (click)="closeWeekModal()">Cancel</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (deleteModalOpen) {
+  <section class="modal">
+    <div class="dialog">
+      <h2>Confirm Delete Week</h2>
+      <p>Delete selected week?</p>
+      <div class="dialog-actions">
+        <button type="button" (click)="deleteWeek()">Confirm</button>
+        <button type="button" (click)="closeDeleteModal()">Cancel</button>
+      </div>
+    </div>
+  </section>
+}

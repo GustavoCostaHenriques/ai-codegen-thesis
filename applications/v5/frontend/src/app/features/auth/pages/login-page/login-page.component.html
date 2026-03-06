@@ -1,0 +1,221 @@
+<section class="sectionLogin">
+  <div class="content">
+    <div class="d-flex justify-content-end gra-margin-bottom-s">
+      <label class="visually-hidden" for="login-language-select">
+        {{ 'common.language' | t }}
+      </label>
+      <select
+        id="login-language-select"
+        class="auth-language-select gra-select gra-simple-select form-select"
+        [value]="currentLanguage"
+        (change)="setLanguage($event)"
+      >
+        <option value="en">EN</option>
+        <option value="pt">PT</option>
+      </select>
+    </div>
+
+    <h1 class="gra-font-2xl gra-margin-bottom-l">{{ 'auth.authCardTitle' | t }}</h1>
+
+    <form
+      class="no-validate-form"
+      [formGroup]="loginForm"
+      (ngSubmit)="login()"
+      novalidate
+    >
+      <div class="gra-margin-bottom-m text-start">
+        <label class="required-label">{{ 'auth.username' | t }}</label>
+        <input
+          type="text"
+          class="form form-control"
+          formControlName="username"
+          [class.error]="submitted && loginForm.controls.username.invalid"
+          placeholder="Enter username"
+        />
+        <span
+          *ngIf="submitted && loginForm.controls.username.hasError('required')"
+          class="graRequiredField"
+        >
+          {{ 'auth.required' | t }}
+        </span>
+      </div>
+
+      <div class="gra-margin-bottom-s text-start">
+        <label class="required-label">{{ 'auth.password' | t }}</label>
+        <div class="gra-password-container">
+          <input
+            type="password"
+            class="form form-control gra-password"
+            formControlName="password"
+            [class.error]="submitted && loginForm.controls.password.invalid"
+            placeholder="Enter password"
+          />
+        </div>
+        <span
+          *ngIf="submitted && loginForm.controls.password.hasError('required')"
+          class="graRequiredField"
+        >
+          {{ 'auth.required' | t }}
+        </span>
+      </div>
+
+      <div class="text-start gra-margin-bottom-m">
+        <button
+          type="button"
+          class="gra-btn btn-secondary auth-change-password-btn"
+          (click)="openChangePasswordModal()"
+        >
+          {{ 'auth.changePassword' | t }}
+        </button>
+      </div>
+
+      <div *ngIf="loginError" class="gra-feedback-msg error gra-margin-bottom-s">
+        <span class="text">{{ loginError }}</span>
+        <span class="closeIcon" (click)="loginError = ''"></span>
+      </div>
+
+      <button type="submit" class="gra-btn btn-primary w-100" [disabled]="loginLoading">
+        <span *ngIf="!loginLoading">{{ 'auth.login' | t }}</span>
+        <span *ngIf="loginLoading">{{ 'app.loading' | t }}</span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<div *ngIf="passwordModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeChangePasswordModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'auth.passwordModalTitle' | t }}
+      <button type="button" class="gra-link" (click)="closeChangePasswordModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <form
+        class="no-validate-form"
+        [formGroup]="passwordForm"
+        (ngSubmit)="changePassword()"
+        novalidate
+      >
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'auth.username' | t }}</label>
+          <input
+            type="text"
+            class="form form-control"
+            formControlName="username"
+            [class.error]="passwordSubmitted && passwordForm.controls.username.invalid"
+          />
+          <span
+            *ngIf="passwordSubmitted && passwordForm.controls.username.hasError('required')"
+            class="graRequiredField"
+          >
+            {{ 'auth.required' | t }}
+          </span>
+        </div>
+
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'auth.currentPassword' | t }}</label>
+          <div class="gra-password-container">
+            <input
+              type="password"
+              class="form form-control gra-password"
+              formControlName="currentPassword"
+              [class.error]="
+                passwordSubmitted && passwordForm.controls.currentPassword.invalid
+              "
+            />
+          </div>
+          <span
+            *ngIf="
+              passwordSubmitted &&
+              passwordForm.controls.currentPassword.hasError('required')
+            "
+            class="graRequiredField"
+          >
+            {{ 'auth.required' | t }}
+          </span>
+        </div>
+
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'auth.newPassword' | t }}</label>
+          <div class="gra-password-container">
+            <input
+              type="password"
+              class="form form-control gra-password"
+              formControlName="newPassword"
+              [class.error]="passwordSubmitted && passwordForm.controls.newPassword.invalid"
+            />
+          </div>
+          <span
+            *ngIf="
+              passwordSubmitted && passwordForm.controls.newPassword.hasError('required')
+            "
+            class="graRequiredField"
+          >
+            {{ 'auth.required' | t }}
+          </span>
+        </div>
+
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'auth.confirmNewPassword' | t }}</label>
+          <div class="gra-password-container">
+            <input
+              type="password"
+              class="form form-control gra-password"
+              formControlName="confirmNewPassword"
+              [class.error]="
+                passwordSubmitted && passwordForm.controls.confirmNewPassword.invalid
+              "
+            />
+          </div>
+          <span
+            *ngIf="
+              passwordSubmitted &&
+              passwordForm.controls.confirmNewPassword.hasError('required')
+            "
+            class="graRequiredField"
+          >
+            {{ 'auth.required' | t }}
+          </span>
+          <span
+            *ngIf="
+              passwordSubmitted &&
+              passwordForm.hasError('passwordMismatch') &&
+              !passwordForm.controls.confirmNewPassword.hasError('required')
+            "
+            class="graRequiredField"
+          >
+            {{ 'app.error.validation' | t }}
+          </span>
+        </div>
+
+        <div
+          *ngIf="passwordChangeError"
+          class="gra-feedback-msg error gra-margin-bottom-s"
+        >
+          <span class="text">{{ passwordChangeError }}</span>
+          <span class="closeIcon" (click)="passwordChangeError = ''"></span>
+        </div>
+
+        <div
+          *ngIf="passwordChangeSuccess"
+          class="gra-feedback-msg success gra-margin-bottom-s"
+        >
+          <span class="text">{{ passwordChangeSuccess }}</span>
+          <span class="closeIcon" (click)="passwordChangeSuccess = ''"></span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="gra-btn btn-secondary" (click)="closeChangePasswordModal()">
+            {{ 'common.cancel' | t }}
+          </button>
+          <button type="submit" class="gra-btn btn-primary" [disabled]="changePasswordLoading">
+            <span *ngIf="!changePasswordLoading">{{ 'common.confirm' | t }}</span>
+            <span *ngIf="changePasswordLoading">{{ 'app.loading' | t }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

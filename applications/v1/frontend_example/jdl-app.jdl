@@ -1,0 +1,41 @@
+application {
+  config {
+    baseName FormacaoAngular
+    applicationType monolith
+    authenticationType jwt
+    buildTool maven
+    cacheProvider no
+
+    clientFramework angularX
+    clientPackageManager npm
+    clientTheme none
+
+    databaseType no
+
+    dtoSuffix DTO
+
+    enableHibernateCache false
+    enableSwaggerCodegen true
+    enableTranslation true
+
+    entitySuffix Entity
+    jhiPrefix jhi
+
+    languages [en]
+    nativeLanguage en
+
+    reactive false
+    searchEngine false
+    serverPort 49001
+
+    serviceDiscoveryType no
+
+    skipClient false
+    skipServer true
+    skipUserManagement false
+
+    testFrameworks []
+    websocket false
+  }
+  entities *
+}

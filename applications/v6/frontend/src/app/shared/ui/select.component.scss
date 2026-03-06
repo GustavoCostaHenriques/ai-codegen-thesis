@@ -1,0 +1,93 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.gra-select-shell {
+  position: relative;
+  width: 100%;
+}
+
+.gra-select-trigger {
+  align-items: center;
+  background: var(--color_white);
+  border: 1px solid var(--color_blue_500);
+  border-radius: 10px;
+  color: var(--color_blue_900);
+  display: flex;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 10px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.gra-select-trigger.placeholder {
+  color: var(--color_gray_500);
+}
+
+.gra-select-trigger:focus-visible {
+  box-shadow: 0 0 0 2px rgba(57, 128, 170, 0.12);
+  outline: none;
+}
+
+.gra-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.gra-select-chevron {
+  border-bottom: 2px solid var(--color_blue_700);
+  border-right: 2px solid var(--color_blue_700);
+  height: 10px;
+  margin-left: 16px;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  width: 10px;
+}
+
+.gra-select-shell.open .gra-select-chevron {
+  transform: rotate(-135deg);
+}
+
+.gra-select-panel {
+  background: var(--color_white);
+  border: 1px solid var(--color_blue_500);
+  border-radius: 10px;
+  box-shadow: 0 8px 14px rgba(23, 51, 68, 0.08);
+  left: 0;
+  margin-top: 8px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 30;
+}
+
+.gra-select-option {
+  background: var(--color_white);
+  border: 0;
+  border-bottom: 1px solid var(--color_blue_300);
+  color: var(--color_blue_900);
+  min-height: 44px;
+  padding: 12px 18px;
+  text-align: left;
+  width: 100%;
+}
+
+.gra-select-option:last-child {
+  border-bottom: 0;
+}
+
+.gra-select-option:hover {
+  background: #a8c0d2;
+}
+
+.gra-select-option.selected {
+  background: var(--color_blue_200);
+  font-weight: 700;
+}
+
+.gra-select-option.selected:hover {
+  background: #a8c0d2;
+}

@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/weekly_planning}
+    username: ${DB_USER:weekly}
+    password: ${DB_PASSWORD:weekly}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate.cache.use_second_level_cache: false
+      hibernate.cache.use_query_cache: false
+
+  liquibase:
+    change-log: classpath:config/liquibase/master.xml
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:CHANGE_ME_CHANGE_ME_CHANGE_ME_CHANGE_ME_12345}
+    issuer: ${JWT_ISSUER:weekly-planning}
+    expiration-minutes: ${JWT_EXP_MINUTES:60}
+
+app:
+  bootstrap:
+    admin:
+      username: ${BOOTSTRAP_ADMIN_USERNAME:admin}
+      name: ${BOOTSTRAP_ADMIN_NAME:Administrator}
+      email: ${BOOTSTRAP_ADMIN_EMAIL:admin@weekly.local}
+      password: ${BOOTSTRAP_ADMIN_PASSWORD:admin12345}
+
+logging:
+  level:
+    org.springframework: DEBUG
+    com.weeklyplanning: DEBUG
+

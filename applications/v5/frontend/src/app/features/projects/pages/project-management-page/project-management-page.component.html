@@ -1,0 +1,205 @@
+<section class="gra-background-white gra-padding-m gra-margin-bottom-m">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <input
+        type="text"
+        class="form form-control"
+        [placeholder]="'common.search' | t"
+        [(ngModel)]="search"
+      />
+      <button type="button" class="gra-btn btn-secondary" (click)="searchProjects()">
+        {{ 'common.search' | t }}
+      </button>
+    </div>
+    <button
+      *ngIf="isAdmin"
+      type="button"
+      class="gra-btn btn-primary"
+      (click)="openCreateModal()"
+    >
+      {{ 'projects.create' | t }}
+    </button>
+  </div>
+</section>
+
+<div *ngIf="errorMessage" class="gra-feedback-msg error gra-margin-bottom-m">
+  <span class="text">{{ errorMessage }}</span>
+  <span class="closeIcon" (click)="errorMessage = ''"></span>
+</div>
+
+<div *ngIf="loading" class="d-flex justify-content-center gra-padding-l">
+  <div class="gra-spinner medium"></div>
+</div>
+
+<section *ngIf="!loading">
+  <div class="gra-table-wrapper">
+    <table class="gra-table">
+      <thead>
+        <tr>
+          <th>{{ 'projects.name' | t }}</th>
+          <th>{{ 'projects.code' | t }}</th>
+          <th>{{ 'projects.status' | t }}</th>
+          <th>{{ 'projects.actions' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td>{{ project.name }}</td>
+          <td>{{ project.code }}</td>
+          <td>{{ project.status }}</td>
+          <td class="options">
+            <div *ngIf="isAdmin" class="d-flex flex-wrap gap-1">
+              <button
+                type="button"
+                class="gra-btn btn-secondary"
+                (click)="openEditModal(project)"
+              >
+                {{ 'weeks.edit' | t }}
+              </button>
+              <button
+                type="button"
+                class="gra-btn btn-primary-error"
+                (click)="openRemoveModal(project)"
+              >
+                {{ 'weeks.delete' | t }}
+              </button>
+            </div>
+            <span *ngIf="!isAdmin">-</span>
+          </td>
+        </tr>
+        <tr *ngIf="projects.length === 0">
+          <td colspan="4">{{ 'common.empty' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gra-pagination gra-margin-top-s">
+    <div class="results">
+      {{ 'weeks.pageSummary' | t : { from: fromIndex, to: toIndex, total: totalElements } }}
+    </div>
+    <div class="navigation">
+      <button
+        class="prev icon icon-secondary"
+        [disabled]="page === 0"
+        (click)="loadProjects(page - 1)"
+      >
+        <i class="icon-chevron-left iconLeft"></i>
+      </button>
+      <div class="page-numbers">
+        <button
+          *ngFor="let pageNumber of pageNumbers"
+          type="button"
+          class="itemNumber"
+          [class.active]="page === pageNumber"
+          (click)="loadProjects(pageNumber)"
+        >
+          {{ pageNumber + 1 }}
+        </button>
+      </div>
+      <button
+        class="next icon icon-secondary"
+        [disabled]="page + 1 >= totalPages"
+        (click)="loadProjects(page + 1)"
+      >
+        <i class="icon-chevron-right iconRight"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<div *ngIf="projectModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeProjectModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'projects.modal.createEdit' | t }}
+      <button type="button" class="gra-link" (click)="closeProjectModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <div *ngIf="modalLoading" class="d-flex justify-content-center gra-padding-s">
+        <div class="gra-spinner small"></div>
+      </div>
+
+      <form
+        *ngIf="!modalLoading"
+        class="no-validate-form"
+        [formGroup]="projectForm"
+        (ngSubmit)="saveProject()"
+      >
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'projects.name' | t }}</label>
+          <input type="text" class="form form-control" formControlName="name" />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'projects.code' | t }}</label>
+          <input type="text" class="form form-control" formControlName="code" />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'projects.status' | t }}</label>
+          <select class="gra-select gra-simple-select form-select" formControlName="status">
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="INACTIVE">INACTIVE</option>
+          </select>
+        </div>
+
+        <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+          <span class="text">{{ modalError }}</span>
+          <span class="closeIcon" (click)="modalError = ''"></span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="gra-btn btn-secondary" (click)="closeProjectModal()">
+            {{ 'common.cancel' | t }}
+          </button>
+          <button type="submit" class="gra-btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ 'common.confirm' | t }}</span>
+            <span *ngIf="saving">{{ 'app.loading' | t }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="removeModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeRemoveModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'projects.modal.remove' | t }}
+      <button type="button" class="gra-link" (click)="closeRemoveModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <p>
+        {{
+          'projects.modal.removeMessage'
+            | t : { code: selectedProject?.code ?? '' }
+        }}
+      </p>
+      <p>{{ 'projects.modal.removeWarning' | t }}</p>
+
+      <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+        <span class="text">{{ modalError }}</span>
+        <span class="closeIcon" (click)="modalError = ''"></span>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="gra-btn btn-secondary" (click)="closeRemoveModal()">
+          {{ 'common.cancel' | t }}
+        </button>
+        <button
+          type="button"
+          class="gra-btn btn-primary-error"
+          [disabled]="deleting"
+          (click)="deleteProject()"
+        >
+          <span *ngIf="!deleting">{{ 'common.confirm' | t }}</span>
+          <span *ngIf="deleting">{{ 'app.loading' | t }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

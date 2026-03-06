@@ -1,0 +1,17 @@
+﻿<div class="top-nav">
+  <div class="screen-title">{{ titleKey | t }}</div>
+
+  <div class="nav-actions">
+    <button
+      type="button"
+      class="nav-btn"
+      *ngFor="let item of navItems"
+      [class.active]="isActive(item.route)"
+      (click)="goTo(item.route)"
+    >
+      {{ item.labelKey | t }}
+    </button>
+
+    <button type="button" class="nav-btn" (click)="logout()">{{ 'nav.logout' | t }}</button>
+  </div>
+</div>

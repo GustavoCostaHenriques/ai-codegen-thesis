@@ -1,0 +1,27 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log:
+  level: INFO
+
+accessLog: {}
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: "${PUBLIC_NETWORK_NAME}"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "${LETSENCRYPT_EMAIL}"
+      storage: "/letsencrypt/acme.json"
+      tlsChallenge: {}

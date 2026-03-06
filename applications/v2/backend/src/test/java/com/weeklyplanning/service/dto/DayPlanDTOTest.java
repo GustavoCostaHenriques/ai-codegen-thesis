@@ -1,0 +1,25 @@
+package com.weeklyplanning.service.dto;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.weeklyplanning.web.rest.TestUtil;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+
+class DayPlanDTOTest {
+
+    @Test
+    void dtoEqualsVerifier() throws Exception {
+        TestUtil.equalsVerifier(DayPlanDTO.class);
+        DayPlanDTO dayPlanDTO1 = new DayPlanDTO();
+        dayPlanDTO1.setId(UUID.randomUUID());
+        DayPlanDTO dayPlanDTO2 = new DayPlanDTO();
+        assertThat(dayPlanDTO1).isNotEqualTo(dayPlanDTO2);
+        dayPlanDTO2.setId(dayPlanDTO1.getId());
+        assertThat(dayPlanDTO1).isEqualTo(dayPlanDTO2);
+        dayPlanDTO2.setId(UUID.randomUUID());
+        assertThat(dayPlanDTO1).isNotEqualTo(dayPlanDTO2);
+        dayPlanDTO1.setId(null);
+        assertThat(dayPlanDTO1).isNotEqualTo(dayPlanDTO2);
+    }
+}

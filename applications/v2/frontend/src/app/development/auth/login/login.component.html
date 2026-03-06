@@ -1,0 +1,117 @@
+<section class="login-page">
+  <div class="login-card">
+    <h1>{{ label('login.title') }}</h1>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+      <div class="field-group">
+        <label for="login-username">{{ label('login.username') }}</label>
+        <input
+          id="login-username"
+          type="text"
+          formControlName="username"
+          [class.invalid]="loginSubmitted && loginForm.controls.username.invalid"
+        />
+        <p class="field-error" *ngIf="loginSubmitted && loginForm.controls.username.errors?.['required']">
+          {{ label('validation.required') }}
+        </p>
+        <p class="field-error" *ngIf="loginSubmitted && loginForm.controls.username.errors?.['minlength']">
+          {{ label('validation.usernameMin') }}
+        </p>
+      </div>
+
+      <div class="field-group">
+        <label for="login-password">{{ label('login.password') }}</label>
+        <input
+          id="login-password"
+          type="password"
+          formControlName="password"
+          [class.invalid]="loginSubmitted && loginForm.controls.password.invalid"
+        />
+        <p class="field-error" *ngIf="loginSubmitted && loginForm.controls.password.errors?.['required']">
+          {{ label('validation.required') }}
+        </p>
+        <p class="field-error" *ngIf="loginSubmitted && loginForm.controls.password.errors?.['minlength']">
+          {{ label('validation.passwordMin') }}
+        </p>
+      </div>
+
+      <div class="field-group">
+        <span class="language-label">{{ label('login.language') }}</span>
+        <div class="language-buttons">
+          <button type="button" [class.active]="isLanguageActive('PT')" (click)="setLanguage('PT')">PT</button>
+          <button type="button" [class.active]="isLanguageActive('EN')" (click)="setLanguage('EN')">EN</button>
+        </div>
+      </div>
+
+      <div class="login-actions">
+        <button type="submit" [disabled]="isSubmittingLogin">{{ label('login.submit') }}</button>
+        <button type="button" class="secondary" (click)="openCreateAccountModal()">
+          {{ label('login.createAccount') }}
+        </button>
+      </div>
+
+      <p class="feedback error" *ngIf="loginErrorMessage">{{ loginErrorMessage }}</p>
+    </form>
+  </div>
+</section>
+
+<app-modal-shell
+  *ngIf="isCreateAccountModalOpen"
+  [title]="label('account.createTitle')"
+  width="520px"
+  (close)="closeCreateAccountModal()"
+>
+  <form [formGroup]="createAccountForm" (ngSubmit)="submitCreateAccount()" novalidate>
+    <div class="field-group">
+      <label for="account-username">{{ label('login.username') }}</label>
+      <input
+        id="account-username"
+        type="text"
+        formControlName="username"
+        [class.invalid]="createAccountSubmitted && createAccountForm.controls.username.invalid"
+      />
+      <p class="field-error" *ngIf="createAccountSubmitted && createAccountForm.controls.username.errors?.['required']">
+        {{ label('validation.required') }}
+      </p>
+      <p class="field-error" *ngIf="createAccountSubmitted && createAccountForm.controls.username.errors?.['minlength']">
+        {{ label('validation.usernameMin') }}
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="account-password">{{ label('login.password') }}</label>
+      <input
+        id="account-password"
+        type="password"
+        formControlName="password"
+        [class.invalid]="createAccountSubmitted && createAccountForm.controls.password.invalid"
+      />
+      <p class="field-error" *ngIf="createAccountSubmitted && createAccountForm.controls.password.errors?.['required']">
+        {{ label('validation.required') }}
+      </p>
+      <p class="field-error" *ngIf="createAccountSubmitted && createAccountForm.controls.password.errors?.['minlength']">
+        {{ label('validation.passwordMin') }}
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="account-role">{{ label('account.role') }}</label>
+      <select
+        id="account-role"
+        formControlName="role"
+        [class.invalid]="createAccountSubmitted && createAccountForm.controls.role.invalid"
+      >
+        <option value="ADMIN">ADMIN</option>
+        <option value="VIEWER">VIEWER</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSubmittingCreateAccount">{{ label('account.create') }}</button>
+      <button type="button" class="secondary" (click)="closeCreateAccountModal()">{{ label('global.cancel') }}</button>
+    </div>
+
+    <p class="feedback success" *ngIf="createAccountSuccessMessage">{{ createAccountSuccessMessage }}</p>
+    <p class="feedback error" *ngIf="createAccountErrorMessage">{{ createAccountErrorMessage }}</p>
+  </form>
+</app-modal-shell>

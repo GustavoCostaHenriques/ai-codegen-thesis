@@ -1,0 +1,116 @@
+﻿<app-top-nav titleKey="persons.title"></app-top-nav>
+
+<section class="page-container">
+  <div class="actions-row" *ngIf="canManagePersons">
+    <button type="button" class="btn-success" (click)="openCreateModal()">{{ 'persons.create' | t }}</button>
+  </div>
+
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <div class="table-frame">
+    <table class="base-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>{{ 'persons.name' | t }}</th>
+          <th>{{ 'persons.email' | t }}</th>
+          <th>{{ 'persons.role' | t }}</th>
+          <th>{{ 'persons.status' | t }}</th>
+          <th *ngIf="canManagePersons">{{ 'common.actions' | t }}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let person of persons">
+          <td>{{ person.name }}</td>
+          <td>{{ person.email }}</td>
+          <td>{{ ('role.' + person.role) | t }}</td>
+          <td>{{ ('status.' + person.status) | t }}</td>
+          <td class="actions-cell" *ngIf="canManagePersons">
+            <button type="button" class="btn-secondary compact" (click)="openEditModal(person)">
+              {{ 'common.edit' | t }}
+            </button>
+            <button type="button" class="btn-danger compact" (click)="openDeleteModal(person)">
+              {{ 'common.delete' | t }}
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="persons.length === 0">
+          <td class="empty-row" [attr.colspan]="canManagePersons ? 5 : 4">{{ 'common.noData' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="loading-state" *ngIf="loading">{{ 'common.loading' | t }}</div>
+  </div>
+
+  <app-pagination [pageMetadata]="pageMetadata" (pageChange)="loadPersons($event)"></app-pagination>
+</section>
+
+<app-modal
+  [open]="isPersonModalOpen"
+  [title]="'persons.modal.createEdit' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="isPersonModalOpen = false"
+>
+  <form [formGroup]="personForm" (ngSubmit)="submitPerson()" class="modal-form">
+    <label for="person-name">{{ 'persons.name' | t }}</label>
+    <input id="person-name" class="field-input" type="text" formControlName="name" />
+
+    <label for="person-email">{{ 'persons.email' | t }}</label>
+    <input id="person-email" class="field-input" type="email" formControlName="email" />
+
+    <label for="person-password">{{ 'persons.password' | t }}</label>
+    <input
+      id="person-password"
+      class="field-input"
+      type="password"
+      formControlName="password"
+      [readonly]="personModalMode === 'edit'"
+      [attr.placeholder]="personModalMode === 'edit' ? ('persons.passwordReadonlyHint' | t) : null"
+    />
+
+    <label for="person-role">{{ 'persons.role' | t }}</label>
+    <select id="person-role" class="field-input" formControlName="role">
+      <option *ngFor="let option of roleOptions" [value]="option">{{ ('role.' + option) | t }}</option>
+    </select>
+
+    <label for="person-status">{{ 'persons.status' | t }}</label>
+    <select id="person-status" class="field-input" formControlName="status">
+      <option *ngFor="let option of statusOptions" [value]="option">{{ ('status.' + option) | t }}</option>
+    </select>
+
+    <p class="feedback error" *ngIf="formErrorMessage">{{ formErrorMessage }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isPersonModalOpen = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="submitting">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [open]="isDeleteModalOpen"
+  [title]="'persons.modal.remove' | t"
+  [closeOnBackdrop]="true"
+  (closeModal)="isDeleteModalOpen = false"
+>
+  <div class="modal-form" *ngIf="selectedPerson">
+    <p>
+      {{ 'persons.modal.removeText' | t : { name: selectedPerson.name, email: selectedPerson.email } }}
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isDeleteModalOpen = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="button" class="btn-primary" [disabled]="deleting" (click)="confirmDelete()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>

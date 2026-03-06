@@ -1,0 +1,106 @@
+﻿<app-top-nav titleKey="projects.title"></app-top-nav>
+
+<section class="page-container">
+  <div class="actions-row" *ngIf="canManageProjects">
+    <button type="button" class="btn-success" (click)="openCreateModal()">{{ 'projects.create' | t }}</button>
+  </div>
+
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <div class="table-frame">
+    <table class="base-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>{{ 'projects.name' | t }}</th>
+          <th>{{ 'projects.code' | t }}</th>
+          <th>{{ 'projects.status' | t }}</th>
+          <th *ngIf="canManageProjects">{{ 'common.actions' | t }}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td>{{ project.name }}</td>
+          <td>{{ project.code }}</td>
+          <td>{{ ('status.' + project.status) | t }}</td>
+          <td class="actions-cell" *ngIf="canManageProjects">
+            <button type="button" class="btn-secondary compact" (click)="openEditModal(project)">
+              {{ 'common.edit' | t }}
+            </button>
+            <button type="button" class="btn-danger compact" (click)="openDeleteModal(project)">
+              {{ 'common.delete' | t }}
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="projects.length === 0">
+          <td class="empty-row" [attr.colspan]="canManageProjects ? 4 : 3">{{ 'common.noData' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="loading-state" *ngIf="loading">{{ 'common.loading' | t }}</div>
+  </div>
+
+  <app-pagination [pageMetadata]="pageMetadata" (pageChange)="loadProjects($event)"></app-pagination>
+</section>
+
+<app-modal
+  [open]="isProjectModalOpen"
+  [title]="'projects.modal.createEdit' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="isProjectModalOpen = false"
+>
+  <form [formGroup]="projectForm" (ngSubmit)="submitProject()" class="modal-form">
+    <label for="project-name">{{ 'projects.name' | t }}</label>
+    <input id="project-name" class="field-input" type="text" formControlName="name" />
+
+    <label for="project-code">{{ 'projects.code' | t }}</label>
+    <input id="project-code" class="field-input" type="text" formControlName="code" />
+
+    <label for="project-status">{{ 'projects.status' | t }}</label>
+    <select id="project-status" class="field-input" formControlName="status">
+      <option *ngFor="let option of statusOptions" [value]="option">{{ ('status.' + option) | t }}</option>
+    </select>
+
+    <p class="feedback error" *ngIf="formErrorMessage">{{ formErrorMessage }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isProjectModalOpen = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="submitting">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [open]="isDeleteModalOpen"
+  [title]="'projects.modal.remove' | t"
+  [closeOnBackdrop]="true"
+  (closeModal)="isDeleteModalOpen = false"
+>
+  <div class="modal-form" *ngIf="selectedProject">
+    <p>
+      {{
+        'projects.modal.removeText'
+          | t
+            : {
+                name: selectedProject.name,
+                code: selectedProject.code
+              }
+      }}
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isDeleteModalOpen = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="button" class="btn-primary" [disabled]="deleting" (click)="confirmDelete()">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </div>
+</app-modal>

@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: weekly-backend
+    ports:
+      - "80:8080"
+    environment:
+      DB_URL: jdbc:postgresql://database:5432/weekly_planning
+      DB_USERNAME: weekly
+      DB_PASSWORD: weekly
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-change-this-secret-to-at-least-32-characters}
+      APP_JWT_EXPIRATION_SECONDS: 900
+      APP_BRUTE_FORCE_MAX_ATTEMPTS: 5
+      APP_BRUTE_FORCE_LOCK_MINUTES: 15
+    depends_on:
+      - database
+      - redis
+
+  database:
+    image: postgres:16
+    container_name: weekly-db
+    environment:
+      POSTGRES_DB: weekly_planning
+      POSTGRES_USER: weekly
+      POSTGRES_PASSWORD: weekly
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: weekly-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:

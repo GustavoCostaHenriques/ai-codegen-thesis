@@ -1,0 +1,26 @@
+{
+  "weeklyplanningApp": {
+    "dayUserProject": {
+      "home": {
+        "title": "Day User Projects",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Day User Project",
+        "createOrEditLabel": "Create or edit a Day User Project",
+        "notFound": "No Day User Projects found"
+      },
+      "created": "A new Day User Project is created with identifier {{ param }}",
+      "updated": "A Day User Project is updated with identifier {{ param }}",
+      "deleted": "A Day User Project is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Day User Project {{ id }}?"
+      },
+      "detail": {
+        "title": "Day User Project"
+      },
+      "id": "ID",
+      "tasks": "Tasks",
+      "dayUser": "Day User",
+      "project": "Project"
+    }
+  }
+}

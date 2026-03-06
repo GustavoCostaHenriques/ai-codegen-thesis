@@ -1,0 +1,71 @@
+%
+% capa.tex
+%
+% Alterar apenas nas zonas indicadas com >>>
+% - Existência, ou não, de especialização no mestrado em causa
+% - Existência, ou não, de coorientador
+%
+\selectlanguage{portuguese}
+
+\thispagestyle{estilocapa}
+% ----------------------------------------------------------------------
+% Capa
+\newgeometry{top=1.9cm, bottom=1.9cm}
+\begin{center}
+%\fontfamily{lmss}\selectfont
+\fontfamily{phv}\fontseries{c}\selectfont
+\vspace{1cm}\normalfont\normalfont
+%\vfill
+{\fontfamily{phv}\fontseries{c}\selectfont 
+\large\uppercase{Universidade de Lisboa}\\
+\vspace{0.3cm}
+\large\uppercase{Faculdade de Ciências}\\
+\vspace{0.3cm}
+\large\uppercase{Departamento de Informática}\\
+}
+\vspace{1.1cm}
+\includegraphics[scale=.45]{pic/logo_fcul.png}\\
+
+\vspace{3.5cm}
+
+\PEIIdiomaTese
+{\LARGE \bf \fontfamily{phv}\fontseries{c}\selectfont \TITULO}
+
+
+\selectlanguage{portuguese}
+\vspace{4cm}
+%%
+
+\Large{ \fontfamily{phv}\fontseries{c}\selectfont \Autor}\\
+\vspace{1.1 cm}
+\vfill
+\large{\bf{\fontfamily{phv}\fontseries{c}\selectfont Mestrado em \MDesignacao }}\\
+% >>>
+% Comentar a linha seguinte se o mestrado não tem especialização
+\large{\fontfamily{phv}\fontseries{c}\selectfont Especialização em \MEspecializacao}\\
+\vspace{1cm}
+%\vfill
+%% Eliminar na versão definitiva
+\normalsize{\fontfamily{phv}\fontseries{c}\selectfont Versão Provisória}\\
+%%
+\vspace{0.8cm}
+\vfill
+\large{\fontfamily{phv}\fontseries{c}\selectfont Dissertação orientada por:}\\
+%\large{\fontfamily{phv}\fontseries{c}\selectfont Trabalho de projeto orientado por:}\\
+\large{\fontfamily{phv}\fontseries{c}\selectfont Profª. Doutora \Orientador} \\
+% >>>
+% Comentar a linha seguinte se não há coorientador
+\large{\fontfamily{phv}\fontseries{c}\selectfont Prof. Doutor \PCoOrientador} \\
+\vspace{1.5 cm}
+
+
+%\large{\fontfamily{phv}\fontseries{c}\selectfont \PEIAno} % o ano está incluído no estilo, definido no main
+\end{center}
+
+ \restoregeometry
+
+% Fim da capa
+% ----------------------------------------------------------------------
+\LIMPA
+
+

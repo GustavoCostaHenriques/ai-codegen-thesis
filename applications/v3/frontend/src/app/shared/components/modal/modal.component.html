@@ -1,0 +1,14 @@
+﻿<div class="modal-backdrop" *ngIf="open" (click)="onBackdropClick()">
+  <div class="modal-frame" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h2 class="modal-title">{{ title }}</h2>
+      <button type="button" class="close-btn" (click)="closeModal.emit()" [attr.aria-label]="'common.close' | t">
+        X
+      </button>
+    </div>
+
+    <div class="modal-content">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

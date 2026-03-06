@@ -1,0 +1,11 @@
+{
+  "tournament": {
+    "name": "Name",
+    "location": "Location",
+    "category": "Category",
+    "prize": "Prize",
+    "active": "Active",
+    "details": "Details",
+    "cancel": "Cancel"
+  }
+}

@@ -1,0 +1,42 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (dayPlan(); as dayPlanRef) {
+      <div>
+        <h2 data-cy="dayPlanDetailsHeading"><span jhiTranslate="weeklyplanningApp.dayPlan.detail.title">Day Plan</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ dayPlanRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="weeklyplanningApp.dayPlan.date">Date</span></dt>
+          <dd>
+            <span>{{ dayPlanRef.date | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="weeklyplanningApp.dayPlan.week">Week</span></dt>
+          <dd>
+            @if (dayPlan()!.week) {
+              <div>
+                <a [routerLink]="['/week', dayPlan()!.week?.id, 'view']">{{ dayPlanRef.week?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/day-plan', dayPlanRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

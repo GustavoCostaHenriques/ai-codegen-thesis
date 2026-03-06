@@ -1,0 +1,49 @@
+application {
+  config {
+    baseName weeklyplanning
+    applicationType monolith
+    authenticationType oauth2
+
+    packageName com.mycompany.weeklyplanning
+
+    buildTool maven
+
+    clientFramework angularX
+    clientPackageManager npm
+    clientTheme none
+
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+
+    dtoSuffix DTO
+
+    enableSwaggerCodegen true
+    enableTranslation true
+
+    entitySuffix Entity
+    jhiPrefix jhi
+
+    languages [en, pt-br]
+    nativeLanguage en
+
+    cacheProvider no
+    enableHibernateCache false
+
+    reactive false
+    serverPort 8080
+
+    serviceDiscoveryType no
+
+    skipClient false
+    skipServer false
+    skipUserManagement true
+
+    testFrameworks []
+  }
+  entities *
+}
+
+service * with serviceImpl
+dto * with mapstruct
+

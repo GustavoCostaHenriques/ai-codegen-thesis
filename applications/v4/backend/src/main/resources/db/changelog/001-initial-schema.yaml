@@ -1,0 +1,378 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-persons
+      author: codex
+      changes:
+        - createTable:
+            tableName: persons
+            columns:
+              - column:
+                  name: person_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-create-accounts
+      author: codex
+      changes:
+        - createTable:
+            tableName: accounts
+            columns:
+              - column:
+                  name: account_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: person_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: username
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: email
+                  type: VARCHAR(320)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: accounts
+            baseColumnNames: person_id
+            referencedTableName: persons
+            referencedColumnNames: person_id
+            onDelete: CASCADE
+            constraintName: fk_accounts_person
+
+  - changeSet:
+      id: 003-create-projects
+      author: codex
+      changes:
+        - createTable:
+            tableName: projects
+            columns:
+              - column:
+                  name: project_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: code
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 004-create-weeks
+      author: codex
+      changes:
+        - createTable:
+            tableName: weeks
+            columns:
+              - column:
+                  name: week_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: week_start
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: week_end
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 005-create-day-plans
+      author: codex
+      changes:
+        - createTable:
+            tableName: day_plans
+            columns:
+              - column:
+                  name: day_plan_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: week_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: day_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: day_of_week
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: day_plans
+            baseColumnNames: week_id
+            referencedTableName: weeks
+            referencedColumnNames: week_id
+            onDelete: CASCADE
+            constraintName: fk_day_plans_week
+        - addUniqueConstraint:
+            tableName: day_plans
+            columnNames: week_id, day_date
+            constraintName: uk_day_plans_week_date
+
+  - changeSet:
+      id: 006-create-day-persons
+      author: codex
+      changes:
+        - createTable:
+            tableName: day_persons
+            columns:
+              - column:
+                  name: day_person_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: day_plan_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: person_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: day_persons
+            baseColumnNames: day_plan_id
+            referencedTableName: day_plans
+            referencedColumnNames: day_plan_id
+            onDelete: CASCADE
+            constraintName: fk_day_persons_day_plan
+        - addForeignKeyConstraint:
+            baseTableName: day_persons
+            baseColumnNames: person_id
+            referencedTableName: persons
+            referencedColumnNames: person_id
+            onDelete: RESTRICT
+            constraintName: fk_day_persons_person
+        - addUniqueConstraint:
+            tableName: day_persons
+            columnNames: day_plan_id, person_id
+            constraintName: uk_day_persons_day_person
+
+  - changeSet:
+      id: 007-create-day-person-projects
+      author: codex
+      changes:
+        - createTable:
+            tableName: day_person_projects
+            columns:
+              - column:
+                  name: day_person_project_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: day_person_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: day_person_projects
+            baseColumnNames: day_person_id
+            referencedTableName: day_persons
+            referencedColumnNames: day_person_id
+            onDelete: CASCADE
+            constraintName: fk_day_person_projects_day_person
+        - addForeignKeyConstraint:
+            baseTableName: day_person_projects
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: project_id
+            onDelete: RESTRICT
+            constraintName: fk_day_person_projects_project
+        - addUniqueConstraint:
+            tableName: day_person_projects
+            columnNames: day_person_id, project_id
+            constraintName: uk_day_person_projects_assignment
+
+  - changeSet:
+      id: 008-create-tasks
+      author: codex
+      changes:
+        - createTable:
+            tableName: tasks
+            columns:
+              - column:
+                  name: task_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: day_person_project_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: tasks
+            baseColumnNames: day_person_project_id
+            referencedTableName: day_person_projects
+            referencedColumnNames: day_person_project_id
+            onDelete: CASCADE
+            constraintName: fk_tasks_day_person_project
+
+  - changeSet:
+      id: 009-create-indexes
+      author: codex
+      changes:
+        - createIndex:
+            tableName: accounts
+            indexName: idx_accounts_email
+            columns:
+              - column:
+                  name: email
+        - createIndex:
+            tableName: accounts
+            indexName: idx_accounts_username
+            columns:
+              - column:
+                  name: username
+        - createIndex:
+            tableName: weeks
+            indexName: idx_weeks_start
+            columns:
+              - column:
+                  name: week_start
+        - createIndex:
+            tableName: day_plans
+            indexName: idx_day_plans_week
+            columns:
+              - column:
+                  name: week_id
+        - createIndex:
+            tableName: day_persons
+            indexName: idx_day_persons_person
+            columns:
+              - column:
+                  name: person_id
+        - createIndex:
+            tableName: day_person_projects
+            indexName: idx_day_person_projects_project
+            columns:
+              - column:
+                  name: project_id

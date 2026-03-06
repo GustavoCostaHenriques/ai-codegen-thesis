@@ -1,0 +1,38 @@
+{
+  "annotations": {
+    "changelogDate": "20260210152812"
+  },
+  "applications": ["weeklyplanning"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "id",
+      "fieldType": "UUID"
+    },
+    {
+      "fieldName": "date",
+      "fieldType": "LocalDate",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "DayPlan",
+  "relationships": [
+    {
+      "otherEntityName": "dayPerson",
+      "otherEntityRelationshipName": "dayPlan",
+      "relationshipName": "people",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "week",
+      "otherEntityRelationshipName": "dayPlans",
+      "relationshipName": "week",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

@@ -1,0 +1,21 @@
+select.top-nav-language-select + .select2-container {
+  width: 88px !important;
+  min-width: 88px;
+}
+
+select.auth-language-select + .select2-container {
+  width: 96px !important;
+  min-width: 96px;
+}
+
+.gra-pagination .navigation button.itemNumber {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Radio Button - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Radio Button</h1>
+
+    <section id="exemplos" class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="form-check">
+            <input type="radio" class="form-check-input custom-radiobox" id="flexRadioDefault">
+            <label class="form-check-label" for="flexRadioDefault">Default</label>
+          </div>
+
+          <div class="form-check">
+            <input type="radio" class="form-check-input custom-radiobox" id="flexRadioChecked" checked>
+            <label class="form-check-label" for="flexRadioChecked">Selecionado</label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input custom-radiobox" type="radio" id="disabledFlexCheck" disabled>
+            <label class="form-check-label" for="disabledFlexCheck">Disabled</label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input custom-radiobox" type="radio" id="flexRadioCheckedDisabled" checked disabled>
+            <label class="form-check-label" for="flexRadioCheckedDisabled">Disabled selecionado</label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input custom-radiobox error" type="radio" id="errorFlexRadio">
+            <label class="form-check-label" for="errorFlexRadio">Error</label>
+          </div>
+
+          <div class="form-check form-check-accessibility radiobox">
+            <input class="form-check-input custom-radiobox" type="radio" value="" id="accessFlexRadioChecked">
+            <label class="form-check-label" for="accessFlexRadioChecked">Radio accessibility</label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

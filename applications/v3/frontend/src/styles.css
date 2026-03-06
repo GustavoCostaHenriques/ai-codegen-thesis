@@ -1,0 +1,40 @@
+﻿:root {
+  --gra-blue-200: #e1ecf2;
+  --gra-blue-600: #327196;
+  --gra-lime-500: #687b14;
+  --gra-gray-100: #f7f7f7;
+  --gra-gray-200: #e8e8e8;
+  --gra-gray-300: #c2c2c2;
+  --gra-gray-400: #949494;
+  --gra-gray-900: #292929;
+  --gra-error-200: #ffe8e3;
+  --gra-error-600: #a0291a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: 'Lato', 'Segoe UI', Tahoma, sans-serif;
+  background-color: var(--gra-gray-100);
+  color: var(--gra-gray-900);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--gra-blue-600);
+  outline-offset: 1px;
+}

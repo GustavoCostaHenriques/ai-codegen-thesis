@@ -1,0 +1,54 @@
+<div class="pageContent">
+  <app-top-nav
+    [titleKey]="titleKey"
+    [isAdmin]="isAdmin"
+    [currentRoute]="currentRoute"
+    [currentLanguage]="currentLanguage"
+    [logoutLoading]="logoutLoading"
+    (languageChange)="onLanguageChange($event)"
+    (logout)="onLogout()"
+    (openStatistics)="openStatisticsModal()"
+  ></app-top-nav>
+
+  <main
+    class="gra-padding-bottom-xl"
+    [ngClass]="{
+      'gra-container': !isPlanningRoute,
+      'gra-padding-x-s': isPlanningRoute
+    }"
+  >
+    <div *ngIf="globalError" class="gra-feedback-msg error gra-margin-bottom-m">
+      <span class="text">{{ globalError }}</span>
+      <span class="closeIcon" (click)="globalError = ''"></span>
+    </div>
+
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+<div *ngIf="statisticsModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeStatisticsModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'shell.statisticsTitle' | t }}
+      <button type="button" class="gra-link" (click)="closeStatisticsModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <p>{{ 'shell.statisticsMessage' | t }}</p>
+      <p>{{ 'shell.statisticsDescription' | t }}</p>
+    </div>
+    <div class="popupFooter">
+      <button
+        type="button"
+        class="gra-btn btn-primary"
+        [disabled]="statsLoading"
+        (click)="exportStatistics()"
+      >
+        <span *ngIf="!statsLoading">{{ 'shell.export' | t }}</span>
+        <span *ngIf="statsLoading">{{ 'app.loading' | t }}</span>
+      </button>
+    </div>
+  </div>
+</div>

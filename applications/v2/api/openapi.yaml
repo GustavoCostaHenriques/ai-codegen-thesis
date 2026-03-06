@@ -1,0 +1,1322 @@
+openapi: 3.0.3
+info:
+  title: Weekly Planning API
+  version: 1.0.0
+  description: API contract for weekly work planning, people, projects, and tasks.
+servers:
+  - url: /api
+
+tags:
+  - name: Auth
+  - name: Accounts
+  - name: People
+  - name: Projects
+  - name: Weeks
+  - name: Planning
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /accounts:
+    post:
+      tags:
+        - Accounts
+      operationId: createAccount
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/AccountResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /people:
+    get:
+      tags:
+        - People
+      operationId: listPeople
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/PersonStatusParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/PeopleListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - People
+      operationId: createPerson
+      x-roles:
+        - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PersonResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /people/{personId}:
+    get:
+      tags:
+        - People
+      operationId: getPerson
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/PersonIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/PersonResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - People
+      operationId: updatePerson
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/PersonIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PersonResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags:
+        - People
+      operationId: deletePerson
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/PersonIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects:
+    get:
+      tags:
+        - Projects
+      operationId: listProjects
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/ProjectStatusParam'
+        - $ref: '#/components/parameters/OwnerIdParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Projects
+      operationId: createProject
+      x-roles:
+        - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{projectId}:
+    get:
+      tags:
+        - Projects
+      operationId: getProject
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Projects
+      operationId: updateProject
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags:
+        - Projects
+      operationId: deleteProject
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /weeks:
+    get:
+      tags:
+        - Weeks
+      operationId: listWeeks
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/WeekStatusParam'
+        - $ref: '#/components/parameters/WeekStartFromParam'
+        - $ref: '#/components/parameters/WeekStartToParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeeksListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Weeks
+      operationId: createWeek
+      x-roles:
+        - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WeekResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /weeks/{weekId}:
+    get:
+      tags:
+        - Weeks
+      operationId: getWeek
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Weeks
+      operationId: updateWeek
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags:
+        - Weeks
+      operationId: deleteWeek
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /weeks/{weekId}/planning:
+    get:
+      tags:
+        - Planning
+      operationId: getWeekPlanning
+      x-roles:
+        - ADMIN
+        - VIEWER
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekPlanningResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /weeks/{weekId}/days/{date}/people:
+    post:
+      tags:
+        - Planning
+      operationId: addPersonToDay
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPersonToDayRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/DayPersonResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /weeks/{weekId}/days/{date}/people/{personId}:
+    delete:
+      tags:
+        - Planning
+      operationId: removePersonFromDay
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/PersonIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /weeks/{weekId}/days/{date}/people/{personId}/projects:
+    post:
+      tags:
+        - Planning
+      operationId: addProjectToPerson
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/PersonIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProjectToPersonRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/DayPersonProjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /weeks/{weekId}/days/{date}/people/{personId}/projects/{projectId}:
+    delete:
+      tags:
+        - Planning
+      operationId: removeProjectFromPerson
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/PersonIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /weeks/{weekId}/days/{date}/people/{personId}/projects/{projectId}/tasks:
+    post:
+      tags:
+        - Planning
+      operationId: addTaskToProject
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/PersonIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTaskRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /weeks/{weekId}/days/{date}/people/{personId}/projects/{projectId}/tasks/{taskId}:
+    delete:
+      tags:
+        - Planning
+      operationId: removeTaskFromProject
+      x-roles:
+        - ADMIN
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/PersonIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+        - $ref: '#/components/parameters/TaskIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Zero-based page index.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      description: Page size.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      description: Sort criteria in the format field,(asc|desc). Can be repeated.
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: true
+    SearchParam:
+      name: q
+      in: query
+      description: Free-text search by name or code.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+    PersonStatusParam:
+      name: status
+      in: query
+      description: Filter by person status.
+      schema:
+        $ref: '#/components/schemas/PersonStatus'
+    ProjectStatusParam:
+      name: status
+      in: query
+      description: Filter by project status.
+      schema:
+        $ref: '#/components/schemas/ProjectStatus'
+    WeekStatusParam:
+      name: status
+      in: query
+      description: Filter by week status.
+      schema:
+        $ref: '#/components/schemas/WeekStatus'
+    OwnerIdParam:
+      name: ownerId
+      in: query
+      description: Filter projects by owner person id.
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    WeekStartFromParam:
+      name: startDateFrom
+      in: query
+      description: Filter weeks with startDate on or after this date.
+      schema:
+        $ref: '#/components/schemas/IsoDate'
+    WeekStartToParam:
+      name: startDateTo
+      in: query
+      description: Filter weeks with startDate on or before this date.
+      schema:
+        $ref: '#/components/schemas/IsoDate'
+    WeekIdParam:
+      name: weekId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    PersonIdParam:
+      name: personId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    ProjectIdParam:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    TaskIdParam:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    DateParam:
+      name: date
+      in: path
+      required: true
+      description: Day within the week, ISO-8601 date (yyyy-MM-dd).
+      schema:
+        $ref: '#/components/schemas/IsoDate'
+
+  responses:
+    NoContent:
+      description: No content.
+    LoginResponse:
+      description: Successful login.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginResponse'
+    AccountResponse:
+      description: Account created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountResponse'
+    PersonResponse:
+      description: Person response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Person'
+    PeopleListResponse:
+      description: Paginated list of people.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PeoplePage'
+    ProjectResponse:
+      description: Project response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Project'
+    ProjectsListResponse:
+      description: Paginated list of projects.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProjectsPage'
+    WeekResponse:
+      description: Week response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Week'
+    WeeksListResponse:
+      description: Paginated list of weeks.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WeeksPage'
+    WeekPlanningResponse:
+      description: Full planning for the week.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WeekPlanning'
+    DayPersonResponse:
+      description: Person assigned to a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayPerson'
+    DayPersonProjectResponse:
+      description: Project assigned to a person on a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayPersonProject'
+    TaskResponse:
+      description: Task created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    BadRequest:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication required or failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Authenticated but not allowed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Business rule violation or conflicting state.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+      description: UUID identifier.
+
+    IsoDate:
+      type: string
+      format: date
+
+    SortDirection:
+      type: string
+      enum:
+        - ASC
+        - DESC
+
+    PageInfo:
+      type: object
+      required:
+        - page
+        - size
+        - totalElements
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        sort:
+          type: array
+          items:
+            type: object
+            required:
+              - property
+              - direction
+            properties:
+              property:
+                type: string
+              direction:
+                $ref: '#/components/schemas/SortDirection'
+
+    AccountRole:
+      type: string
+      enum:
+        - ADMIN
+        - VIEWER
+
+    PersonStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+
+    ProjectStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+
+    WeekStatus:
+      type: string
+      enum:
+        - PLANNED
+        - COMPLETED
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+
+    LoginResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - account
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum:
+            - Bearer
+        expiresIn:
+          type: integer
+          minimum: 1
+          description: Access token lifetime in seconds.
+        account:
+          $ref: '#/components/schemas/AccountSummary'
+
+    AccountCreateRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        role:
+          $ref: '#/components/schemas/AccountRole'
+
+    AccountSummary:
+      type: object
+      required:
+        - id
+        - username
+        - role
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        username:
+          type: string
+        role:
+          $ref: '#/components/schemas/AccountRole'
+
+    AccountResponse:
+      type: object
+      required:
+        - id
+        - username
+        - role
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        username:
+          type: string
+        role:
+          $ref: '#/components/schemas/AccountRole'
+
+    Person:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Business role or function of the person.
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+
+    PersonSummary:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+
+    PersonCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - role
+        - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          type: string
+          minLength: 1
+          maxLength: 50
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+
+    PersonUpdateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - role
+        - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          type: string
+          minLength: 1
+          maxLength: 50
+        status:
+          $ref: '#/components/schemas/PersonStatus'
+
+    PeoplePage:
+      type: object
+      required:
+        - items
+        - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Person'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - code
+        - owner
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+        owner:
+          $ref: '#/components/schemas/PersonSummary'
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+
+    ProjectSummary:
+      type: object
+      required:
+        - id
+        - name
+        - code
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        code:
+          type: string
+
+    ProjectCreateRequest:
+      type: object
+      required:
+        - name
+        - code
+        - ownerId
+        - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+        ownerId:
+          $ref: '#/components/schemas/Uuid'
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+
+    ProjectUpdateRequest:
+      type: object
+      required:
+        - name
+        - code
+        - ownerId
+        - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+        ownerId:
+          $ref: '#/components/schemas/Uuid'
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+
+    ProjectsPage:
+      type: object
+      required:
+        - items
+        - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    Week:
+      type: object
+      required:
+        - id
+        - startDate
+        - endDate
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        startDate:
+          $ref: '#/components/schemas/IsoDate'
+        endDate:
+          $ref: '#/components/schemas/IsoDate'
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+
+    WeekCreateRequest:
+      type: object
+      required:
+        - startDate
+        - endDate
+        - status
+      properties:
+        startDate:
+          $ref: '#/components/schemas/IsoDate'
+        endDate:
+          $ref: '#/components/schemas/IsoDate'
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+      description: Status must be PLANNED on creation. Status transitions are administrative actions.
+
+    WeekUpdateRequest:
+      type: object
+      required:
+        - startDate
+        - endDate
+        - status
+      properties:
+        startDate:
+          $ref: '#/components/schemas/IsoDate'
+        endDate:
+          $ref: '#/components/schemas/IsoDate'
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+      description: Status transitions are administrative actions and are only allowed for ADMIN.
+
+    WeeksPage:
+      type: object
+      required:
+        - items
+        - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Week'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    WeekPlanning:
+      allOf:
+        - $ref: '#/components/schemas/Week'
+        - type: object
+          required:
+            - days
+          properties:
+            days:
+              type: array
+              items:
+                $ref: '#/components/schemas/DayPlan'
+
+    DayPlan:
+      type: object
+      required:
+        - date
+        - people
+      properties:
+        date:
+          $ref: '#/components/schemas/IsoDate'
+        people:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPerson'
+
+    DayPerson:
+      type: object
+      required:
+        - person
+        - projects
+      properties:
+        person:
+          $ref: '#/components/schemas/PersonSummary'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPersonProject'
+
+    DayPersonProject:
+      type: object
+      required:
+        - project
+        - tasks
+      properties:
+        project:
+          $ref: '#/components/schemas/ProjectSummary'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+
+    Task:
+      type: object
+      required:
+        - id
+        - description
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Minimum length is configurable server-side.
+
+    AddPersonToDayRequest:
+      type: object
+      required:
+        - personId
+      properties:
+        personId:
+          $ref: '#/components/schemas/Uuid'
+
+    AddProjectToPersonRequest:
+      type: object
+      required:
+        - projectId
+      properties:
+        projectId:
+          $ref: '#/components/schemas/Uuid'
+
+    AddTaskRequest:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Minimum length is configurable server-side.
+
+    ErrorResponse:
+      type: object
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string

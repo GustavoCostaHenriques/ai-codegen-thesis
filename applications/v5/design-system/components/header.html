@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Header - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Header</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Header</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div id="headerMenu">
+        <h4 class="gra-margin-top-l">Menu</h4>
+        <p>Abaixo temos um exemplo de um menu com menu items e acoes (alteracao de idioma).</p>
+
+        <div class="gra-desktop-header large notFixed">
+          <div class="header-content gra-container">
+            <a class="logo_a gra-flex-grow" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_desktop">
+              <ul class="menu">
+                <li class="menu-first-level"><a href="#">Opcao 1</a></li>
+                <li class="menu-first-level">
+                  Opcao 2<i class="icon-chevron-down-small arrow-down"></i>
+                  <ul>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level"><a href="#">Opcao 3</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 4</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 5</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 6</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 7</a></li>
+                <div class="menuActions">
+                  <li class="menu-first-level"><a href="#">EN</a></li>
+                </div>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="gra-mobile-header notFixed">
+          <div class="mobile-header">
+            <a class="logo_a" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_mobile">
+              <div class="menuActionsMobile">
+                <a class="gra-link">EN</a>
+              </div>
+              <div class="gra-link">
+                <i class="icon-menu hamburgerPic"></i>
+                <i class="icon-times menuClosePic"></i>
+              </div>
+            </div>
+          </div>
+          <div class="menu_mobile display-all-menu">
+            <div class="display-menu">
+              <ul class="menu-mobile">
+                <li class="menu-first-level-mobile"><a href="#">Opcao 1</a></li>
+                <li class="menu-first-level-mobile withChilds">
+                  <span class="gra-flex-grow">Opcao 2</span>
+                  <i class="icon-chevron-left-small arrow-up"></i>
+                  <ul class="submenu_1">
+                    <li class="back-option">
+                      <i class="icon-chevron-left-small"></i>
+                      <span>Opcao 2</span>
+                    </li>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row withSubmenu">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-up"></i>
+                      <ul class="submenu_2">
+                        <li class="back-option">
+                          <i class="icon-chevron-left-small"></i>
+                          <span>subopcao 2</span>
+                        </li>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row withSubmenu">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-up"></i>
+                      <ul class="submenu_2">
+                        <li class="back-option">
+                          <i class="icon-chevron-left-small"></i>
+                          <span>subopcao 4</span>
+                        </li>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level-mobile"><a href="#">Opcao 3</a></li>
+                <li class="menu-first-level-mobile"><a href="#">Opcao 4</a></li>
+                <li class="menu-first-level-mobile"><a href="#">Opcao 5</a></li>
+                <li class="menu-first-level-mobile"><a href="#">Opcao 6</a></li>
+                <li class="menu-first-level-mobile"><a href="#">Opcao 7</a></li>
+                <a class="logout_link gra-link" href="#"><i class="icon-logout"></i>Terminar sessao</a>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <p class="gra-margin-top-m">NOTA: Pode alterar o tema do menu para primary acrescentando a classe <b>header-primary</b>.</p>
+        <div class="gra-desktop-header header-primary large notFixed">
+          <div class="header-content gra-container">
+            <a class="logo_a gra-flex-grow" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_desktop">
+              <ul class="menu">
+                <li class="menu-first-level"><a href="#">Opcao 1</a></li>
+                <li class="menu-first-level">
+                  Opcao 2<i class="icon-chevron-down-small arrow-down"></i>
+                  <ul>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level"><a href="#">Opcao 3</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 4</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 5</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 6</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 7</a></li>
+                <div class="menuActions">
+                  <li class="menu-first-level"><a href="#">EN</a></li>
+                </div>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gra-margin-top-xl">
+      <h2>Header com pesquisa e utilizador</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div id="headerMenuSearchUser">
+        <h4 class="gra-margin-top-l">Menu - Pesquisa e Utilizador</h4>
+        <p>Abaixo temos um exemplo de um menu com menu items, acoes (search e modo escuro/claro) e o user com login.</p>
+
+        <div class="gra-desktop-header large notFixed">
+          <div class="header-content gra-container">
+            <a class="logo_a gra-flex-grow" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_desktop">
+              <ul class="menu">
+                <li class="menu-first-level"><a href="#">Opcao 1</a></li>
+                <li class="menu-first-level">
+                  Opcao 2<i class="icon-chevron-down-small arrow-down"></i>
+                  <ul>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level"><a href="#">Opcao 3</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 4</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 5</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 6</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 7</a></li>
+                <div class="menuActions">
+                  <a href="#" class="searchBtn gra-margin-right-2xs" onclick="alert('E a pesquisa!');">
+                    <i class="icon-search"></i>
+                  </a>
+                  <li>
+                    <a class="gra-link changeTheme gra-margin-right-2xs">
+                      <span class="gra-tooltip"><span class="tooltiptext bottomCenter">Modo escuro</span><i class="icon icon-moon toggleTheme"></i></span>
+                    </a>
+                  </li>
+                </div>
+                <div class="avatarBorderLeft"></div>
+                <div class="graAvatarWithoutFoto">
+                  <i class="icon-user graAvatarLogo"></i>
+                </div>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="gra-mobile-header notFixed">
+          <div class="mobile-header">
+            <a class="logo_a" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_mobile">
+              <div class="menuActionsMobile">
+                <a href="#" class="searchBtn" onclick="alert('E a pesquisa pa');">
+                  <i class="icon-search"></i>
+                </a>
+                <a class="gra-link changeTheme">
+                  <span class="gra-tooltip"><span class="tooltiptext bottomCenter">Modo escuro</span><i class="icon icon-moon toggleTheme"></i></span>
+                </a>
+              </div>
+              <div class="graAvatarWithoutFoto">
+                <i class="icon-user graAvatarLogo"></i>
+              </div>
+            </div>
+            <div class="gra-link">
+              <i class="icon-menu hamburgerPic"></i>
+              <i class="icon-times menuClosePic"></i>
+            </div>
+          </div>
+          <div class="menu_mobile display-all-menu">
+            <div class="display-menu">
+              <ul class="menu-mobile">
+                <li class="menu-first-level-mobile"><a href="#">opcao 1</a></li>
+                <li class="menu-first-level-mobile withChilds">
+                  <span class="gra-flex-grow">opcao 2</span>
+                  <i class="icon-chevron-left-small arrow-up"></i>
+                  <ul class="submenu_1">
+                    <li class="back-option">
+                      <i class="icon-chevron-left-small"></i>
+                      <span>opcao 2</span>
+                    </li>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row withSubmenu">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-up"></i>
+                      <ul class="submenu_2">
+                        <li class="back-option">
+                          <i class="icon-chevron-left-small"></i>
+                          <span>subopcao 2</span>
+                        </li>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row withSubmenu">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-up"></i>
+                      <ul class="submenu_2">
+                        <li class="back-option">
+                          <i class="icon-chevron-left-small"></i>
+                          <span>subopcao 4</span>
+                        </li>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 3</a></li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 4</a></li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 5</a></li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 6</a></li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 7</a></li>
+                <a class="logout_link gra-link" href="#"><i class="icon-logout"></i>Terminar sessao</a>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gra-margin-top-xl">
+      <h2>Header Backoffice</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div id="headerMenuBackoffice">
+        <h4 class="gra-margin-top-l">Menu Backoffice</h4>
+        <p>Abaixo temos um exemplo de um menu backoffice com menu items, acoes (notificacoes e definicoes) e user com login.</p>
+
+        <div class="gra-desktop-header backoffice large notFixed">
+          <div class="header-content gra-container">
+            <a class="logo_a gra-flex-grow" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_desktop">
+              <ul class="menu">
+                <li class="menu-first-level"><a href="#">Opcao 1</a></li>
+                <li class="menu-first-level">
+                  Opcao 2<i class="icon-chevron-down-small arrow-down"></i>
+                  <ul>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-right"></i>
+                      <ul>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level"><a href="#">Opcao 3</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 4</a></li>
+                <li class="menu-first-level"><a href="#">Opcao 5</a></li>
+                <div class="menuActions">
+                  <a href="#" class="notificacao-desktop-alink" onclick="alert('E a notificacao');">
+                    <i class="icon-bell"></i>
+                    <span class="gra-badge danger">25</span>
+                  </a>
+                  <li class="menu-first-level settings gra-margin-left-2xs">
+                    <i class="icon-settings"></i>
+                    <ul>
+                      <li><a href="#">EN</a></li>
+                      <li>
+                        <a class="gra-link changeTheme">
+                          <span class="gra-tooltip"><span class="tooltiptext bottomCenter">Modo escuro</span><i class="icon icon-moon toggleTheme"></i></span>
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+                </div>
+              </ul>
+            </div>
+            <div class="userBorderLeft">
+              <span class="credentials name">Nome utilizador</span>
+              <span class="credentials job">Administrador</span>
+            </div>
+            <a href="#" class="gra-link"><i class="icon-logout"></i></a>
+          </div>
+        </div>
+
+        <div class="gra-mobile-header backoffice notFixed">
+          <div class="mobile-header">
+            <a class="logo_a" href="#">
+              <div class="logo"><img class="logo gra-logo-gov-blue" src="https://gradesign.servicos.azores.gov.pt/img/logos/logo_gra_blue.png" alt="Governo Regional dos Acores"></div>
+            </a>
+            <div class="menus_mobile">
+              <div class="menuActionsMobile">
+                <a href="#" class="notificacao-desktop-alink" onclick="alert('E a notificacao');">
+                  <i class="icon-bell"></i>
+                  <span class="gra-badge danger">25</span>
+                </a>
+                <div class="moreOptions gra-link" title="Ver mais opcoes">
+                  <i class="icon-settings"></i>
+                  <div class="moreOptionsBox" style="display: none;">
+                    <div class="option markRead"><a href="#">EN</a></div>
+                    <div class="option deleteAll">
+                      <a class="gra-link changeTheme">
+                        <span class="gra-tooltip"><span class="tooltiptext bottomCenter">Modo escuro</span><i class="icon icon-moon toggleTheme"></i></span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="graAvatarWithoutFoto">
+                <i class="icon-user graAvatarLogo"></i>
+              </div>
+            </div>
+            <div class="gra-link">
+              <i class="icon-menu hamburgerPic"></i>
+              <i class="icon-times menuClosePic"></i>
+            </div>
+          </div>
+          <div class="menu_mobile display-all-menu">
+            <div class="display-menu">
+              <ul class="menu-mobile">
+                <li class="menu-first-level-mobile"><a href="#">opcao 1</a></li>
+                <li class="menu-first-level-mobile withChilds">
+                  <span class="gra-flex-grow">opcao 2</span>
+                  <i class="icon-chevron-left-small arrow-up"></i>
+                  <ul class="submenu_1">
+                    <li class="back-option">
+                      <i class="icon-chevron-left-small"></i>
+                      <span>opcao 2</span>
+                    </li>
+                    <li><a href="#">subopcao 1</a></li>
+                    <li class="gra-flex-row withSubmenu">
+                      <span class="gra-flex-grow">subopcao 2</span>
+                      <i class="icon-chevron-left-small arrow-up"></i>
+                      <ul class="submenu_2">
+                        <li class="back-option">
+                          <i class="icon-chevron-left-small"></i>
+                          <span>subopcao 2</span>
+                        </li>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                        <li><a href="#">sub-subopcao4</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 3</a></li>
+                    <li class="gra-flex-row withSubmenu">
+                      <span class="gra-flex-grow">subopcao 4</span>
+                      <i class="icon-chevron-left-small arrow-up"></i>
+                      <ul class="submenu_2">
+                        <li class="back-option">
+                          <i class="icon-chevron-left-small"></i>
+                          <span>subopcao 4</span>
+                        </li>
+                        <li><a href="#">sub-subopcao1</a></li>
+                        <li><a href="#">sub-subopcao2</a></li>
+                        <li><a href="#">sub-subopcao3</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="#">subopcao 5</a></li>
+                    <li><a href="#">subopcao 6</a></li>
+                    <li><a href="#">subopcao 7</a></li>
+                  </ul>
+                </li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 3</a></li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 4</a></li>
+                <li class="menu-first-level-mobile"><a href="#">opcao 5</a></li>
+                <a class="logout_link gra-link" href="#"><i class="icon-logout"></i>Terminar sessao</a>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

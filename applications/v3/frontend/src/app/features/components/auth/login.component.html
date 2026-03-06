@@ -1,0 +1,143 @@
+﻿<div class="login-page">
+  <section class="auth-card">
+    <div class="language-row">
+      <label for="language-select">{{ 'app.language' | t }}</label>
+      <select
+        id="language-select"
+        class="field-input"
+        [value]="selectedLanguage"
+        (change)="setLanguage($any($event.target).value)"
+      >
+        <option *ngFor="let language of languageOptions" [value]="language">
+          {{ ('app.language.' + language) | t }}
+        </option>
+      </select>
+    </div>
+
+    <h1>{{ 'auth.login' | t }}</h1>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="form-grid">
+      <label for="username">{{ 'auth.username' | t }}</label>
+      <input id="username" type="text" class="field-input" formControlName="username" />
+      <div class="field-error" *ngIf="hasControlError('login', 'username') || loginFieldErrors['username']">
+        {{ getFieldError('login', 'username') }}
+      </div>
+
+      <label for="password">{{ 'auth.password' | t }}</label>
+      <input id="password" type="password" class="field-input" formControlName="password" />
+      <div class="field-error" *ngIf="hasControlError('login', 'password') || loginFieldErrors['password']">
+        {{ getFieldError('login', 'password') }}
+      </div>
+
+      <button type="button" class="text-link" (click)="showChangePasswordModal = true">
+        {{ 'auth.changePassword' | t }}
+      </button>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="isLoggingIn">
+          {{ 'auth.login' | t }}
+        </button>
+
+        <button type="button" class="btn-success" (click)="showCreateAccountModal = true">
+          {{ 'auth.createAccount' | t }}
+        </button>
+      </div>
+    </form>
+
+    <p class="feedback success" *ngIf="successMessage">{{ successMessage }}</p>
+    <p class="feedback error" *ngIf="loginError">{{ loginError }}</p>
+  </section>
+</div>
+
+<app-modal
+  [open]="showCreateAccountModal"
+  [title]="'auth.createAccountTitle' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="showCreateAccountModal = false"
+>
+  <form [formGroup]="registerForm" (ngSubmit)="submitCreateAccount()" class="modal-form">
+    <label for="register-username">{{ 'auth.username' | t }}</label>
+    <input id="register-username" type="text" class="field-input" formControlName="username" />
+    <div class="field-error" *ngIf="hasControlError('register', 'username') || registerFieldErrors['username']">
+      {{ getFieldError('register', 'username') }}
+    </div>
+
+    <label for="register-email">{{ 'auth.email' | t }}</label>
+    <input id="register-email" type="email" class="field-input" formControlName="email" />
+    <div class="field-error" *ngIf="hasControlError('register', 'email') || registerFieldErrors['email']">
+      {{ getFieldError('register', 'email') }}
+    </div>
+
+    <label for="register-password">{{ 'auth.password' | t }}</label>
+    <input id="register-password" type="password" class="field-input" formControlName="password" />
+    <div class="field-error" *ngIf="hasControlError('register', 'password') || registerFieldErrors['password']">
+      {{ getFieldError('register', 'password') }}
+    </div>
+
+    <p class="feedback error" *ngIf="registerError">{{ registerError }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showCreateAccountModal = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="isRegistering">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [open]="showChangePasswordModal"
+  [title]="'auth.changePasswordTitle' | t"
+  [closeOnBackdrop]="false"
+  (closeModal)="showChangePasswordModal = false"
+>
+  <form [formGroup]="changePasswordForm" (ngSubmit)="submitChangePassword()" class="modal-form">
+    <label for="change-username">{{ 'auth.username' | t }}</label>
+    <input id="change-username" type="text" class="field-input" formControlName="username" />
+    <div class="field-error" *ngIf="hasControlError('change', 'username') || changePasswordFieldErrors['username']">
+      {{ getFieldError('change', 'username') }}
+    </div>
+
+    <label for="change-current-password">{{ 'auth.currentPassword' | t }}</label>
+    <input id="change-current-password" type="password" class="field-input" formControlName="currentPassword" />
+    <div
+      class="field-error"
+      *ngIf="hasControlError('change', 'currentPassword') || changePasswordFieldErrors['currentPassword']"
+    >
+      {{ getFieldError('change', 'currentPassword') }}
+    </div>
+
+    <label for="change-new-password">{{ 'auth.newPassword' | t }}</label>
+    <input id="change-new-password" type="password" class="field-input" formControlName="newPassword" />
+    <div class="field-error" *ngIf="hasControlError('change', 'newPassword') || changePasswordFieldErrors['newPassword']">
+      {{ getFieldError('change', 'newPassword') }}
+    </div>
+
+    <label for="change-confirm-password">{{ 'auth.confirmNewPassword' | t }}</label>
+    <input
+      id="change-confirm-password"
+      type="password"
+      class="field-input"
+      formControlName="confirmNewPassword"
+    />
+    <div
+      class="field-error"
+      *ngIf="hasControlError('change', 'confirmNewPassword') || changePasswordFieldErrors['confirmNewPassword']"
+    >
+      {{ getFieldError('change', 'confirmNewPassword') }}
+    </div>
+
+    <p class="feedback error" *ngIf="changePasswordError">{{ changePasswordError }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="showChangePasswordModal = false">
+        {{ 'common.cancel' | t }}
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="isChangingPassword">
+        {{ 'common.confirm' | t }}
+      </button>
+    </div>
+  </form>
+</app-modal>

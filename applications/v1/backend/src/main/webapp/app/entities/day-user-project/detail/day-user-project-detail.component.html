@@ -1,0 +1,48 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (dayUserProject(); as dayUserProjectRef) {
+      <div>
+        <h2 data-cy="dayUserProjectDetailsHeading">
+          <span jhiTranslate="weeklyplanningApp.dayUserProject.detail.title">Day User Project</span>
+        </h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ dayUserProjectRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="weeklyplanningApp.dayUserProject.dayUser">Day User</span></dt>
+          <dd>
+            @if (dayUserProject()!.dayUser) {
+              <div>
+                <a [routerLink]="['/day-user', dayUserProject()!.dayUser?.id, 'view']">{{ dayUserProjectRef.dayUser?.id }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="weeklyplanningApp.dayUserProject.project">Project</span></dt>
+          <dd>
+            @if (dayUserProject()!.project) {
+              <div>
+                <a [routerLink]="['/project', dayUserProject()!.project?.id, 'view']">{{ dayUserProjectRef.project?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/day-user-project', dayUserProjectRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

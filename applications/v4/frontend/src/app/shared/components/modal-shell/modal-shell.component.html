@@ -1,0 +1,16 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <section class="modal-panel app-card" role="dialog" aria-modal="true" [attr.aria-label]="title">
+    <header class="modal-header">
+      <h2>{{ title }}</h2>
+      <button type="button" class="close-btn" (click)="tryClose()" aria-label="Close">X</button>
+    </header>
+
+    <div class="modal-body">
+      <ng-content select="[modal-body]"></ng-content>
+    </div>
+
+    <footer class="modal-footer">
+      <ng-content select="[modal-footer]"></ng-content>
+    </footer>
+  </section>
+</div>

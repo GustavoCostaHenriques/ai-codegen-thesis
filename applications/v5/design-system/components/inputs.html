@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inputs — GRA Design System</title>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../gra.css">
+</head>
+  <body class="gra-padding-bottom-7xl">
+
+    <main class="gra-container gra-padding-top-l">
+
+      <h1 class="gra-font-3xl gra-margin-bottom-l">Texto</h1>
+
+      <!-- DEFAULT -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <input class="form form-control" type="text" placeholder="Introduza aqui o texto">
+      </section>
+
+      <!-- MANDATÓRIO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <input class="form form-control required-field" type="text" placeholder="Introduza aqui o texto">
+        <span class="graRequiredField">Campo obrigatório</span>
+      </section>
+
+      <!-- DESATIVADO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <input class="form form-control" disabled type="text" placeholder="Introduza aqui o texto">
+      </section>
+
+      <!-- INFORMATIVO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo <i class="icon-circle-info iconLabel"></i></label>
+        <input class="form form-control" type="text" placeholder="Introduza aqui o texto">
+      </section>
+
+      <!-- APENAS LEITURA -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <input class="form form-control" readonly type="text" value="Eu sou um campo de texto">
+      </section>
+
+      <hr class="gra-hr-horizontal-dark-m gra-margin-y-l">
+
+      <h1 class="gra-font-3xl gra-margin-bottom-l">Textarea</h1>
+
+      <!-- DEFAULT -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <textarea class="form form-control" rows="4" placeholder="Introduza aqui o texto"></textarea>
+      </section>
+
+      <!-- MANDATÓRIO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <textarea class="form form-control required-field" rows="4" placeholder="Introduza aqui o texto"></textarea>
+        <span class="graRequiredField">Campo obrigatório</span>
+      </section>
+
+      <!-- DESATIVADO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <textarea class="form form-control" rows="4" disabled placeholder="Introduza aqui o texto"></textarea>
+      </section>
+
+      <!-- INFORMATIVO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo <i class="icon-circle-info iconLabel"></i></label>
+        <textarea class="form form-control" rows="4" placeholder="Introduza aqui o texto"></textarea>
+      </section>
+
+      <!-- APENAS LEITURA -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <textarea class="form form-control" rows="4" readonly>Eu sou um campo de texto longo</textarea>
+      </section>
+
+      <!-- ERRO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <textarea class="form form-control form-error" rows="4" placeholder="Introduza aqui o texto"></textarea>
+        <span class="graRequiredField">Campo obrigatório</span>
+      </section>
+
+      <!-- MENSAGEM INFORMAÇÃO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <textarea class="form form-control" rows="4" placeholder="Introduza aqui o texto"></textarea>
+        <span class="graInfoField">Mensagem de informação</span>
+      </section>
+
+      <!-- CONTADOR -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <textarea 
+          class="form form-control gra-counter-field"
+          rows="4"
+          maxlength="500"
+          placeholder="Introduza aqui o texto"></textarea>
+        <span class="graCounterWords" data-max-words="500">0 de 500</span>
+      </section>
+
+      <hr class="gra-hr-horizontal-dark-m gra-margin-y-l">
+
+      <h1 class="gra-font-3xl gra-margin-bottom-l">Contacto</h1>
+
+      <!-- DEFAULT -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <div class="gra-input-group">
+          <select class="gra-select gra-simple-select form-select">
+            <option value="+351">+351</option>
+            <option value="+1">+1</option>
+            <option value="+44">+44</option>
+          </select>
+          <input class="form form-control gra-phone-number" type="tel" placeholder="000 000 000">
+        </div>
+      </section>
+
+      <!-- MANDATÓRIO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <div class="gra-input-group">
+          <select class="gra-select gra-simple-select form-select">
+            <option value="+351">+351</option>
+          </select>
+          <input class="form form-control gra-phone-number required-field-group" type="tel" placeholder="000 000 000">
+        </div>
+      </section>
+
+      <!-- DESATIVADO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <div class="gra-input-group">
+          <select class="gra-select gra-simple-select form-select" disabled>
+            <option value="+351">+351</option>
+          </select>
+          <input class="form form-control gra-phone-number" disabled type="tel">
+        </div>
+      </section>
+
+      <!-- ERRO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <div class="gra-input-group">
+          <select class="gra-select gra-simple-select form-select error">
+            <option value="+351">+351</option>
+          </select>
+          <input class="form form-control gra-phone-number required-field-group error"
+                type="tel"
+                placeholder="000 000 000">
+        </div>
+        <span class="graRequiredFieldGroup">Campo obrigatório</span>
+      </section>
+
+      <!-- MENSAGEM INFORMATIVA -->
+      <section class="gra-margin-bottom-l">
+        <label for="default">Título do campo</label>
+        <div class="gra-input-group">
+          <select class="gra-select gra-simple-select form-select">
+            <option value="+351">+351</option>
+            <option value="+1">+1</option>
+            <option value="+44">+44</option>
+          </select>
+          <input class="form form-control gra-phone-number"
+                required type="tel"
+                placeholder="000 000 000"
+                maxlength="11">
+        </div>
+        <span class="graInfoField">Mensagem de informação</span>
+      </section>
+
+      <hr class="gra-hr-horizontal-dark-m gra-margin-y-l">
+
+      <h1 class="gra-font-3xl gra-margin-bottom-l">Código</h1>
+
+      <!-- DEFAULT -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <div class="gra-input-group-code gra-input-group">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="0">
+        </div>
+      </section>
+
+      <!-- MANDATÓRIO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <div class="gra-input-group-code gra-input-group">
+          <input maxlength="1" class="form form-control input-code required-field-group" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group" type="text" placeholder="0">
+        </div>
+      </section>
+
+      <!-- DESATIVADO -->
+      <section class="gra-margin-bottom-l">
+        <label>Título do campo</label>
+        <div class="gra-input-group-code gra-input-group">
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="1" disabled>
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="2" disabled>
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="3" disabled>
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="4" disabled>
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="5" disabled>
+          <input maxlength="1" class="form form-control input-code" type="text" placeholder="6" disabled>
+        </div>
+      </section>
+
+      <!-- ERRO -->
+      <section class="gra-margin-bottom-l">
+        <label class="required-label">Título do campo</label>
+        <div class="gra-input-group-code gra-input-group">
+          <input maxlength="1" class="form form-control input-code required-field-group error" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group error" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group error" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group error" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group error" type="text" placeholder="0">
+          <input maxlength="1" class="form form-control input-code required-field-group error" type="text" placeholder="0">
+        </div>
+        <span class="graRequiredFieldGroup">Campo obrigatório</span>
+      </section>
+
+      <!-- MENSAGEM INFORMATIVA -->
+      <section class="gra-margin-bottom-l">
+        <label for="default">Título do campo</label>
+        <div class="gra-input-group-code gra-input-group">
+          <input maxlength="1" class="form form-control input-code" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" placeholder="0">
+          <input maxlength="1" class="form form-control input-code" placeholder="0">
+        </div>
+        <span class="graInfoField">Mensagem de informação</span>
+      </section>
+
+      <hr class="gra-hr-horizontal-dark-m gra-margin-y-l">
+
+      <h1 class="gra-font-3xl gra-margin-bottom-l">Palavra Passe</h1>
+
+      <!-- DEFAULT -->
+      <section class="gra-margin-bottom-l">
+        <label for="default">Palavra Passe</label>
+        <div class="gra-password-container">
+          <input class="form form-control gra-password" type="password" placeholder="Adicione a palavra passe">
+        </div>
+      </section>
+
+      <!-- MANDATÓRIO -->
+      <section class="gra-margin-bottom-l">
+        <label for="default" class="required-label">Palavra Passe</label>
+        <div class="gra-password-container">
+          <input class="form form-control gra-password required-field" type="password" placeholder="Adicione a palavra passe">
+        </div>
+      </section>  
+
+      <!-- DESATIVADO -->
+      <section class="gra-margin-bottom-l">
+        <label for="default">Palavra Passe</label>
+        <div class="gra-password-container">
+          <input class="form form-control gra-password required-field" value="123456" disabled type="password" placeholder="Adicione a palavra passe">
+        </div>
+      </section>
+
+      <!-- INFORMATIVO -->
+      <section class="gra-margin-bottom-l">
+        <label for="default">Palavra-passe  <i class="icon-circle-info iconLabel"></i></label>
+        <div class="gra-password-container">
+            <input class="form form-control gra-password required-field" type="password" placeholder="Adicione a palavra-passe">
+        </div>                                    
+      </section>     
+      
+      <!-- APENAS LEITURA-->
+      <section class="gra-margin-bottom-l">        
+        <label for="default">Palavra-passe</label>
+        <div class="gra-password-container">
+            <input class="form form-control gra-password required-field" value="123456" readonly type="password" placeholder="Adicione a palavra-passe">
+        </div>                                               
+      </section>
+
+      <!-- MENSAGEM DE ERRO -->
+      <section class="gra-margin-bottom-l">        
+        <label class="required-label" for="default">Palavra-passe</label>
+        <div class="gra-password-container">
+            <input class="form form-control gra-password required-field error" value="123456" type="password" placeholder="Adicione a palavra-passe">
+            <span class="graRequiredField">Campo obrigatório</span>
+        </div>
+      </section>
+
+      <!-- MENSAGEM INFORMATIVA -->
+      <section class="gra-margin-bottom-l">                                         
+        <label for="default">Palavra-passe</label>
+        <div class="gra-password-container">
+            <input class="form form-control gra-password" type="password" placeholder="Adicione a palavra-passe">
+        </div>
+        <span class="graInfoField">Mensagem de informação</span>                                               
+      </section>     
+      
+    </main>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script type="module" src="../assets/main.js"></script>
+  </body>
+</html>

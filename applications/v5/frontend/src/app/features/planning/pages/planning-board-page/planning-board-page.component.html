@@ -1,0 +1,389 @@
+<section *ngIf="board" class="gra-background-white gra-padding-s gra-margin-bottom-s">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <p class="gra-margin-top-2xs">
+        {{ board.week.weekStart }} - {{ board.week.weekEnd }}
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div
+        class="gra-status secondary"
+        [class.infoIcon]="board.week.status === 'PLANNED'"
+        [class.successIcon]="board.week.status === 'COMPLETED'"
+      >
+        <span class="icon"></span>
+        <span>{{ board.week.status }}</span>
+      </div>
+      <button type="button" class="gra-btn btn-secondary" [disabled]="refreshing" (click)="refreshBoard()">
+        <span *ngIf="!refreshing">Refresh</span>
+        <span *ngIf="refreshing">{{ 'app.loading' | t }}</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<div *ngIf="errorMessage" class="gra-feedback-msg error gra-margin-bottom-m">
+  <span class="text">{{ errorMessage }}</span>
+  <span class="closeIcon" (click)="errorMessage = ''"></span>
+</div>
+
+<div *ngIf="loading" class="d-flex justify-content-center gra-padding-l">
+  <div class="gra-spinner medium"></div>
+</div>
+
+<section *ngIf="!loading && board" class="planning-layout d-flex">
+  <aside
+    *ngIf="isAdmin"
+    class="planning-sidebar gra-background-white gra-padding-s overflow-y-auto flex-shrink-0"
+  >
+    <h3 class="gra-font-xl gra-margin-bottom-s">{{ 'planning.activePersons' | t }}</h3>
+    <div *ngFor="let person of activePeople">
+      <div
+        class="planning-person-card gra-card-text gra-margin-bottom-2xs"
+        draggable="true"
+        (dragstart)="onPersonDragStart(person)"
+      >
+        <div class="details">
+          <div class="title">{{ person.name }}</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="planning-day-scroller overflow-x-auto flex-grow-1">
+    <article
+      *ngFor="let dayPlan of dayPlans; trackBy: trackByDayPlanId"
+      class="planning-day-column gra-background-white gra-padding-xs"
+    >
+      <div class="d-flex justify-content-between align-items-center gra-margin-bottom-s">
+        <h3 class="gra-font-xl gra-text-blue-800">{{ getDayLabel(dayPlan) }}</h3>
+        <span>{{ dayPlan.date }}</span>
+      </div>
+
+      <div
+        *ngIf="canEditPlanning"
+        class="planning-add-project-row d-flex align-items-center gap-1 gra-margin-bottom-s"
+      >
+        <select
+          class="gra-select gra-simple-select form-select"
+          [(ngModel)]="dayProjectSelections[dayPlan.id]"
+        >
+          <option value="">Select project</option>
+          <option *ngFor="let project of activeProjects" [value]="project.id">
+            {{ project.name }} ({{ project.code }})
+          </option>
+        </select>
+        <button
+          type="button"
+          class="planning-add-project-button gra-btn btn-secondary"
+          (click)="addProjectToDay(dayPlan)"
+        >
+          {{ 'planning.addProject' | t }}
+        </button>
+      </div>
+
+      <div class="planning-day-project-list">
+        <div
+          *ngFor="let dayProject of dayPlan.projects; trackBy: trackByDayProjectId"
+          class="planning-day-project-card gra-card-text gra-margin-bottom-s"
+        >
+          <div class="details">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="title"><span>{{ dayProject.project.name }}</span></div>
+              <button
+                *ngIf="canEditPlanning"
+                type="button"
+                class="planning-remove-project-button gra-btn btn-primary-error"
+                (click)="openRemoveProjectModal(dayPlan, dayProject)"
+              >
+                X
+              </button>
+            </div>
+
+            <div
+              class="planning-assignment-dropzone gra-background-blue-100"
+              (dragover)="allowDrop($event)"
+              (drop)="onDropPerson($event, dayPlan, dayProject)"
+            >
+              <div *ngIf="dayProject.assignments.length === 0">
+                {{ 'common.empty' | t }}
+              </div>
+
+              <div
+                *ngFor="
+                  let assignment of dayProject.assignments;
+                  trackBy: trackByAssignmentId
+                "
+                class="gra-card-feedback card-horizontal info gra-margin-bottom-2xs"
+              >
+                <div class="details">
+                  <div class="title">
+                    <span>{{ assignment.person.name }}</span>
+                    <button
+                      *ngIf="canEditPlanning"
+                      type="button"
+                      class="gra-link"
+                      (click)="removeAssignment(dayPlan, dayProject, assignment)"
+                    >
+                      <i class="icon-trash"></i>
+                    </button>
+                  </div>
+                  <button
+                    *ngIf="canEditPlanning"
+                    type="button"
+                    class="planning-hours-button"
+                    (click)="openHoursModal(dayPlan, dayProject, assignment)"
+                  >
+                    {{
+                      'planning.hours'
+                        | t : {
+                            estimated: assignment.estimatedHours,
+                            actual: assignment.actualHours ?? 0
+                          }
+                    }}
+                  </button>
+                  <div *ngIf="!canEditPlanning" class="planning-hours-text">
+                    {{
+                      'planning.hours'
+                        | t : {
+                            estimated: assignment.estimatedHours,
+                            actual: assignment.actualHours ?? 0
+                          }
+                    }}
+                  </div>
+
+                  <ul class="planning-task-list">
+                    <li *ngFor="let task of assignment.tasks; trackBy: trackByTaskId">
+                      <button
+                        *ngIf="canEditPlanning"
+                        type="button"
+                        class="planning-task-open-button"
+                        (click)="openTaskEditModal(dayPlan, dayProject, assignment, task)"
+                        [title]="task.description"
+                      >
+                        {{ task.description }}
+                      </button>
+                      <span *ngIf="!canEditPlanning" class="planning-task-text">
+                        {{ task.description }}
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div *ngIf="assignmentModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeAssignmentModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'planning.assignmentModalTitle' | t }}
+      <button type="button" class="gra-link" (click)="closeAssignmentModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <form
+        class="no-validate-form"
+        [formGroup]="assignmentForm"
+        (ngSubmit)="createAssignment()"
+      >
+        <div class="gra-margin-bottom-s">
+          <label>{{ 'planning.person' | t }}</label>
+          <input
+            type="text"
+            class="form form-control"
+            [value]="assignmentTarget?.person?.name || ''"
+            readonly
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'planning.estimatedHours' | t }}</label>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            class="form form-control"
+            formControlName="estimatedHours"
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label>{{ 'planning.actualHours' | t }}</label>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            class="form form-control"
+            formControlName="actualHours"
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'planning.taskPlaceholder' | t }}</label>
+          <textarea
+            rows="4"
+            class="form form-control"
+            formControlName="taskDescription"
+          ></textarea>
+        </div>
+
+        <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+          <span class="text">{{ modalError }}</span>
+          <span class="closeIcon" (click)="modalError = ''"></span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="gra-btn btn-secondary" (click)="closeAssignmentModal()">
+            {{ 'common.cancel' | t }}
+          </button>
+          <button type="submit" class="gra-btn btn-primary" [disabled]="savingAssignment">
+            <span *ngIf="!savingAssignment">{{ 'common.confirm' | t }}</span>
+            <span *ngIf="savingAssignment">{{ 'app.loading' | t }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="hoursModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeHoursModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      Edit Assignment Hours
+      <button type="button" class="gra-link" (click)="closeHoursModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <form class="no-validate-form" [formGroup]="hoursForm" (ngSubmit)="saveHours()">
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'planning.estimatedHours' | t }}</label>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            class="form form-control"
+            formControlName="estimatedHours"
+          />
+        </div>
+        <div class="gra-margin-bottom-s">
+          <label>{{ 'planning.actualHours' | t }}</label>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            class="form form-control"
+            formControlName="actualHours"
+          />
+        </div>
+        <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+          <span class="text">{{ modalError }}</span>
+          <span class="closeIcon" (click)="modalError = ''"></span>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="gra-btn btn-secondary" (click)="closeHoursModal()">
+            {{ 'common.cancel' | t }}
+          </button>
+          <button type="submit" class="gra-btn btn-primary" [disabled]="savingHours">
+            <span *ngIf="!savingHours">{{ 'common.confirm' | t }}</span>
+            <span *ngIf="savingHours">{{ 'app.loading' | t }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="taskModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeTaskModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{
+        taskTarget?.taskId
+          ? ('planning.editTask' | t)
+          : ('planning.addTask' | t)
+      }}
+      <button type="button" class="gra-link" (click)="closeTaskModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <form class="no-validate-form" [formGroup]="taskForm" (ngSubmit)="saveTask()">
+        <div class="gra-margin-bottom-s">
+          <label class="required-label">{{ 'planning.taskPlaceholder' | t }}</label>
+          <textarea
+            rows="4"
+            class="form form-control"
+            formControlName="description"
+          ></textarea>
+        </div>
+
+        <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+          <span class="text">{{ modalError }}</span>
+          <span class="closeIcon" (click)="modalError = ''"></span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button
+            *ngIf="taskTarget?.taskId"
+            type="button"
+            class="gra-btn btn-primary-error"
+            [disabled]="savingTask || deletingTask"
+            (click)="deleteTaskFromModal()"
+          >
+            <span *ngIf="!deletingTask">{{ 'planning.deleteTask' | t }}</span>
+            <span *ngIf="deletingTask">{{ 'app.loading' | t }}</span>
+          </button>
+          <button type="submit" class="gra-btn btn-primary" [disabled]="savingTask || deletingTask">
+            <span *ngIf="!savingTask">{{ 'common.confirm' | t }}</span>
+            <span *ngIf="savingTask">{{ 'app.loading' | t }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="removeProjectModalOpen" class="gra-popup d-block">
+  <div class="popupMask visible" (click)="closeRemoveProjectModal()"></div>
+  <div class="popupContainer">
+    <div class="popupHeader no-border">
+      {{ 'projects.modal.remove' | t }}
+      <button type="button" class="gra-link" (click)="closeRemoveProjectModal()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+    <div class="popupContent">
+      <p>
+        Remove project
+        <strong>{{ projectRemovalTarget?.projectName }}</strong>
+        from this day?
+      </p>
+
+      <div *ngIf="modalError" class="gra-feedback-msg error gra-margin-bottom-s">
+        <span class="text">{{ modalError }}</span>
+        <span class="closeIcon" (click)="modalError = ''"></span>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="gra-btn btn-secondary" (click)="closeRemoveProjectModal()">
+          {{ 'common.cancel' | t }}
+        </button>
+        <button
+          type="button"
+          class="gra-btn btn-primary-error"
+          [disabled]="deletingProject"
+          (click)="confirmRemoveProject()"
+        >
+          <span *ngIf="!deletingProject">{{ 'common.confirm' | t }}</span>
+          <span *ngIf="deletingProject">{{ 'app.loading' | t }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

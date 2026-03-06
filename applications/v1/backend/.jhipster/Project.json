@@ -1,0 +1,28 @@
+{
+  "annotations": {
+    "changelogDate": "20260203154154"
+  },
+  "applications": ["weeklyplanning"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "jpaMetamodelFiltering": true,
+  "name": "Project",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "dayUserProject",
+      "otherEntityRelationshipName": "project",
+      "relationshipName": "assignments",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}

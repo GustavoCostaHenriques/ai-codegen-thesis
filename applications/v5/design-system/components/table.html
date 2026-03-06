@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Table - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="pageContent gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Table</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplo 1</h2>
+      <p>No exemplo abaixo, em modo responsive, a tabela passa para modo vertical.</p>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-table-wrapper">
+        <table class="gra-table responsive-vertical" id="graTable">
+          <thead>
+            <tr>
+              <th class="sortable">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-header-check">
+                  <label class="form-check-label" for="table1-header-check">Header 1</label>
+                </div>
+              </th>
+              <th>Header 2</th>
+              <th>Header 3</th>
+              <th class="sortable numeric asc">Header 4</th>
+              <th>Header 5</th>
+              <th>Header 6</th>
+              <th>Header 7</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-header="Header 1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-row1-check">
+                  <label class="form-check-label" for="table1-row1-check">Lorem ipsum a</label>
+                </div>
+              </td>
+              <td data-header="Header 2">Lorem ipsum</td>
+              <td data-header="Header 3"><span class="withIcon">Lorem ipsum <i class="icon-message"></i></span></td>
+              <td data-header="Header 4" class="numericValue">8.00&euro;</td>
+              <td data-header="Header 5"><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td data-header="Header 6"><span class="gra-tag primary danger">Lorem ipsum</span></td>
+              <td data-header="Header 7" class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td data-header="Header 1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-row2-check">
+                  <label class="form-check-label" for="table1-row2-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td data-header="Header 2">Lorem ipsum</td>
+              <td data-header="Header 3"><span class="withIcon">Lorem ipsum <i class="icon-phone"></i></span></td>
+              <td data-header="Header 4" class="numericValue">75.00&euro;</td>
+              <td data-header="Header 5"><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td data-header="Header 6"><span class="gra-tag primary success">Lorem ipsum</span></td>
+              <td data-header="Header 7" class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td data-header="Header 1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-row3-check">
+                  <label class="form-check-label" for="table1-row3-check">Lorem ipsum b</label>
+                </div>
+              </td>
+              <td data-header="Header 2">Lorem ipsum</td>
+              <td data-header="Header 3"><span class="withIcon">Lorem ipsum <i class="icon-file"></i></span></td>
+              <td data-header="Header 4" class="numericValue">15.80&euro;</td>
+              <td data-header="Header 5"><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td data-header="Header 6"><span class="gra-tag primary alert">Lorem ipsum</span></td>
+              <td data-header="Header 7" class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td data-header="Header 1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-row4-check">
+                  <label class="form-check-label" for="table1-row4-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td data-header="Header 2">Lorem ipsum</td>
+              <td data-header="Header 3"><span class="withIcon">Lorem ipsum <i class="icon-pin"></i></span></td>
+              <td data-header="Header 4" class="numericValue">100.00&euro;</td>
+              <td data-header="Header 5"><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td data-header="Header 6"><span class="gra-tag primary info">Lorem ipsum</span></td>
+              <td data-header="Header 7" class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td data-header="Header 1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-row5-check">
+                  <label class="form-check-label" for="table1-row5-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td data-header="Header 2">Lorem ipsum</td>
+              <td data-header="Header 3"><span class="withIcon">Lorem ipsum <i class="icon-facebook"></i></span></td>
+              <td data-header="Header 4" class="numericValue">0.00&euro;</td>
+              <td data-header="Header 5"><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td data-header="Header 6"><span class="gra-tag primary danger">Lorem ipsum</span></td>
+              <td data-header="Header 7" class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td data-header="Header 1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table1-row6-check">
+                  <label class="form-check-label" for="table1-row6-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td data-header="Header 2">Lorem ipsum</td>
+              <td data-header="Header 3"><span class="withIcon">Lorem ipsum <i class="icon-files"></i></span></td>
+              <td data-header="Header 4" class="numericValue">2.00&euro;</td>
+              <td data-header="Header 5"><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td data-header="Header 6"><span class="gra-tag primary success">Lorem ipsum</span></td>
+              <td data-header="Header 7" class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="gra-pagination" data-items-per-page="4" data-total-items="" data-element-id="graTable" data-is-external-content="false">
+        <div class="results">
+          <span class="fromIndex">1</span> de <span class="showRows">10</span> dos <span class="totalRows"></span> resultados
+        </div>
+        <div class="resultsMobile">
+          <span class="fromIndex">1</span> de <span class="showRows">10</span> dos <span class="totalRows"></span>
+        </div>
+        <div class="navigation">
+          <button class="prev icon icon-secondary"><i class="icon-chevron-left iconLeft"></i></button>
+          <div class="page-numbers"></div>
+          <button class="next icon icon-secondary"><i class="icon-chevron-right iconRight"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplo 2</h2>
+      <p>No exemplo abaixo, em modo responsive, a tabela mantem-se igual, mas com scroll horizontal.</p>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-table-wrapper">
+        <table class="gra-table" id="graTable2">
+          <thead>
+            <tr>
+              <th class="sortable">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-header-check">
+                  <label class="form-check-label" for="table2-header-check">Header 1</label>
+                </div>
+              </th>
+              <th>Header 2</th>
+              <th>Header 3</th>
+              <th class="sortable numeric desc">Header 4</th>
+              <th>Header 5</th>
+              <th>Header 6</th>
+              <th>Header 7</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-row1-check">
+                  <label class="form-check-label" for="table2-row1-check">Lorem ipsum a</label>
+                </div>
+              </td>
+              <td>Lorem ipsum</td>
+              <td><span class="withIcon">Lorem ipsum <i class="icon-message"></i></span></td>
+              <td class="numericValue">8.00&euro;</td>
+              <td><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td><span class="gra-tag primary danger">Lorem ipsum</span></td>
+              <td class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-row2-check">
+                  <label class="form-check-label" for="table2-row2-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td>Lorem ipsum</td>
+              <td><span class="withIcon">Lorem ipsum <i class="icon-phone"></i></span></td>
+              <td class="numericValue">75.00&euro;</td>
+              <td><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td><span class="gra-tag primary success">Lorem ipsum</span></td>
+              <td class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-row3-check">
+                  <label class="form-check-label" for="table2-row3-check">Lorem ipsum b</label>
+                </div>
+              </td>
+              <td>Lorem ipsum</td>
+              <td><span class="withIcon">Lorem ipsum <i class="icon-file"></i></span></td>
+              <td class="numericValue">15.80&euro;</td>
+              <td><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td><span class="gra-tag primary alert">Lorem ipsum</span></td>
+              <td class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-row4-check">
+                  <label class="form-check-label" for="table2-row4-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td>Lorem ipsum</td>
+              <td><span class="withIcon">Lorem ipsum <i class="icon-pin"></i></span></td>
+              <td class="numericValue">100.00&euro;</td>
+              <td><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td><span class="gra-tag primary info">Lorem ipsum</span></td>
+              <td class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-row5-check">
+                  <label class="form-check-label" for="table2-row5-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td>Lorem ipsum</td>
+              <td><span class="withIcon">Lorem ipsum <i class="icon-facebook"></i></span></td>
+              <td class="numericValue">0.00&euro;</td>
+              <td><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td><span class="gra-tag primary danger">Lorem ipsum</span></td>
+              <td class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="table2-row6-check">
+                  <label class="form-check-label" for="table2-row6-check">Lorem ipsum</label>
+                </div>
+              </td>
+              <td>Lorem ipsum</td>
+              <td><span class="withIcon">Lorem ipsum <i class="icon-files"></i></span></td>
+              <td class="numericValue">2.00&euro;</td>
+              <td><a href="#" class="gra-link">Lorem ipsum</a></td>
+              <td><span class="gra-tag primary success">Lorem ipsum</span></td>
+              <td class="options">
+                <a class="gra-link" href="#"><i class="icon-eye"></i></a>
+                <a class="gra-link" href="#"><i class="icon-edit"></i></a>
+                <a class="gra-link" href="#"><i class="icon-trash"></i></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="gra-pagination" data-items-per-page="4" data-total-items="" data-element-id="graTable2" data-is-external-content="false">
+        <div class="results">
+          <span class="fromIndex">1</span> de <span class="showRows">10</span> dos <span class="totalRows"></span> resultados
+        </div>
+        <div class="resultsMobile">
+          <span class="fromIndex">1</span> de <span class="showRows">10</span> dos <span class="totalRows"></span>
+        </div>
+        <div class="navigation">
+          <button class="prev icon icon-secondary"><i class="icon-chevron-left iconLeft"></i></button>
+          <div class="page-numbers"></div>
+          <button class="next icon icon-secondary"><i class="icon-chevron-right iconRight"></i></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

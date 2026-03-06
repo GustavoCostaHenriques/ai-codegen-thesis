@@ -1,0 +1,35 @@
+# This configuration is intended for development purpose, it's **your** responsibility to harden it for production
+name: escola
+services:
+  app:
+    image: escola
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=prod,api-docs
+      - MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED=true
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/escola
+      - SPRING_LIQUIBASE_URL=jdbc:postgresql://postgresql:5432/escola
+      - JHIPSTER_CACHE_REDIS_SERVER=redis://redis:6379
+      - JHIPSTER_CACHE_REDIS_CLUSTER=false
+    ports:
+      - 127.0.0.1:25000:25000
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:25000/management/health
+      interval: 5s
+      timeout: 5s
+      retries: 40
+    depends_on:
+      postgresql:
+        condition: service_healthy
+  postgresql:
+    extends:
+      file: ./postgresql.yml
+      service: postgresql
+  redis:
+    extends:
+      file: ./redis.yml
+      service: redis

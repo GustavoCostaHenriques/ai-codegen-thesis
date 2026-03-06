@@ -1,0 +1,20 @@
+package com.weeklyplanning.service.dto;
+
+import com.weeklyplanning.domain.enumeration.ProjectStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.UUID;
+
+public record ProjectDTO(
+        UUID id,
+
+        @NotBlank
+        String name,
+
+        @NotBlank
+        String code,
+
+        @NotNull
+        ProjectStatus status
+) {}

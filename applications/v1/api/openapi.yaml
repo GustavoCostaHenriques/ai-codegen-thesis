@@ -1,0 +1,1210 @@
+openapi: 3.0.3
+info:
+  title: Weekly Planning API
+  version: 1.0.0
+  description: |
+    REST API for weekly work planning. It supports user and project management,
+    week creation and maintenance, and day-level planning with users, projects,
+    and tasks. The API is designed for API-first development and code generation.
+servers:
+  - url: /api
+  - url: http://localhost:8080/api
+security:
+  - bearerAuth: []
+paths:
+  /users:
+    get:
+      tags:
+        - Users
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/UsersPageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags:
+        - Users
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/UserResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      operationId: getUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags:
+        - Users
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+    delete:
+      tags:
+        - Users
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /projects:
+    get:
+      tags:
+        - Projects
+      operationId: listProjects
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectsPageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags:
+        - Projects
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /projects/{projectId}:
+    get:
+      tags:
+        - Projects
+      operationId: getProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags:
+        - Projects
+      operationId: updateProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+    delete:
+      tags:
+        - Projects
+      operationId: deleteProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks:
+    get:
+      tags:
+        - Weeks
+      operationId: listWeeks
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeeksPageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags:
+        - Weeks
+      operationId: createWeek
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WeekResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}:
+    get:
+      tags:
+        - Weeks
+      operationId: getWeek
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags:
+        - Weeks
+      operationId: updateWeek
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WeekResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+    delete:
+      tags:
+        - Weeks
+      operationId: deleteWeek
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/duplicate:
+    post:
+      tags:
+        - Weeks
+      operationId: duplicateWeek
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeekDuplicateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WeekResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/days:
+    get:
+      tags:
+        - Planning
+      operationId: listWeekDays
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayPlansResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks/{weekId}/days/{date}:
+    get:
+      tags:
+        - Planning
+      operationId: getDayPlan
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayPlanResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /weeks/{weekId}/days/{date}/users:
+    get:
+      tags:
+        - Planning
+      operationId: listDayUsers
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayUsersResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    post:
+      tags:
+        - Planning
+      operationId: addUserToDay
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayUserCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/DayUserResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/days/{date}/users/{userId}:
+    delete:
+      tags:
+        - Planning
+      operationId: removeUserFromDay
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/days/{date}/users/{userId}/projects:
+    get:
+      tags:
+        - Planning
+      operationId: listDayUserProjects
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/DayUserProjectsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    post:
+      tags:
+        - Planning
+      operationId: assignProjectToDayUser
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayUserProjectAssignRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/DayUserProjectResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/days/{date}/users/{userId}/projects/{projectId}:
+    delete:
+      tags:
+        - Planning
+      operationId: removeProjectFromDayUser
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/days/{date}/users/{userId}/projects/{projectId}/tasks:
+    get:
+      tags:
+        - Planning
+      operationId: listTasks
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/TasksResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    post:
+      tags:
+        - Planning
+      operationId: addTask
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/TaskResponse'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /weeks/{weekId}/days/{date}/users/{userId}/projects/{projectId}/tasks/{taskId}:
+    delete:
+      tags:
+        - Planning
+      operationId: removeTask
+      parameters:
+        - $ref: '#/components/parameters/WeekIdParam'
+        - $ref: '#/components/parameters/DateParam'
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/ProjectIdParam'
+        - $ref: '#/components/parameters/TaskIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token issued by the OAuth2/OIDC provider.
+  parameters:
+    UserIdParam:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectIdParam:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WeekIdParam:
+      name: weekId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TaskIdParam:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DateParam:
+      name: date
+      in: path
+      required: true
+      schema:
+        type: string
+        format: date
+      description: ISO-8601 date within the referenced week (YYYY-MM-DD).
+    PageParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Zero-based page index.
+    SizeParam:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+      description: Page size.
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Sort criteria in the format `field,asc|desc`. Repeatable.
+  responses:
+    UsersPageResponse:
+      description: Paged list of users.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UsersPage'
+    UserResponse:
+      description: User details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    ProjectsPageResponse:
+      description: Paged list of projects.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProjectsPage'
+    ProjectResponse:
+      description: Project details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Project'
+    WeeksPageResponse:
+      description: Paged list of weeks.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WeeksPage'
+    WeekResponse:
+      description: Week details, including day plans.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WeekDetail'
+    DayPlansResponse:
+      description: List of day plans for a week.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayPlansList'
+    DayPlanResponse:
+      description: Day plan details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayPlan'
+    DayUsersResponse:
+      description: List of users assigned to a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayUsersList'
+    DayUserResponse:
+      description: User assignment to a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayUser'
+    DayUserProjectsResponse:
+      description: List of projects assigned to a user on a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayUserProjectsList'
+    DayUserProjectResponse:
+      description: Project assignment to a user on a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DayUserProject'
+    TasksResponse:
+      description: List of tasks for a user and project on a day.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TasksList'
+    TaskResponse:
+      description: Task details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    NoContentResponse:
+      description: No content.
+    ValidationErrorResponse:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ConflictResponse:
+      description: Conflict with business rules or existing resources.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundResponse:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedResponse:
+      description: Authentication required.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenResponse:
+      description: Insufficient permissions.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    UserRole:
+      type: string
+      enum:
+        - ADMIN
+        - USER
+    UserStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+    ProjectStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - PAUSED
+        - INACTIVE
+    WeekStatus:
+      type: string
+      enum:
+        - DRAFT
+        - PUBLISHED
+        - LOCKED
+    DayOfWeek:
+      type: string
+      enum:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+        - SATURDAY
+        - SUNDAY
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        status:
+          $ref: '#/components/schemas/UserStatus'
+      required:
+        - id
+        - name
+        - email
+        - role
+        - status
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+      required:
+        - id
+        - name
+        - email
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        owner:
+          $ref: '#/components/schemas/UserSummary'
+      required:
+        - id
+        - name
+        - code
+        - status
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+      required:
+        - id
+        - name
+        - code
+        - status
+    WeekSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          minLength: 1
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+      required:
+        - id
+        - label
+        - startDate
+        - endDate
+        - status
+    WeekDetail:
+      allOf:
+        - $ref: '#/components/schemas/WeekSummary'
+        - type: object
+          properties:
+            dayPlans:
+              type: array
+              items:
+                $ref: '#/components/schemas/DayPlan'
+          required:
+            - dayPlans
+    DayPlan:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeek'
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayUser'
+      required:
+        - date
+        - dayOfWeek
+        - users
+    DayUser:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayUserProject'
+      required:
+        - user
+        - projects
+    DayUserProject:
+      type: object
+      properties:
+        project:
+          $ref: '#/components/schemas/ProjectSummary'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+      required:
+        - project
+        - tasks
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          minLength: 1
+          description: Task text. Minimum length is configurable server-side.
+      required:
+        - id
+        - text
+    UserCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        status:
+          $ref: '#/components/schemas/UserStatus'
+      required:
+        - name
+        - email
+        - role
+    UserUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        status:
+          $ref: '#/components/schemas/UserStatus'
+      required:
+        - name
+        - email
+        - role
+    ProjectCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+      required:
+        - name
+        - code
+    ProjectUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+      required:
+        - name
+        - code
+        - status
+    WeekCreateRequest:
+      type: object
+      description: |
+        Creates a new week. Weeks typically span Monday to Sunday.
+      properties:
+        label:
+          type: string
+          minLength: 1
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+      required:
+        - label
+        - startDate
+        - endDate
+    WeekUpdateRequest:
+      type: object
+      description: |
+        Updates a week. When setting status to PUBLISHED or LOCKED, the server
+        validates business rules (at least one user per day, at least one project
+        per user per day, and at least one task per project with minimum text
+        length).
+      properties:
+        label:
+          type: string
+          minLength: 1
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/WeekStatus'
+      required:
+        - label
+        - startDate
+        - endDate
+    WeekDuplicateRequest:
+      type: object
+      description: Creates a new week by duplicating the source week.
+      properties:
+        label:
+          type: string
+          minLength: 1
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+      required:
+        - label
+        - startDate
+        - endDate
+    DayUserCreateRequest:
+      type: object
+      description: |
+        Adds a user to a day. The user cannot already be assigned to the same day.
+      properties:
+        userId:
+          type: string
+          format: uuid
+      required:
+        - userId
+    DayUserProjectAssignRequest:
+      type: object
+      description: |
+        Assigns a project to a user on a day. The same project cannot be assigned
+        more than once to the same user on the same day.
+      properties:
+        projectId:
+          type: string
+          format: uuid
+      required:
+        - projectId
+    TaskCreateRequest:
+      type: object
+      description: Adds a task to a user project on a day.
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Task text. Minimum length is configurable server-side.
+      required:
+        - text
+    PageMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+      required:
+        - page
+        - size
+        - totalElements
+        - totalPages
+    UsersPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+      required:
+        - items
+        - page
+    ProjectsPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+      required:
+        - items
+        - page
+    WeeksPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeekSummary'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+      required:
+        - items
+        - page
+    DayPlansList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPlan'
+      required:
+        - items
+    DayUsersList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayUser'
+      required:
+        - items
+    DayUserProjectsList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayUserProject'
+      required:
+        - items
+    TasksList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+      required:
+        - items
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+      required:
+        - code
+        - message
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+      required:
+        - message

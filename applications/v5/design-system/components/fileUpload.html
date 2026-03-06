@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Upload - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">File Upload</h1>
+
+    <section id="fileUploadExamples" class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="gra-padding-s">
+            <div class="gra-upload-files" id="fUpload1">
+              <div id="fileUpload">
+                <div class="fuTop">
+                  <div class="beginUpload"><label for="fUpload1">Carregar CVs exemplo</label></div>
+                  <div class="status_right"><span class="sizeRestante"></span> - <span class="tempoRestante"></span> <span class="spinner"></span></div>
+                </div>
+                <div class="dropContainer" data-id-upload="fUpload1">
+                  <div class="dropContainerContent">
+                    <a class="gra-link gra-font-bold gra-margin-right-4xs" href="#" onclick="fileUpload.selectFiles(this,event,'fUpload1');"><i class="icon-download importIcon iconLeft"></i>Selecione ou arraste</a>
+                    <input type="file" id="fileInput" class="fileInput" accept="application/pdf" name="cv[]" onchange="fileUpload.mostraBeginUpload('fUpload1');" multiple data-max-files="2" data-max-size="">
+                    o(s) ficheiro(s)
+                  </div>
+                </div>
+                <div class="fuBottom"></div>
+              </div>
+            </div>
+
+            <div class="gra-upload-files gra-margin-top-s" id="fUpload2">
+              <div id="fileUpload">
+                <div class="fuTop">
+                  <div class="beginUpload"><label for="fUpload2">Carregar avatar exemplo</label></div>
+                  <div class="status_right"><span class="sizeRestante"></span> - <span class="tempoRestante"></span> <span class="spinner"></span></div>
+                </div>
+                <div class="dropContainer" data-id-upload="fUpload2">
+                  <div class="dropContainerContent">
+                    <a class="gra-link gra-font-bold gra-margin-right-4xs" href="#" onclick="fileUpload.selectFiles(this,event,'fUpload2');"><i class="icon-download importIcon iconLeft"></i>Selecione ou arraste</a>
+                    <input required type="file" id="fileInput" class="fileInput required-field form-error" accept="image/png, image/jpeg" name="avatar" onchange="fileUpload.mostraBeginUpload('fUpload2');" data-max-size="5">
+                    o(s) ficheiro(s)
+                  </div>
+                </div>
+                <div class="fuBottom"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gra-popup filesUploaded" id="popupListUplFiles">
+            <div class="popupMask"></div>
+            <div class="popupContainer">
+              <div class="popupHeader no-border">
+                Lista de ficheiros carregados
+              </div>
+              <div class="popupContent"></div>
+              <div class="popupFooter">
+                <div class="gra-hr-horizontal-dark-s gra-padding-bottom-xs"></div>
+                <div>
+                  <button type="button" class="gra-btn btn-primary closePopup">Fechar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+﻿:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7f7f7;
+  padding: 20px;
+}
+
+.auth-card {
+  width: min(400px, 100%);
+  border: 1px solid #c2c2c2;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 20px 24px 24px;
+}
+
+.language-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.language-row label {
+  font-size: 0.78rem;
+  color: #292929;
+}
+
+.language-row .field-input {
+  width: 69px;
+  height: 42px;
+}
+
+h1 {
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: 1.8rem;
+  color: #292929;
+}
+
+.form-grid,
+.modal-form {
+  display: grid;
+  gap: 8px;
+}
+
+.form-grid {
+  gap: 7px;
+}
+
+label {
+  font-size: 0.95rem;
+  color: #292929;
+}
+
+.field-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #292929;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.field-error {
+  color: #a0291a;
+  min-height: 14px;
+  font-size: 0.82rem;
+}
+
+.text-link {
+  justify-self: start;
+  border: none;
+  background: transparent;
+  color: #327196;
+  padding: 0;
+  margin-top: -2px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.form-actions,
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.form-actions {
+  flex-direction: column;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-success {
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn-primary {
+  background: #327196;
+  border-color: #327196;
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: #e8e8e8;
+  border-color: #c2c2c2;
+  color: #292929;
+}
+
+.btn-success {
+  background: #687b14;
+  border-color: #687b14;
+  color: #ffffff;
+}
+
+.feedback {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+}
+
+.feedback.error {
+  color: #a0291a;
+}
+
+.feedback.success {
+  color: #346122;
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}

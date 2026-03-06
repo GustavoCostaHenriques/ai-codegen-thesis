@@ -1,0 +1,68 @@
+.page-toolbar,
+.toolbar-filters {
+  display: flex;
+  gap: 12px;
+}
+
+.page-toolbar {
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.table-shell {
+  background: var(--color_white);
+  border: 1px solid var(--color_blue_200);
+  border-radius: 12px;
+  padding: 8px 8px 24px;
+}
+
+.table-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.modal-form {
+  display: grid;
+  gap: 20px;
+}
+
+.modal-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-group label {
+  color: var(--color_blue_900);
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.danger-card {
+  background: var(--color_error_200);
+  border: 1px solid var(--color_error_400);
+  border-radius: 8px;
+  color: var(--color_error_600);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+@media (max-width: 960px) {
+  .page-toolbar,
+  .toolbar-filters,
+  .modal-grid {
+    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+}

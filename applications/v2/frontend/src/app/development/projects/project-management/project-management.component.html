@@ -1,0 +1,102 @@
+<section class="screen">
+  <div class="screen-header">
+    <h2>Project Management</h2>
+    <button type="button" *ngIf="isAdmin()" (click)="openCreateModal()">Create Project</button>
+  </div>
+
+  <p class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Owner</th>
+        <th>Status</th>
+        <th *ngIf="isAdmin()">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="isLoading">
+        <td [attr.colspan]="isAdmin() ? 5 : 4">Loading projects...</td>
+      </tr>
+      <tr *ngFor="let project of projects">
+        <td>{{ project.name }}</td>
+        <td>{{ project.code }}</td>
+        <td>{{ project.owner.name }}</td>
+        <td>{{ project.status }}</td>
+        <td class="action-cell" *ngIf="isAdmin()">
+          <button type="button" class="secondary" (click)="openEditModal(project)">Edit</button>
+          <button type="button" class="danger" (click)="openDeleteModal(project)">Delete</button>
+        </td>
+      </tr>
+      <tr *ngIf="!isLoading && projects.length === 0">
+        <td [attr.colspan]="isAdmin() ? 5 : 4">No projects available.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<app-modal-shell *ngIf="isProjectModalOpen" title="Create / Edit Project" width="580px" (close)="closeProjectModal()">
+  <form [formGroup]="projectForm" (ngSubmit)="saveProject()" novalidate>
+    <div class="field-group">
+      <label for="project-name">Name</label>
+      <input
+        id="project-name"
+        type="text"
+        formControlName="name"
+        [class.invalid]="submitted && projectForm.controls.name.invalid"
+      />
+      <p class="field-error" *ngIf="submitted && projectForm.controls.name.invalid">Name is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="project-code">Code</label>
+      <input
+        id="project-code"
+        type="text"
+        formControlName="code"
+        [class.invalid]="submitted && projectForm.controls.code.invalid"
+      />
+      <p class="field-error" *ngIf="submitted && projectForm.controls.code.invalid">Code is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="project-owner">Owner</label>
+      <select
+        id="project-owner"
+        formControlName="ownerId"
+        [class.invalid]="submitted && projectForm.controls.ownerId.invalid"
+      >
+        <option value="" disabled>Select owner</option>
+        <option *ngFor="let person of activePeople" [value]="person.id">{{ person.name }}</option>
+      </select>
+      <p class="field-error" *ngIf="submitted && projectForm.controls.ownerId.invalid">Owner is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="project-status">Status</label>
+      <select
+        id="project-status"
+        formControlName="status"
+        [class.invalid]="submitted && projectForm.controls.status.invalid"
+      >
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="INACTIVE">INACTIVE</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button type="submit" [disabled]="isSaving">Save Project</button>
+      <button type="button" class="secondary" (click)="closeProjectModal()">Cancel</button>
+    </div>
+  </form>
+</app-modal-shell>
+
+<app-modal-shell *ngIf="isDeleteModalOpen" title="Confirm Delete Project" width="420px" (close)="closeDeleteModal()">
+  <p *ngIf="projectPendingDeletion">Delete project {{ projectPendingDeletion.code }}?</p>
+  <div class="modal-actions">
+    <button type="button" class="danger" (click)="confirmDeleteProject()" [disabled]="isDeleting">Delete</button>
+    <button type="button" class="secondary" (click)="closeDeleteModal()">Cancel</button>
+  </div>
+</app-modal-shell>

@@ -1,0 +1,141 @@
+.planning-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planning-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.calendar {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: #fff;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  overflow-x: auto;
+}
+
+.day-column {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-header {
+  border: 1px solid var(--color-border);
+  background: var(--color-nav);
+  margin: 8px;
+  margin-bottom: 6px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.day-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.person-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-accent);
+  border-radius: var(--radius-card);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.person-header,
+.project-header,
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.project-block {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #fff;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-row {
+  padding-left: 8px;
+}
+
+.task-text {
+  font-size: 13px;
+}
+
+.icon-remove {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-danger-border);
+  background: var(--color-danger-bg);
+  color: var(--text-default);
+  font-size: 12px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.compact {
+  align-self: flex-start;
+  min-height: 24px;
+  font-size: 12px;
+  padding: 2px 10px;
+}
+
+.add-person {
+  margin: 10px auto;
+  width: calc(100% - 36px);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.same-line {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.confirm-copy {
+  margin: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 1200px) {
+  .calendar {
+    min-width: 980px;
+  }
+}
+
+@media (max-width: 700px) {
+  .same-line {
+    grid-template-columns: 1fr;
+  }
+}

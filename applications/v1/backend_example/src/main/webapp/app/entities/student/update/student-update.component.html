@@ -1,0 +1,114 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-student-heading" data-cy="StudentCreateUpdateHeading" jhiTranslate="escolaApp.student.home.createOrEditLabel">
+        Create or edit a Student
+      </h2>
+
+      <div>
+        <jhi-alert-error />
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id" jhiTranslate="escolaApp.student.id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        @let nameRef = editForm.get('name')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_name" jhiTranslate="escolaApp.student.name">Name</label>
+          <input type="text" class="form-control" name="name" id="field_name" data-cy="name" formControlName="name" />
+          @if (nameRef.invalid && (nameRef.dirty || nameRef.touched)) {
+            <div>
+              @if (editForm.get('name')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let ageRef = editForm.get('age')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_age" jhiTranslate="escolaApp.student.age">Age</label>
+          <input type="number" class="form-control" name="age" id="field_age" data-cy="age" formControlName="age" />
+          @if (ageRef.invalid && (ageRef.dirty || ageRef.touched)) {
+            <div>
+              @if (editForm.get('age')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+              @if (editForm.get('age')?.errors?.min) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.min" [translateValues]="{ min: '0' }"
+                  >This field should be at least 0.</small
+                >
+              }
+              <small class="form-text text-danger" [hidden]="!editForm.get('age')?.errors?.number" jhiTranslate="entity.validation.number"
+                >This field should be a number.</small
+              >
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_genre" jhiTranslate="escolaApp.student.genre">Genre</label>
+          <select class="form-control" name="genre" formControlName="genre" id="field_genre" data-cy="genre">
+            <option [ngValue]="null">{{ 'escolaApp.GenreEnum.null' | translate }}</option>
+            @for (genreEnum of genreEnumValues; track $index) {
+              <option [value]="genreEnum">{{ 'escolaApp.GenreEnum.' + genreEnum | translate }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_studentAddress" jhiTranslate="escolaApp.student.studentAddress">Student Address</label>
+          <select
+            class="form-control"
+            id="field_studentAddress"
+            data-cy="studentAddress"
+            name="studentAddress"
+            formControlName="studentAddress"
+            [compareWith]="compareStudentAddress"
+          >
+            <option [ngValue]="null"></option>
+            @for (studentAddressOption of studentAddressesCollection; track $index) {
+              <option [ngValue]="studentAddressOption">{{ studentAddressOption.id }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_course" jhiTranslate="escolaApp.student.course">Course</label>
+          <select
+            class="form-control"
+            id="field_course"
+            data-cy="course"
+            name="course"
+            formControlName="course"
+            [compareWith]="compareCourse"
+          >
+            <option [ngValue]="null"></option>
+            @for (courseOption of coursesSharedCollection; track $index) {
+              <option [ngValue]="courseOption">{{ courseOption.id }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,85 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="header">
+    <h1>User Management</h1>
+    <button type="button" (click)="openCreateUserModal()">Create User</button>
+  </header>
+
+  @if (errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  }
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of users; track user.id) {
+        <tr>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>{{ user.status }}</td>
+          <td class="row-actions">
+            <button type="button" (click)="openEditUserModal(user)">Edit</button>
+            <button type="button" (click)="openDeleteUserModal(user)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+
+@if (modalOpen) {
+  <section class="modal">
+    <form class="dialog" [formGroup]="userForm" (ngSubmit)="saveUser()">
+      <h2>Create / Edit User</h2>
+      <label>
+        Name
+        <input type="text" formControlName="name" />
+      </label>
+      <label>
+        Email
+        <input type="email" formControlName="email" />
+      </label>
+      <label>
+        Role
+        <select formControlName="role">
+          <option value="ADMIN">ADMIN</option>
+          <option value="USER">USER</option>
+        </select>
+      </label>
+      <label>
+        Status
+        <select formControlName="status">
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit">Save</button>
+        <button type="button" (click)="closeUserModal()">Cancel</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (deleteModalOpen) {
+  <section class="modal">
+    <div class="dialog">
+      <h2>Confirm Delete User</h2>
+      <p>Delete selected user?</p>
+      <div class="dialog-actions">
+        <button type="button" (click)="deleteUser()">Confirm</button>
+        <button type="button" (click)="closeDeleteModal()">Cancel</button>
+      </div>
+    </div>
+  </section>
+}

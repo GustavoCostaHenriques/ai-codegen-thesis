@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Switch - GRA Design System</title>
+  <link rel="stylesheet" href="../gra.css">
+</head>
+<body class="pageContent gra-padding-bottom-7xl">
+
+  <main class="gra-container gra-padding-top-l">
+    <h1 class="gra-font-3xl gra-margin-bottom-m">Switch</h1>
+
+    <section class="gra-margin-top-xl">
+      <h2>Exemplos</h2>
+      <hr class="gra-hr-horizontal-dark-s">
+
+      <div class="gra-row-bs">
+        <div class="gra-col-bs-xl-1">
+          <div class="gra-row-bs">
+            <div class="gra-col-bs-xl-4 d-flex">
+              <label class="gra-switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+              </label>
+              <span class="gra-margin-left-xs">default</span>
+            </div>
+            <div class="gra-col-bs-xl-4 d-flex">
+              <label class="gra-switch disabled">
+                <input type="checkbox" disabled>
+                <span class="slider round"></span>
+              </label>
+              <span class="gra-margin-left-xs">Disabled</span>
+            </div>
+            <div class="gra-col-bs-xl-4 d-flex">
+              <label class="gra-switch disabled">
+                <input type="checkbox" disabled checked>
+                <span class="slider round"></span>
+              </label>
+              <span class="gra-margin-left-xs">Disabled Selecionado</span>
+            </div>
+            <div class="gra-col-bs-xl-4 d-flex">
+              <label class="gra-switch error">
+                <input type="checkbox">
+                <span class="slider round"></span>
+              </label>
+              <span class="gra-margin-left-xs">Erro</span>
+            </div>
+          </div>
+
+          <div class="gra-row-bs">
+            <div class="gra-col-bs-xl-2">
+              <div class="d-flex align-items-center gra-margin-top-xs">
+                <span class="gra-font-bold gra-margin-right-m">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</span>
+                <label class="gra-switch">
+                  <input type="checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="d-flex align-items-center gra-margin-top-xs">
+                <span class="gra-margin-right-m">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</span>
+                <label class="gra-switch">
+                  <input type="checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="d-flex align-items-center gra-padding-2xs gra-rounded-m gra-margin-top-xs" style="border:1px solid #FFCB2D;">
+                <span class="gra-margin-right-m">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</span>
+                <label class="gra-switch">
+                  <input type="checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="module" src="../assets/main.js"></script>
+</body>
+</html>
