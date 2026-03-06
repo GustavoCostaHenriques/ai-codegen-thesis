@@ -1,0 +1,2075 @@
+{
+  "name": "AI Application Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      design: `{\n  \"type\": \"excalidraw\",\n  \"version\": 2,\n  \"source\": \"https://excalidraw.com\",\n  \"elements\": [\n    {\n      \"id\": \"r1\",\n      \"type\": \"rectangle\",\n      \"x\": 80,\n      \"y\": 80,\n      \"width\": 420,\n      \"height\": 280,\n      \"angle\": 0,\n      \"strokeColor\": \"#B0CCDD\",\n      \"backgroundColor\": \"#FFFFFF\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 2,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 1,\n      \"version\": 1,\n      \"versionNonce\": 11,\n      \"isDeleted\": false,\n      \"roundness\": { \"type\": 3 }\n    },\n    {\n      \"id\": \"t1\",\n      \"type\": \"text\",\n      \"x\": 100,\n      \"y\": 100,\n      \"width\": 260,\n      \"height\": 22.5,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 2,\n      \"version\": 1,\n      \"versionNonce\": 12,\n      \"isDeleted\": false,\n      \"text\": \"1. Login (username/email + password)\",\n      \"fontSize\": 18,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"1. Login (username/email + password)\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"r2\",\n      \"type\": \"rectangle\",\n      \"x\": 540,\n      \"y\": 80,\n      \"width\": 860,\n      \"height\": 520,\n      \"angle\": 0,\n      \"strokeColor\": \"#B0CCDD\",\n      \"backgroundColor\": \"#FFFFFF\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 2,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 3,\n      \"version\": 1,\n      \"versionNonce\": 13,\n      \"isDeleted\": false,\n      \"roundness\": { \"type\": 3 }\n    },\n    {\n      \"id\": \"t2\",\n      \"type\": \"text\",\n      \"x\": 560,\n      \"y\": 100,\n      \"width\": 350,\n      \"height\": 22.5,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 4,\n      \"version\": 1,\n      \"versionNonce\": 14,\n      \"isDeleted\": false,\n      \"text\": \"2. Task List (Kanban + filters + create/edit/delete)\",\n      \"fontSize\": 18,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"2. Task List (Kanban + filters + create/edit/delete)\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"t3\",\n      \"type\": \"text\",\n      \"x\": 600,\n      \"y\": 190,\n      \"width\": 90,\n      \"height\": 20,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 5,\n      \"version\": 1,\n      \"versionNonce\": 15,\n      \"isDeleted\": false,\n      \"text\": \"TODO column\",\n      \"fontSize\": 16,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"TODO column\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"t4\",\n      \"type\": \"text\",\n      \"x\": 860,\n      \"y\": 190,\n      \"width\": 145,\n      \"height\": 20,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 6,\n      \"version\": 1,\n      \"versionNonce\": 16,\n      \"isDeleted\": false,\n      \"text\": \"IN_PROGRESS column\",\n      \"fontSize\": 16,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"IN_PROGRESS column\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"t5\",\n      \"type\": \"text\",\n      \"x\": 1170,\n      \"y\": 190,\n      \"width\": 95,\n      \"height\": 20,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 7,\n      \"version\": 1,\n      \"versionNonce\": 17,\n      \"isDeleted\": false,\n      \"text\": \"DONE column\",\n      \"fontSize\": 16,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"DONE column\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"r3\",\n      \"type\": \"rectangle\",\n      \"x\": 80,\n      \"y\": 400,\n      \"width\": 420,\n      \"height\": 220,\n      \"angle\": 0,\n      \"strokeColor\": \"#B0CCDD\",\n      \"backgroundColor\": \"#FFFFFF\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 2,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 8,\n      \"version\": 1,\n      \"versionNonce\": 18,\n      \"isDeleted\": false,\n      \"roundness\": { \"type\": 3 }\n    },\n    {\n      \"id\": \"t6\",\n      \"type\": \"text\",\n      \"x\": 100,\n      \"y\": 420,\n      \"width\": 310,\n      \"height\": 22.5,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 9,\n      \"version\": 1,\n      \"versionNonce\": 19,\n      \"isDeleted\": false,\n      \"text\": \"3. Create/Edit Task Modal (title, desc, assignee)\",\n      \"fontSize\": 18,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"3. Create/Edit Task Modal (title, desc, assignee)\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"r4\",\n      \"type\": \"rectangle\",\n      \"x\": 540,\n      \"y\": 640,\n      \"width\": 520,\n      \"height\": 220,\n      \"angle\": 0,\n      \"strokeColor\": \"#B0CCDD\",\n      \"backgroundColor\": \"#FFFFFF\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 2,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 10,\n      \"version\": 1,\n      \"versionNonce\": 20,\n      \"isDeleted\": false,\n      \"roundness\": { \"type\": 3 }\n    },\n    {\n      \"id\": \"t7\",\n      \"type\": \"text\",\n      \"x\": 560,\n      \"y\": 660,\n      \"width\": 380,\n      \"height\": 22.5,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 11,\n      \"version\": 1,\n      \"versionNonce\": 21,\n      \"isDeleted\": false,\n      \"text\": \"4. ADMIN User Management (list/create/edit/delete users)\",\n      \"fontSize\": 18,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"4. ADMIN User Management (list/create/edit/delete users)\",\n      \"lineHeight\": 1.25\n    },\n    {\n      \"id\": \"r5\",\n      \"type\": \"rectangle\",\n      \"x\": 1100,\n      \"y\": 640,\n      \"width\": 300,\n      \"height\": 220,\n      \"angle\": 0,\n      \"strokeColor\": \"#B0CCDD\",\n      \"backgroundColor\": \"#FFFFFF\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 2,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 12,\n      \"version\": 1,\n      \"versionNonce\": 22,\n      \"isDeleted\": false,\n      \"roundness\": { \"type\": 3 }\n    },\n    {\n      \"id\": \"t8\",\n      \"type\": \"text\",\n      \"x\": 1120,\n      \"y\": 660,\n      \"width\": 240,\n      \"height\": 22.5,\n      \"angle\": 0,\n      \"strokeColor\": \"#2C6485\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"solid\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 0,\n      \"opacity\": 100,\n      \"seed\": 13,\n      \"version\": 1,\n      \"versionNonce\": 23,\n      \"isDeleted\": false,\n      \"text\": \"5. Delete Confirmation Dialog\",\n      \"fontSize\": 18,\n      \"fontFamily\": 2,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"originalText\": \"5. Delete Confirmation Dialog\",\n      \"lineHeight\": 1.25\n    }\n  ],\n  \"appState\": {\n    \"viewBackgroundColor\": \"#F5F9FB\"\n  },\n  \"files\": {}\n}\n`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        -1008
+      ],
+      "id": "a9645286-d2b1-4ae4-91ba-f080ab151052",
+      "name": "DESIGN"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "design",
+        "binaryPropertyName": "design",
+        "options": {
+          "fileName": "design.json"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        -1120
+      ],
+      "id": "7b0b0018-93b4-42a4-9f87-af3682341fe8",
+      "name": "CONVERT DESIGN"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "response",
+        "binaryPropertyName": "requirements",
+        "options": {
+          "fileName": "requirements.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1600,
+        128
+      ],
+      "id": "14d64c89-831a-405a-978e-4eae39e4a563",
+      "name": "REQ - File to Review"
+    },
+    {
+      "parameters": {
+        "jsCode": "const INPUT_FIELD = \"design\";\nconst OUTPUT_FIELD = \"design_api\";\n\nconst CONFIG = {\n  container_types: new Set([\"rectangle\", \"ellipse\", \"diamond\", \"frame\"]),\n  screen_types: new Set([\"rectangle\", \"frame\"]),\n  min_container_width: 24,\n  min_container_height: 24,\n  min_container_area: 800,\n  top_level_containment_ratio: 0.96,\n  top_level_center_overlap_ratio: 0.85,\n  screen_area_percentile: 0.85,\n  screen_child_count_percentile: 0.85,\n  min_screen_area: 120000,\n  min_screen_width: 280,\n  min_screen_height: 320,\n  min_screen_child_count: 6,\n  screen_membership_overlap_ratio: 0.35,\n  screen_membership_margin: 24,\n  overlay_min_width: 160,\n  overlay_min_height: 100,\n  overlay_min_child_count: 2,\n  modal_min_width: 420,\n  modal_min_height: 260,\n  modal_min_area: 90000,\n  component_containment_ratio: 0.9,\n  component_center_overlap_ratio: 0.6,\n  label_vertical_gap: 28,\n  label_horizontal_gap: 20,\n  label_horizontal_overlap_ratio: 0.45,\n  title_top_band_ratio: 0.22,\n  title_above_margin: 36,\n  title_horizontal_margin: 48,\n};\n\nconst NUMERIC_RE = /^[\\W\\d_]+$/;\nconst WHITESPACE_RE = /\\s+/g;\nconst CONTROL_CHAR_ESCAPES = {\n  \"\\b\": \"\\\\b\",\n  \"\\f\": \"\\\\f\",\n  \"\\n\": \"\\\\n\",\n  \"\\r\": \"\\\\r\",\n  \"\\t\": \"\\\\t\",\n};\n\nfunction cleanText(value) {\n  if (value === undefined || value === null) {\n    return null;\n  }\n\n  const cleaned = String(value).replace(WHITESPACE_RE, \" \").trim();\n  return cleaned || null;\n}\n\nfunction createBounds(left, top, right, bottom) {\n  return {\n    left,\n    top,\n    right,\n    bottom,\n    get width() {\n      return Math.max(0, this.right - this.left);\n    },\n    get height() {\n      return Math.max(0, this.bottom - this.top);\n    },\n    get area() {\n      return this.width * this.height;\n    },\n    get center() {\n      return [this.left + this.width / 2, this.top + this.height / 2];\n    },\n  };\n}\n\nfunction expandBounds(bounds, margin) {\n  return createBounds(\n    bounds.left - margin,\n    bounds.top - margin,\n    bounds.right + margin,\n    bounds.bottom + margin,\n  );\n}\n\nfunction elementBounds(element) {\n  const x = Number(element.x || 0);\n  const y = Number(element.y || 0);\n  const width = Number(element.width || 0);\n  const height = Number(element.height || 0);\n\n  const xs = [x, x + width];\n  const ys = [y, y + height];\n\n  const points = element.points || [];\n  if (Array.isArray(points)) {\n    for (const point of points) {\n      if (Array.isArray(point) && point.length >= 2) {\n        xs.push(x + Number(point[0]));\n        ys.push(y + Number(point[1]));\n      }\n    }\n  }\n\n  return createBounds(\n    Math.min(...xs),\n    Math.min(...ys),\n    Math.max(...xs),\n    Math.max(...ys),\n  );\n}\n\nfunction pointInBounds(point, bounds) {\n  const [x, y] = point;\n  return bounds.left <= x && x <= bounds.right && bounds.top <= y && y <= bounds.bottom;\n}\n\nfunction intersectionArea(a, b) {\n  const left = Math.max(a.left, b.left);\n  const right = Math.min(a.right, b.right);\n  const top = Math.max(a.top, b.top);\n  const bottom = Math.min(a.bottom, b.bottom);\n  if (right <= left || bottom <= top) {\n    return 0;\n  }\n  return (right - left) * (bottom - top);\n}\n\nfunction overlapRatio(inner, outer) {\n  return intersectionArea(inner, outer) / Math.max(inner.area, 1);\n}\n\nfunction percentile(values, q) {\n  if (!values.length) {\n    return 0;\n  }\n\n  const ordered = [...values].map(Number).sort((a, b) => a - b);\n  if (ordered.length === 1) {\n    return ordered[0];\n  }\n\n  const position = (ordered.length - 1) * Math.max(0, Math.min(1, q));\n  const lower = Math.floor(position);\n  const upper = Math.ceil(position);\n  if (lower === upper) {\n    return ordered[lower];\n  }\n\n  const fraction = position - lower;\n  return ordered[lower] * (1 - fraction) + ordered[upper] * fraction;\n}\n\nfunction makeNode(raw, index) {\n  return {\n    id: raw.id || `element-${index}`,\n    sourceElementId: raw.id || `element-${index}`,\n    type: raw.type || \"unknown\",\n    text: cleanText(raw.text || raw.originalText),\n    fontSize: raw.fontSize,\n    bounds: elementBounds(raw),\n    zIndex: index,\n  };\n}\n\nfunction isContainer(node) {\n  const bounds = node.bounds;\n  return (\n    CONFIG.container_types.has(node.type) &&\n    bounds.width >= CONFIG.min_container_width &&\n    bounds.height >= CONFIG.min_container_height &&\n    bounds.area >= CONFIG.min_container_area\n  );\n}\n\nfunction isTopLevelContainer(candidate, containers) {\n  const childBounds = candidate.bounds;\n  const childCenter = childBounds.center;\n\n  for (const parent of containers) {\n    if (parent.id === candidate.id) {\n      continue;\n    }\n\n    const parentBounds = parent.bounds;\n    if (parentBounds.area <= childBounds.area * 1.05) {\n      continue;\n    }\n\n    const ratio = overlapRatio(childBounds, parentBounds);\n    if (ratio >= CONFIG.top_level_containment_ratio) {\n      return false;\n    }\n\n    if (pointInBounds(childCenter, parentBounds) && ratio >= CONFIG.top_level_center_overlap_ratio) {\n      return false;\n    }\n  }\n\n  return true;\n}\n\nfunction countMembers(container, elements, margin = 0) {\n  const bounds = expandBounds(container.bounds, margin);\n  let total = 0;\n\n  for (const element of elements) {\n    if (element.id === container.id) {\n      continue;\n    }\n\n    const box = element.bounds;\n    if (\n      pointInBounds(box.center, bounds) ||\n      overlapRatio(box, bounds) >= CONFIG.screen_membership_overlap_ratio\n    ) {\n      total += 1;\n    }\n  }\n\n  return total;\n}\n\nfunction detectScreens(elements) {\n  const containers = elements.filter(\n    (node) => isContainer(node) && CONFIG.screen_types.has(node.type),\n  );\n  if (!containers.length) {\n    return [];\n  }\n\n  let topLevel = containers.filter((node) => isTopLevelContainer(node, containers));\n  if (!topLevel.length) {\n    topLevel = containers;\n  }\n\n  topLevel = topLevel.filter(\n    (node) =>\n      node.bounds.width >= CONFIG.min_screen_width &&\n      node.bounds.height >= CONFIG.min_screen_height,\n  );\n  if (!topLevel.length) {\n    return [];\n  }\n\n  const memberCounts = Object.fromEntries(\n    topLevel.map((node) => [node.id, countMembers(node, elements)]),\n  );\n  const areaThreshold = Math.max(\n    CONFIG.min_screen_area,\n    percentile(\n      topLevel.map((node) => node.bounds.area),\n      CONFIG.screen_area_percentile,\n    ),\n  );\n  const childThreshold = Math.max(\n    CONFIG.min_screen_child_count,\n    percentile(Object.values(memberCounts), CONFIG.screen_child_count_percentile),\n  );\n\n  let screens = topLevel.filter(\n    (node) =>\n      node.bounds.area >= areaThreshold || memberCounts[node.id] >= childThreshold,\n  );\n\n  if (!screens.length) {\n    screens = [\n      topLevel.reduce((best, node) => {\n        const bestScore = [best.bounds.area, memberCounts[best.id]];\n        const nextScore = [node.bounds.area, memberCounts[node.id]];\n        return nextScore[0] > bestScore[0] || (nextScore[0] === bestScore[0] && nextScore[1] > bestScore[1])\n          ? node\n          : best;\n      }),\n    ];\n  }\n\n  return screens.sort(\n    (a, b) => a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex,\n  );\n}\n\nfunction inferRootName(root, textNodes, usedNames, defaultPrefix, topBandRatio = 0.22) {\n  const bounds = root.bounds;\n  const titleBandBottom = bounds.top + bounds.height * topBandRatio;\n  const candidates = [];\n\n  for (const node of textNodes) {\n    const text = node.text;\n    if (!text || NUMERIC_RE.test(text)) {\n      continue;\n    }\n\n    const nodeBounds = node.bounds;\n    if (nodeBounds.right < bounds.left - CONFIG.title_horizontal_margin) {\n      continue;\n    }\n    if (nodeBounds.left > bounds.right + CONFIG.title_horizontal_margin) {\n      continue;\n    }\n    if (nodeBounds.top < bounds.top - CONFIG.title_above_margin) {\n      continue;\n    }\n    if (nodeBounds.top > titleBandBottom) {\n      continue;\n    }\n\n    const distance =\n      Math.max(0, nodeBounds.left - bounds.left) +\n      Math.max(0, nodeBounds.top - bounds.top);\n    const fontSize = Number(node.fontSize || 16);\n    const alphaBonus = [...text].filter((char) => /[A-Za-z]/.test(char)).length;\n    const score = fontSize * 2 + Math.min(alphaBonus, 30) - distance / 30;\n    candidates.push([score, text]);\n  }\n\n  let baseName = `${defaultPrefix}_${root.id}`;\n  if (candidates.length) {\n    candidates.sort((a, b) => b[0] - a[0] || a[1].localeCompare(b[1]));\n    baseName = candidates[0][1];\n  }\n\n  const suffix = usedNames[baseName] || 0;\n  usedNames[baseName] = suffix + 1;\n  return suffix === 0 ? baseName : `${baseName} (${suffix + 1})`;\n}\n\nfunction distanceBetween(a, b) {\n  return Math.hypot(a[0] - b[0], a[1] - b[1]);\n}\n\nfunction rootMembershipScore(element, root) {\n  const rootBounds = expandBounds(root.bounds, CONFIG.screen_membership_margin);\n  const elementBoundsValue = element.bounds;\n  const centerInside = pointInBounds(elementBoundsValue.center, rootBounds);\n  const overlap = overlapRatio(elementBoundsValue, rootBounds);\n\n  if (!centerInside && overlap < CONFIG.screen_membership_overlap_ratio) {\n    return null;\n  }\n\n  const distance = distanceBetween(rootBounds.center, elementBoundsValue.center);\n  const diagonal = Math.hypot(rootBounds.width, rootBounds.height) || 1;\n  const distancePenalty = distance / diagonal;\n  return (centerInside ? 1.5 : 0) + overlap * 2 - distancePenalty;\n}\n\nfunction assignElementsToRoots(elements, roots) {\n  const assignments = Object.fromEntries(roots.map((root) => [root.id, []]));\n  const rootIds = new Set(roots.map((root) => root.id));\n  const remaining = [];\n\n  for (const element of elements) {\n    if (rootIds.has(element.id)) {\n      continue;\n    }\n\n    let bestRoot = null;\n    let bestScore = null;\n\n    for (const root of roots) {\n      const score = rootMembershipScore(element, root);\n      if (score === null) {\n        continue;\n      }\n      if (bestScore === null || score > bestScore) {\n        bestScore = score;\n        bestRoot = root;\n      }\n    }\n\n    if (!bestRoot) {\n      remaining.push(element);\n    } else {\n      assignments[bestRoot.id].push(element);\n    }\n  }\n\n  return [assignments, remaining];\n}\n\nfunction detectStandaloneOverlays(elements) {\n  const containers = elements.filter(\n    (node) =>\n      isContainer(node) &&\n      node.bounds.width >= CONFIG.overlay_min_width &&\n      node.bounds.height >= CONFIG.overlay_min_height,\n  );\n  if (!containers.length) {\n    return [];\n  }\n\n  const topLevel = containers.filter((node) => isTopLevelContainer(node, containers));\n  const overlays = topLevel.filter(\n    (node) => countMembers(node, elements) >= CONFIG.overlay_min_child_count,\n  );\n\n  return overlays.sort(\n    (a, b) => a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex,\n  );\n}\n\nfunction componentParentScore(child, parent) {\n  const childBounds = child.bounds;\n  const parentBounds = parent.bounds;\n\n  if (parentBounds.area <= childBounds.area * 1.01) {\n    return null;\n  }\n\n  const centerInside = pointInBounds(childBounds.center, parentBounds);\n  const ratio = overlapRatio(childBounds, parentBounds);\n\n  if (!centerInside && ratio < CONFIG.component_containment_ratio) {\n    return null;\n  }\n  if (centerInside && ratio < CONFIG.component_center_overlap_ratio) {\n    return null;\n  }\n\n  const freeSpace = Math.max(parentBounds.area - childBounds.area, 1);\n  return ratio * 3 + (centerInside ? 1 : 0) - Math.log(freeSpace);\n}\n\nfunction horizontalOverlapRatio(a, b) {\n  const overlap = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));\n  return overlap / Math.max(Math.min(a.width, b.width), 1);\n}\n\nfunction verticalGap(a, b) {\n  if (a.bottom <= b.top) {\n    return b.top - a.bottom;\n  }\n  if (b.bottom <= a.top) {\n    return a.top - b.bottom;\n  }\n  return 0;\n}\n\nfunction isMeaningfulText(node) {\n  return Boolean(node.text && !NUMERIC_RE.test(node.text));\n}\n\nfunction attachTextLabels(textNodes, objectNodes) {\n  const labels = {};\n\n  for (const textNode of textNodes) {\n    if (!isMeaningfulText(textNode)) {\n      continue;\n    }\n\n    const textBounds = textNode.bounds;\n    let bestTarget = null;\n    let bestScore = null;\n\n    for (const candidate of objectNodes) {\n      const candidateBounds = candidate.bounds;\n      let score = null;\n\n      if (pointInBounds(textBounds.center, candidateBounds)) {\n        score = 5 - Math.log(Math.max(candidateBounds.area, 1));\n      } else {\n        const gap = verticalGap(textBounds, candidateBounds);\n        const overlap = horizontalOverlapRatio(textBounds, candidateBounds);\n        const closeAbove = textBounds.bottom <= candidateBounds.top + CONFIG.label_vertical_gap;\n        const closeLeft =\n          Math.abs(textBounds.right - candidateBounds.left) <= CONFIG.label_horizontal_gap &&\n          overlap >= 0.25;\n\n        if (\n          gap <= CONFIG.label_vertical_gap &&\n          overlap >= CONFIG.label_horizontal_overlap_ratio &&\n          closeAbove\n        ) {\n          score =\n            3 -\n            gap / Math.max(CONFIG.label_vertical_gap, 1) -\n            Math.log(Math.max(candidateBounds.area, 1));\n        } else if (closeLeft) {\n          score =\n            2 -\n            Math.abs(textBounds.right - candidateBounds.left) /\n              Math.max(CONFIG.label_horizontal_gap, 1);\n        }\n      }\n\n      if (score === null) {\n        continue;\n      }\n\n      if (bestScore === null || score > bestScore) {\n        bestScore = score;\n        bestTarget = candidate;\n      }\n    }\n\n    if (!bestTarget) {\n      continue;\n    }\n\n    labels[bestTarget.id] = labels[bestTarget.id] || [];\n    if (!labels[bestTarget.id].includes(textNode.text)) {\n      labels[bestTarget.id].push(textNode.text);\n    }\n  }\n\n  return labels;\n}\n\nfunction classifyOverlayKind(bounds, referenceBounds) {\n  if (referenceBounds) {\n    const widthRatio = bounds.width / Math.max(referenceBounds.width, 1);\n    const heightRatio = bounds.height / Math.max(referenceBounds.height, 1);\n    const detached =\n      bounds.left > referenceBounds.left + referenceBounds.width * 0.04 &&\n      bounds.right < referenceBounds.right - referenceBounds.width * 0.04 &&\n      bounds.top > referenceBounds.top + referenceBounds.height * 0.04 &&\n      bounds.bottom < referenceBounds.bottom - referenceBounds.height * 0.04;\n    const centered =\n      referenceBounds.left + referenceBounds.width * 0.15 <= bounds.center[0] &&\n      bounds.center[0] <= referenceBounds.right - referenceBounds.width * 0.15 &&\n      referenceBounds.top + referenceBounds.height * 0.12 <= bounds.center[1] &&\n      bounds.center[1] <= referenceBounds.bottom - referenceBounds.height * 0.12;\n\n    if (centered && detached && widthRatio >= 0.16 && heightRatio >= 0.14) {\n      return widthRatio >= 0.28 || heightRatio >= 0.26 ? \"modal\" : \"dialog\";\n    }\n  }\n\n  if (\n    bounds.width >= CONFIG.modal_min_width ||\n    bounds.height >= CONFIG.modal_min_height ||\n    bounds.area >= CONFIG.modal_min_area\n  ) {\n    return \"modal\";\n  }\n\n  return \"dialog\";\n}\n\nfunction inferObjectKind(node, childNodes, labels, rootBounds) {\n  const overlayKind = rootBounds ? classifyOverlayKind(node.bounds, rootBounds) : null;\n  if (overlayKind && rootBounds && node.bounds.area < rootBounds.area * 0.85) {\n    return overlayKind;\n  }\n  if (labels.length && node.bounds.height <= 72) {\n    return \"control\";\n  }\n  if (childNodes.length) {\n    return \"group\";\n  }\n  if (node.bounds.height <= 88) {\n    return \"control\";\n  }\n  return \"container\";\n}\n\nfunction boundsToBox(bounds) {\n  return [\n    Number(bounds.left.toFixed(2)),\n    Number(bounds.top.toFixed(2)),\n    Number(bounds.width.toFixed(2)),\n    Number(bounds.height.toFixed(2)),\n  ];\n}\n\nfunction serializeObject(node, childrenMap, labelMap, rootBounds) {\n  const childNodes = [...(childrenMap[node.id] || [])].sort(\n    (a, b) => a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex,\n  );\n  const labels = labelMap[node.id] || [];\n\n  const payload = {\n    id: node.id,\n    sourceId: node.sourceElementId,\n    kind: inferObjectKind(node, childNodes, labels, rootBounds),\n    type: node.type,\n    box: boundsToBox(node.bounds),\n  };\n\n  if (labels.length) {\n    payload.labels = labels;\n  }\n  if (childNodes.length) {\n    payload.objects = childNodes.map((child) =>\n      serializeObject(child, childrenMap, labelMap, rootBounds),\n    );\n  }\n\n  return payload;\n}\n\nfunction buildReducedObjects(elements, rootBounds) {\n  if (!elements.length) {\n    return [];\n  }\n\n  const objectNodes = elements.filter((node) => isContainer(node));\n  if (!objectNodes.length) {\n    return [];\n  }\n\n  const parentMap = {};\n  const sortedNodes = [...objectNodes].sort(\n    (a, b) => a.bounds.area - b.bounds.area || a.zIndex - b.zIndex,\n  );\n\n  for (const node of sortedNodes) {\n    let bestParent = null;\n    let bestScore = null;\n\n    for (const parent of objectNodes) {\n      if (parent.id === node.id) {\n        continue;\n      }\n\n      const score = componentParentScore(node, parent);\n      if (score === null) {\n        continue;\n      }\n      if (bestScore === null || score > bestScore) {\n        bestScore = score;\n        bestParent = parent.id;\n      }\n    }\n\n    parentMap[node.id] = bestParent;\n  }\n\n  const childrenMap = {};\n  const roots = [];\n\n  for (const node of objectNodes) {\n    const parentId = parentMap[node.id];\n    if (parentId) {\n      childrenMap[parentId] = childrenMap[parentId] || [];\n      childrenMap[parentId].push(node);\n    } else {\n      roots.push(node);\n    }\n  }\n\n  const labelMap = attachTextLabels(\n    elements.filter((node) => node.type === \"text\"),\n    objectNodes,\n  );\n\n  return roots\n    .sort((a, b) => a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex)\n    .map((node) => serializeObject(node, childrenMap, labelMap, rootBounds));\n}\n\nfunction transformExcalidraw(data) {\n  const rawElements = Array.isArray(data.elements) ? data.elements : [];\n  const elements = rawElements\n    .filter((raw) => raw && typeof raw === \"object\" && !raw.isDeleted)\n    .map((raw, index) => makeNode(raw, index));\n\n  const screens = detectScreens(elements);\n  const [screenAssignments, remaining] = assignElementsToRoots(elements, screens);\n  const overlays = detectStandaloneOverlays(remaining);\n  const [overlayAssignments] = assignElementsToRoots(remaining, overlays);\n  const textNodes = elements.filter((node) => node.type === \"text\");\n\n  const usedScreenNames = {};\n  const usedOverlayNames = {};\n\n  const serializedScreens = screens.map((screen, index) => ({\n    id: `screen-${index + 1}`,\n    name: inferRootName(screen, textNodes, usedScreenNames, \"screen\"),\n    sourceId: screen.sourceElementId,\n    box: boundsToBox(screen.bounds),\n    objects: buildReducedObjects(screenAssignments[screen.id] || [], screen.bounds),\n  }));\n\n  const serializedModals = [];\n  const serializedDialogs = [];\n\n  overlays.forEach((overlay, index) => {\n    const kind = classifyOverlayKind(overlay.bounds, null);\n    const payload = {\n      id: `${kind}-${index + 1}`,\n      name: inferRootName(overlay, textNodes, usedOverlayNames, kind, 0.3),\n      sourceId: overlay.sourceElementId,\n      box: boundsToBox(overlay.bounds),\n      objects: buildReducedObjects(overlayAssignments[overlay.id] || [], overlay.bounds),\n    };\n\n    if (kind === \"modal\") {\n      serializedModals.push(payload);\n    } else {\n      serializedDialogs.push(payload);\n    }\n  });\n\n  return {\n    meta: {\n      source: data.source,\n      type: data.type,\n      version: data.version,\n      elementCount: elements.length,\n      screenCount: serializedScreens.length,\n      modalCount: serializedModals.length,\n      dialogCount: serializedDialogs.length,\n    },\n    screens: serializedScreens,\n    modals: serializedModals,\n    dialogs: serializedDialogs,\n  };\n}\n\nfunction escapeControlCharsInJsonStrings(value) {\n  let result = \"\";\n  let inString = false;\n  let escaped = false;\n\n  for (let index = 0; index < value.length; index += 1) {\n    const char = value[index];\n\n    if (inString) {\n      if (escaped) {\n        result += char;\n        escaped = false;\n        continue;\n      }\n\n      if (char === \"\\\\\") {\n        result += char;\n        escaped = true;\n        continue;\n      }\n\n      if (char === '\"') {\n        result += char;\n        inString = false;\n        continue;\n      }\n\n      const code = char.charCodeAt(0);\n      if (code <= 0x1f) {\n        result += CONTROL_CHAR_ESCAPES[char] || '\\\\' + 'u' + code.toString(16).padStart(4, '0');\n        continue;\n      }\n\n      result += char;\n      continue;\n    }\n\n    if (char === '\"') {\n      inString = true;\n    }\n\n    result += char;\n  }\n\n  return result;\n}\n\nfunction parseJsonObject(rawDesign, itemIndex) {\n  const attempts = [rawDesign, escapeControlCharsInJsonStrings(rawDesign)];\n  let lastError = null;\n\n  for (const candidate of attempts) {\n    try {\n      const parsed = JSON.parse(candidate);\n      if (parsed && typeof parsed === \"object\" && !Array.isArray(parsed)) {\n        return parsed;\n      }\n\n      throw new Error(\"Item \" + itemIndex + \": field '\" + INPUT_FIELD + \"' must decode to a JSON object.\");\n    } catch (error) {\n      lastError = error;\n    }\n  }\n\n  throw new Error(\"Item \" + itemIndex + \": field '\" + INPUT_FIELD + \"' is not valid JSON: \" + lastError.message);\n}\n\nfunction parseDesign(rawDesign, itemIndex) {\n  if (rawDesign && typeof rawDesign === \"object\" && !Array.isArray(rawDesign)) {\n    return rawDesign;\n  }\n\n  if (typeof rawDesign === \"string\") {\n    return parseJsonObject(rawDesign, itemIndex);\n  }\n\n  throw new Error(\"Item \" + itemIndex + \": field '\" + INPUT_FIELD + \"' must be a JSON string or object.\");\n}\n\nconst items = $input.all();\n\nreturn items.map((item, itemIndex) => {\n  const sourceJson = item.json || {};\n  if (!(INPUT_FIELD in sourceJson)) {\n    throw new Error(`Item ${itemIndex}: missing '${INPUT_FIELD}' field.`);\n  }\n\n  const design = parseDesign(sourceJson[INPUT_FIELD], itemIndex);\n  const reducedJson = transformExcalidraw(design);\n\n  return {\n    json: {\n      [OUTPUT_FIELD]: reducedJson,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        -928
+      ],
+      "id": "9e99e244-77e1-41fe-89ce-bede2b7024ba",
+      "name": "DESIGN_FOR_API"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "design_api",
+        "binaryPropertyName": "design_api",
+        "options": {
+          "fileName": "design_api.json"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        -928
+      ],
+      "id": "ea78a943-6a72-416a-b450-eb2450af98d7",
+      "name": "DESIGN_FOR_API FILE"
+    },
+    {
+      "parameters": {
+        "content": "## API Generation Module\n\nTransforms **structured requirements** and **UI design artifacts** into an **OpenAPI specification** using an LLM.\n",
+        "height": 800,
+        "width": 2672,
+        "color": "#FAF6EC"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1888,
+        1088
+      ],
+      "typeVersion": 1,
+      "id": "ce767c1e-126f-420f-8a3f-bd0fda39ae49",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "if-openapi-approved-condition",
+              "leftValue": "={{ $json.Approved }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f371da35-0427-4922-a74c-2e935cf3d4fd",
+      "name": "API - Loop Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4048,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Human Review: OpenAPI Draft",
+        "formDescription": "Review the current API ZIP, then approve it or request changes.",
+        "formFields": {
+          "values": [
+            {
+              "fieldName": "openapiYaml",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.openapiYaml }}"
+            },
+            {
+              "fieldName": "revisionNumber",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.revisionNumber }}"
+            },
+            {
+              "fieldName": "zipDownloadToken",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.zipDownloadToken }}"
+            },
+            {
+              "fieldName": "zipDownloadUrl",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.zipDownloadUrl }}"
+            },
+            {
+              "fieldType": "html",
+              "elementName": "downloadLink",
+              "html": "<p><a href=\"/webhook/review-download-file\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current API ZIP</a></p>"
+            },
+            {
+              "fieldLabel": "Approved",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "approved"
+                  },
+                  {
+                    "option": "rejected"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Feedback",
+              "fieldType": "textarea",
+              "placeholder": "Describe exactly what should change. Reference line numbers from the draft above when possible."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fee27c2f-9e81-49a3-a03b-805ff6ea0a34",
+      "name": "API - Human Validation",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3856,
+        1248
+      ],
+      "webhookId": "d6ed6d07-9fc4-40a7-a2cb-63281a77381a"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "openapiYaml",
+        "binaryPropertyName": "openapiSpec",
+        "options": {
+          "fileName": "openapi.yaml"
+        }
+      },
+      "id": "b2a0a3a4-4ea5-44b6-abb4-2287dd112fe2",
+      "name": "API - Final File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        4352,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst openapiYaml = String(json.response ?? '').trim();\nif (!openapiYaml) throw new Error('OpenAPI YAML draft is missing.');\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current API ZIP</a></p>';\nconst output = {\n  json: { ...json, openapiYaml, revisionNumber, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary && Object.keys(item.binary).length > 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+      },
+      "id": "cbf9796b-4afa-456e-b535-9898f0a732d2",
+      "name": "API - Prepare Information",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3664,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "84da456d-5e67-4ce8-b0af-871f60b212b1",
+      "name": "API - Text and Zip",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3312,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "openapiSpec",
+        "fileName": "api.zip",
+        "binaryPropertyOutput": "reviewZip"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        3088,
+        1296
+      ],
+      "id": "0181cb41-0018-4823-81ed-6c2eed002b48",
+      "name": "API - Zip to Review"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "response",
+        "binaryPropertyName": "openapiSpec",
+        "options": {
+          "fileName": "openapi.yaml"
+        }
+      },
+      "id": "7d89ecac-9273-495a-8fd5-9a0fe8813772",
+      "name": "API - File to Review",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2928,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item.json ?? {};\nconst openapiYaml = String(json.openapiYaml ?? '').trim();\nif (!openapiYaml) throw new Error('OpenAPI YAML draft is missing for patch generation.');\nconst reviewerFeedback = String(json.feedback ?? json.Feedback ?? '').trim() || 'Reviewer requested changes without additional details.';\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0)) + 1;\nconst numberedYaml = openapiYaml.split(/\\r?\\n/).map((line, index) => String(index + 1) + ': ' + line).join('\\n');\nconst patchPrompt = [\n  'You are correcting an existing OpenAPI YAML draft.',\n  'Use ONLY the current draft and the reviewer feedback below.',\n  'Return ONLY line replacements in this exact format:',\n  '',\n  '{',\n  'line: 12;',\n  '\"replacement text\";',\n  'line: 13;',\n  '\"\";',\n  '}',\n  '',\n  'Rules:',\n  '- Each line number is 1-based and refers to the CURRENT draft shown below.',\n  '- Each replacement MUST be a valid JSON string on its own line.',\n  '- Use \\\\n escapes inside the string if one replacement must expand into multiple YAML lines.',\n  '- Use \"\" to delete a line.',\n  '- Return {} if no change is needed.',\n  '- Do NOT prefix replacements with labels like replacement text:.',\n  '- Do NOT return YAML.',\n  '- Do NOT return markdown fences.',\n  '- Do NOT explain your answer.',\n  '',\n  'Reviewer feedback:',\n  reviewerFeedback,\n  '',\n  'Current draft with line numbers:',\n  numberedYaml,\n].join('\\n');\nreturn [{\n  json: {\n    openapiYaml,\n    reviewerFeedback,\n    revisionNumber,\n    patchPrompt,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "f69d55a0-27a5-4555-b326-304478f98169",
+      "name": "API - Build Refinement Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3312,
+        1456
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function getTextBinary(itemIndex, item, propertyName, expectedFileName) {\n  const binary = item.binary?.[propertyName];\n  if (!binary) {\n    throw new Error(`Missing binary property '${propertyName}'.`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n  return {\n    fileName: binary.fileName || expectedFileName,\n    content: buffer.toString('utf8'),\n  };\n}\n\nconst items = $input.all();\n\nreturn await Promise.all(items.map(async (item, itemIndex) => {\n  const requirements = await getTextBinary.call(this, itemIndex, item, 'requirements', 'requirements.md');\n  const designApi = await getTextBinary.call(this, itemIndex, item, 'design_api', 'design_api.json');\n\n  const userPrompt = [\n    'Here are the two input artefacts.',\n    '',\n    requirements.fileName,\n    '```md',\n    requirements.content,\n    '```',\n    '',\n    designApi.fileName,\n    '```json',\n    designApi.content,\n    '```',\n  ].join('\\n');\n\n  return {\n    json: {\n      ...item.json,\n      userPrompt,\n    },\n    binary: item.binary,\n  };\n}));"
+      },
+      "id": "35dabace-ae5a-4c75-a43f-1fb49abc5267",
+      "name": "API - Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1984,
+        1232
+      ],
+      "id": "8a88d8be-3d3f-42f2-9a94-5a634622ec87",
+      "name": "API - Requirements and Design"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior backend API designer working in an API-first software development pipeline.\n\nYour task is NOT to generate implementation code.\n\nYour task is to generate a COMPLETE and CONSISTENT OpenAPI 3.x specification that defines the REST API of the system.\n\nThe output of your work will be used to:\n- validate backend/frontend integration\n- serve as the single source of the API contract\n\nINPUT\n\nYou receive TWO input artefacts:\n1. requirements.md\n2. design_api.json\n\nTogether, these files are the SINGLE SOURCE OF TRUTH.\n\n- requirements.md defines functional requirements, domain concepts, business rules, constraints, and invariants.\n- design_api.json defines application screens modals and dialogs, UI structure and hierarchy, user interactions and navigation flows, and actions that must be supported by the API.\n\nOUTPUT\n\nReturn ONLY the OpenAPI YAML document.\n\nMANDATORY OUTPUT RULES:\n- Output raw YAML only\n- The first line MUST start with: openapi:\n- Do NOT wrap the output in markdown fences\n- Do NOT add any introduction, explanation, summary, or trailing notes\n- Do NOT describe what you generated\n- Do NOT output anything before the YAML\n- Do NOT output anything after the YAML\n\nThe specification MUST:\n- follow OpenAPI version 3.x\n- be valid and machine-readable\n- be suitable for code generation\n- fully represent the system's API contract\n\nAPI DESIGN PRINCIPLES:\n- Resource-oriented design\n- Correct HTTP method usage\n- Unique camelCase operationId values\n- Kebab-case paths\n- PascalCase schemas\n- camelCase properties\n- Reusable schemas in components/schemas\n- Reusable responses in components/responses\n- Explicit parameter types\n- Clear required vs optional fields\n\nCONSTRAINTS:\n- Do NOT include business logic\n- Do NOT generate example implementation code"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "097db7ba-7ad1-4510-bd72-7b2870e4a5c1",
+      "name": "API - Generate Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2368,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 12000,
+          "temperature": 0.3
+        }
+      },
+      "id": "195b324c-52fb-454e-b382-0684ea1334d4",
+      "name": "API - Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        1408
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 12000,
+          "temperature": 0.3
+        }
+      },
+      "id": "e606017b-02ab-442d-9d62-47dbfb9b25a4",
+      "name": "API - Refinement Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        1712
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.patchPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You correct an existing OpenAPI YAML draft.\nReturn ONLY patch instructions.\nDo not return markdown.\nDo not return explanations.\nDo not return the full YAML.\nReturn either {} or a sequence of line replacements in the required format."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "a7e293f9-22bc-44ee-ab13-24f7e3ab57d0",
+      "name": "API - Generate Refinement Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3504,
+        1536
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3840,
+        1472
+      ],
+      "id": "23345fe9-2f06-44e2-bc66-563880093dde",
+      "name": "API - Previous and New Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractPatchText(rawText) {\n  if (typeof rawText !== 'string' || !rawText.trim()) {\n    throw new Error('Patch response is empty.');\n  }\n  let text = rawText.trim();\n  const objectMatch = text.match(/{[\\s\\S]*}/);\n  if (objectMatch) text = objectMatch[0].trim();\n  return text;\n}\n\nfunction decodeJsonString(rawValue) {\n  const normalized = rawValue.replace(/\\r/g, '\\\\r').replace(/\\n/g, '\\\\n');\n  return JSON.parse(normalized);\n}\n\nfunction decodePlainReplacement(rawValue) {\n  let value = String(rawValue).replace(/\\s*}\\s*$/, '');\n  value = value.replace(/\\s*;\\s*$/, '');\n  const labelMatch = value.match(/^\\s*(?:replacement(?:\\s*text)?|content|text)\\s*:/i);\n  if (labelMatch) {\n    value = value.slice(labelMatch[0].length);\n    if (value.startsWith(' ')) value = value.slice(1);\n  }\n  const trimmed = value.trim();\n  if (trimmed === \"''\" || trimmed === '\"\"') return '';\n  if (trimmed.startsWith('\"') && trimmed.endsWith('\"')) return decodeJsonString(trimmed);\n  if (trimmed.startsWith(\"'\") && trimmed.endsWith(\"'\")) return trimmed.slice(1, -1);\n  return value\n    .replace(/\\\\r/g, '\\r')\n    .replace(/\\\\n/g, '\\n')\n    .replace(/\\\\t/g, '\\t');\n}\n\nfunction parseLinePatches(rawText) {\n  const text = extractPatchText(rawText);\n  if (text === '{}' || /no changes?/i.test(text)) return [];\n  const headerRegex = /line\\s*:\\s*(\\d+)\\s*;/gim;\n  const headers = [...text.matchAll(headerRegex)];\n  if (!headers.length) throw new Error('Could not parse any line patches from model output.');\n  return headers.map((match, index) => {\n    const line = Number(match[1]);\n    const start = match.index + match[0].length;\n    const end = index + 1 < headers.length ? headers[index + 1].index : text.length;\n    const segment = text.slice(start, end).trim();\n    return { line, content: segment ? decodePlainReplacement(segment) : '' };\n  });\n}\n\nconst item = $input.first();\nreturn [{\n  json: {\n    ...item.json,\n    linePatches: parseLinePatches(item.json?.text),\n    openapiYaml: item.json?.openapiYaml,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "f8b3ab49-6ecb-45f2-a50e-c849cd3502eb",
+      "name": "API - Parse Changes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4048,
+        1472
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item.json ?? {};\nconst yaml = String(json.openapiYaml ?? \"\");\nif (!yaml.trim()) throw new Error(\"OpenAPI YAML draft is missing for patch application.\");\nconst patches = Array.isArray(json.linePatches) ? [...json.linePatches] : [];\nconst lines = yaml.split(/\\r?\\n/);\npatches.sort((a, b) => Number(b.line) - Number(a.line));\nfor (const patch of patches) {\n  const lineNumber = Number(patch.line);\n  if (!Number.isInteger(lineNumber) || lineNumber < 1) {\n    throw new Error(`Invalid patch line: ${patch.line}`);\n  }\n  const replacement = String(patch.content ?? \"\");\n  const replacementLines = replacement === \"\" ? [] : replacement.split(\"\\n\");\n  const index = Math.min(lineNumber - 1, lines.length);\n  if (index >= lines.length) lines.splice(lines.length, 0, ...replacementLines);\n  else lines.splice(index, 1, ...replacementLines);\n}\nreturn [{\n  json: {\n    response: lines.join(\"\\n\"),\n    revisionNumber: Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0)),\n    reviewerFeedback: String(json.reviewerFeedback ?? \"\"),\n    appliedPatchCount: patches.length,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "4a58d3f4-3e65-4fbf-8e63-ecc3979fa54c",
+      "name": "API - Apply Changes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3056,
+        1456
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Refinement Loop\n\nApplies **human feedback** to the previously generated API specification.",
+        "height": 720,
+        "width": 1440,
+        "color": "#ECF2F8"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2832,
+        1136
+      ],
+      "typeVersion": 1,
+      "id": "f53bca1c-a70f-427a-ab17-cf6267948dc3",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "formTitle": "AI Application Generation Workflow",
+        "formDescription": "\nThis workflow uses artificial intelligence to transform your description into structured software artefacts.\nThe process follows a modular pipeline where each stage builds a new artefact with human validation steps ensuring quality and correctness.\nThe clarity of your description directly impacts the quality of the generated system.",
+        "formFields": {
+          "values": [
+            {
+              "fieldType": "html",
+              "elementName": "introPanel",
+              "html": "<div style=\"margin:0 0 12px 0;padding:0;\">\n  <div style=\"padding:22px 24px;border:1px solid #d7e2ea;border-radius:18px;background:linear-gradient(135deg,#f8fbfd 0%,#eef5fa 100%);box-shadow:0 10px 24px rgba(27,63,84,0.06);\">\n    <div style=\"font-size:14px;line-height:1.7;color:#395463;margin-bottom:16px;\">\n      This form starts the workflow by capturing the essential context needed to produce better artefacts. Clear, concrete and precise information will lead to better output.\n      <p></p>\n    </div>\n    <div style=\"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;\">\n      <div style=\"padding:12px 14px;border-radius:12px;background:#ffffff;border:1px solid #dbe7ee;color:#36505d;\">\n        Please insert the zip that explains the idea you have for this application.\n        <p></p>\n      </div>\n    </div>\n  </div>\n</div>"
+            },
+            {
+              "fieldLabel": "Requirements ZIP",
+              "fieldType": "file",
+              "fieldName": "requirementsZip",
+              "multipleFiles": false,
+              "acceptFileTypes": ".zip"
+            },
+            {
+              "fieldType": "html",
+              "elementName": "finalAdvice",
+              "html": "<div style=\"margin-top:6px;padding:16px 18px;border:1px solid #d7e2ea;border-radius:14px;background:#f9fbfc;color:#405661;line-height:1.65;\"><strong style=\"color:#1f5872;\">Before you submit</strong><br/>Review what you wrote so you are sure there are no inconsistencies and no missing information.</div>"
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Submit Form",
+          "path": "applica-api-requirements-intake",
+          "useWorkflowTimezone": true
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -3600,
+        -128
+      ],
+      "id": "2007ed61-5f9d-4b44-b2ef-ac2e315940e6",
+      "name": "Start",
+      "webhookId": "6706bd9f-083d-4645-a574-ae1a4e463e05"
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {
+          "maxTokens": 32768,
+          "temperature": 0.4
+        }
+      },
+      "id": "589e323c-ad79-41b9-abdb-6fd823489ea1",
+      "name": "REQ - Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        16
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a Senior Software Requirements Engineer in an automated delivery pipeline.\n\nTask: Generate a production-ready requirements specification in Markdown.\nThis document is the single source of truth for UI/design, API, backend, frontend, infrastructure, and testing.\n\n## 1) Mission\nProduce a complete, internally consistent, implementation-ready requirements document.\n\n## 2) Input Handling\nYou will receive one or more source artifacts (business, legal, technical, process, security, etc.).\nTreat sources as authoritative.\n\nPriority:\n1. Explicit source content\n2. Explicit rules in this prompt\n3. Minimal conservative assumptions only when source is silent\n\nIf assumption is needed, mark inline as: [ASSUMPTION: ...]\nDo not create a dedicated ?Assumptions? section unless explicitly requested.\n\n## 3) Output Contract (strict)\nReturn only final Markdown content.\n- No text before first heading\n- No text after last section\n- No code fences\n- No JSON\n- No implementation code\n- No validation logs\n\n## 4) Writing Rules\n- Use normative language: MUST / MUST NOT / SHOULD\n- Every requirement must be atomic, testable, and unambiguous\n- Every requirement must have a unique ID (e.g., REQ-001, UI-014, API-022, INF-008, TST-030)\n- Keep terminology consistent across all sections\n\n## 5) Mandatory Coverage\nInclude all material requirements needed by downstream teams, including:\n\n### A. Product & Process Context\n- system objective, scope, stakeholders\n- roles, permissions, access restrictions\n- business rules and lifecycle states\n- legal/procedural/compliance rules\n- timelines, deadlines, milestones\n- adjudication/evaluation rules, formulas, scoring logic\n- commercial/contractual constraints (price, guarantees, penalties, payment terms, duration)\n- required deliverables/documents\n\n### B. Functional Requirements\n- complete functional behavior and user flows\n- preconditions, triggers, outcomes, exceptions, error handling\n\n### C. UI/UX Requirements (mandatory detailed)\nDefine a complete design blueprint:\n- full screen inventory (primary + secondary)\n- for each screen: purpose, components, actions, states (empty/loading/error/success/disabled/no-permission), navigation, role visibility\n- full modal/dialog inventory\n- for each modal/dialog: trigger, fields, validation, actions, cancel/confirm behavior, errors\n- global navigation, responsive rules, accessibility rules\n\nIf UI details are missing in source, define coherent defaults and mark [ASSUMPTION].\n\n### D. API Contract Requirements (mandatory)\nDefine enough for API generation:\n- resources and endpoints\n- methods, request/response schemas\n- auth requirements\n- validation rules\n- error model/status codes\n- pagination/filtering/sorting\n- idempotency and rate-limit expectations (if relevant)\n\n### E. Data & State Requirements (mandatory)\n- entity model, attributes, types, required/optional, constraints\n- relationships and referential rules\n- persistence and retention requirements\n- auditability and traceability fields\n- explicit state machines and transition rules\n\n### F. Architecture & Integration\n- architecture constraints (enforce if source mandates; do not invent mandatory architecture if source is silent)\n- component responsibilities and boundaries\n- integration requirements and external dependencies\n\n### G. Infrastructure Requirements (mandatory detailed)\nDefine deployable infrastructure requirements:\n- environments (dev/test/stage/prod) and purpose\n- topology/hosting model\n- compute/runtime/storage/network boundaries\n- secrets/key management\n- observability (logs/metrics/tracing/alerts)\n- backup/DR expectations\n- CI/CD and release controls\n- availability/scalability targets\n- operational constraints (maintenance, rollback)\n\nIf infra details are missing, provide conservative [ASSUMPTION] defaults.\n\n### H. Test Requirements (mandatory detailed)\n- test strategy by level (unit/integration/e2e/non-functional/security)\n- acceptance criteria mapped to requirements\n- test environment definitions\n- required test roles/users (username/email/identifier + purpose)\n- test data prerequisites\n- non-production credential policy\n- preconditions for acceptance tests\n\nIf test users are missing in source, define a complete default set and mark [ASSUMPTION].\n\n## 6) Final Consistency Check (silent)\nBefore finalizing, ensure:\n- no contradictions\n- no conflicting dates/numbers/formulas\n- no duplicate requirements with different values\n- no missing critical constraints for downstream implementation\n\nOutput only the final Markdown requirements document."
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 1500
+        }
+      },
+      "id": "84b255b9-2f5b-4081-be49-cb72d0bc68df",
+      "name": "REQ - Generate Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -2176,
+        -128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractOpenApiYaml(rawText) {\n  if (typeof rawText !== \"string\" || !rawText.trim()) {\n    throw new Error(\"Model output is empty.\");\n  }\n\n  let text = rawText.trim();\n  const fencedMatch = text.match(/```(?:yaml|yml)?\\s*([\\s\\S]*?)```/i);\n  if (fencedMatch) {\n    text = fencedMatch[1].trim();\n  }\n\n  const openapiMatch = text.match(/(?:^|\\n)(openapi:\\s*[\\s\\S]*)/i);\n  if (openapiMatch) {\n    text = openapiMatch[1].trim();\n  }\n\n  const trailingMarkers = [\n    /\\nThis OpenAPI specification/i,\n    /\\nThis specification/i,\n    /\\nKey features include:/i,\n    /\\nThe specification is ready/i,\n    /\\nAll endpoints follow/i,\n  ];\n\n  let endIndex = text.length;\n  for (const marker of trailingMarkers) {\n    const match = marker.exec(text);\n    if (match && match.index > 0) endIndex = Math.min(endIndex, match.index);\n  }\n\n  text = text.slice(0, endIndex).trim();\n  if (!/^openapi:\\s*/i.test(text)) {\n    throw new Error(\"Could not find an OpenAPI YAML document in model output.\");\n  }\n  return text;\n}\n\nconst item = $input.first();\nreturn [{\n  json: {\n    response: extractOpenApiYaml(item.json?.text),\n    revisionNumber: Number(item.json?.revisionNumber ?? 0) || 0,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "10b4d013-13e3-4a7f-9858-c2f9b4d627da",
+      "name": "API - Clean Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function tryParseJsonObject(text) {\n  const start = text.indexOf('{');\n  const end = text.lastIndexOf('}');\n  if (start === -1 || end <= start) return null;\n\n  const candidate = text.slice(start, end + 1);\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction decodeQuoted(value) {\n  const trimmed = value.trim();\n  if (!trimmed) return '';\n\n  if (trimmed.startsWith('\"') && trimmed.endsWith('\"')) {\n    try {\n      return JSON.parse(trimmed);\n    } catch {\n      const inner = trimmed.slice(1, -1);\n      return inner\n        .replace(/\\\\r\\\\n/g, '\\n')\n        .replace(/\\\\n/g, '\\n')\n        .replace(/\\\\t/g, '\\t')\n        .replace(/\\\\\"/g, '\"')\n        .replace(/\\\\'/g, \"'\")\n        .replace(/\\\\\\\\/g, '\\\\');\n    }\n  }\n\n  if (trimmed.startsWith(\"'\") && trimmed.endsWith(\"'\")) {\n    const inner = trimmed.slice(1, -1);\n    return inner\n      .replace(/\\\\r\\\\n/g, '\\n')\n      .replace(/\\\\n/g, '\\n')\n      .replace(/\\\\t/g, '\\t')\n      .replace(/\\\\\"/g, '\"')\n      .replace(/\\\\'/g, \"'\")\n      .replace(/\\\\\\\\/g, '\\\\');\n  }\n\n  return trimmed;\n}\n\nfunction normalizeCandidate(text) {\n  let out = String(text ?? '').trim();\n  if (!out) return '';\n\n  const fenced = out.match(/^```(?:markdown|md|txt)?\\s*([\\s\\S]*?)```$/i);\n  if (fenced) out = fenced[1].trim();\n\n  out = out.replace(/^\\s*[\"']?requirements[\"']?\\s*:\\s*/i, '').trim();\n  out = decodeQuoted(out);\n\n  if (!out.includes('\\n') && /\\\\n|\\\\t|\\\\r/.test(out)) {\n    out = out\n      .replace(/\\\\r\\\\n/g, '\\n')\n      .replace(/\\\\n/g, '\\n')\n      .replace(/\\\\t/g, '\\t')\n      .replace(/\\\\\"/g, '\"')\n      .replace(/\\\\'/g, \"'\")\n      .replace(/\\\\\\\\/g, '\\\\');\n  }\n\n  return out.trim();\n}\n\nfunction scoreCandidate(text) {\n  let score = text.length;\n  if (/^#\\s*Technical Requirements/i.test(text)) score += 1000;\n  if (/##\\s*1\\.\\s*Objective/i.test(text)) score += 800;\n  if (/##\\s*2\\.\\s*Technology Stack/i.test(text)) score += 500;\n  if (/##\\s*3\\.\\s*General Architecture/i.test(text)) score += 500;\n  if (/\\n##\\s*/.test(text)) score += 200;\n  return score;\n}\n\nfunction extractRequirements(rawText) {\n  if (typeof rawText !== 'string' || !rawText.trim()) {\n    throw new Error('Requirements response is empty.');\n  }\n\n  const raw = rawText.trim();\n  const candidates = [];\n\n  candidates.push(raw);\n\n  const fencedMatch = raw.match(/```(?:markdown|md|txt)?\\s*([\\s\\S]*?)```/i);\n  if (fencedMatch) candidates.push(fencedMatch[1]);\n\n  const parsed = tryParseJsonObject(raw);\n  if (parsed && typeof parsed === 'object') {\n    if (typeof parsed.requirements === 'string') candidates.push(parsed.requirements);\n    if (parsed.output && typeof parsed.output.requirements === 'string') candidates.push(parsed.output.requirements);\n    if (parsed.data && typeof parsed.data.requirements === 'string') candidates.push(parsed.data.requirements);\n  }\n\n  const labelled = raw.match(/(?:^|\\n)\\s*[\"']?requirements[\"']?\\s*:\\s*([\\s\\S]*)/i);\n  if (labelled) candidates.push(labelled[1]);\n\n  const normalized = candidates\n    .map(normalizeCandidate)\n    .filter((value) => value.length > 0);\n\n  if (!normalized.length) {\n    throw new Error('Could not extract requirements content from model output.');\n  }\n\n  let best = normalized[0];\n  let bestScore = scoreCandidate(best);\n\n  for (const candidate of normalized.slice(1)) {\n    const score = scoreCandidate(candidate);\n    if (score > bestScore) {\n      best = candidate;\n      bestScore = score;\n    }\n  }\n\n  return best;\n}\n\nconst item = $input.first();\nconst json = item?.json ?? {};\n\nreturn [{\n  json: {\n    response: extractRequirements(json.text),\n    revisionNumber: Number(item.json?.revisionNumber ?? 0) || 0,\n  },\n  binary: item?.binary ?? {},\n}];"
+      },
+      "id": "36f0eb08-31f5-4d9a-b56d-bf1afac41f2a",
+      "name": "REQ - Clean Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1872,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "requirements,requirementsPdf",
+        "fileName": "req.zip",
+        "binaryPropertyOutput": "reviewZip"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        -1184,
+        48
+      ],
+      "id": "2fe8e27f-c1aa-44d3-8077-ae6ece62ec00",
+      "name": "REQ - Zip to Review"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1184,
+        -112
+      ],
+      "id": "6057f847-3fee-482f-a07e-45c4b93d4b63",
+      "name": "REQ - Text and Zip"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cm1GIz1gCaLNP7YB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cm1GIz1gCaLNP7YB",
+          "cachedResultName": "Subworkflow - Create Link"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.reviewZip.mimeType }}",
+            "archiveFileName": "={{ $binary.reviewZip.fileName }}",
+            "response": "={{ $json.response }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "archiveData",
+              "displayName": "archiveData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "archiveMimeType",
+              "displayName": "archiveMimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveFileName",
+              "displayName": "archiveFileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "openapiYaml",
+              "displayName": "openapiYaml",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "revisionNumber",
+              "displayName": "revisionNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "response",
+              "displayName": "response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -992,
+        -112
+      ],
+      "id": "e99ec8b1-c4ab-457a-897f-02f1f31141b9",
+      "name": "REQ - Create Zip Link"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cm1GIz1gCaLNP7YB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cm1GIz1gCaLNP7YB",
+          "cachedResultName": "Subworkflow - Create Link"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.reviewZip.mimeType }}",
+            "archiveFileName": "={{ $binary.reviewZip.fileName }}",
+            "response": "={{ $json.response }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "archiveData",
+              "displayName": "archiveData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "archiveMimeType",
+              "displayName": "archiveMimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveFileName",
+              "displayName": "archiveFileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "openapiYaml",
+              "displayName": "openapiYaml",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "revisionNumber",
+              "displayName": "revisionNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "response",
+              "displayName": "response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3488,
+        1248
+      ],
+      "id": "0562a804-7649-4f0c-b328-7b77d719a5dc",
+      "name": "API - Create Zip Link"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst requirements = String(json.response ?? '').trim();\nif (!requirements) throw new Error('Requirements draft is missing.');\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Requirements ZIP (Markdown + PDF)</a></p>';\nconst output = {\n  json: { requirements, revisionNumber, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary && Object.keys(item.binary).length > 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        -112
+      ],
+      "id": "69521936-ab34-4e6d-a394-1c2727b41b09",
+      "name": "REQ - Prepare Information"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Human Review: Requirements Draft",
+        "formDescription": "Review the current Requirements ZIP (markdown + PDF), then approve it or request changes.",
+        "formFields": {
+          "values": [
+            {
+              "fieldName": "requirements",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.requirements }}"
+            },
+            {
+              "fieldName": "revisionNumber",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.revisionNumber }}"
+            },
+            {
+              "fieldName": "zipDownloadToken",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.zipDownloadToken }}"
+            },
+            {
+              "fieldName": "zipDownloadUrl",
+              "fieldType": "hiddenField",
+              "fieldValue": "={{ $json.zipDownloadUrl }}"
+            },
+            {
+              "fieldType": "html",
+              "elementName": "downloadLink",
+              "html": "<p><a href=\"/webhook/review-download-file\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Requirements ZIP</a></p>"
+            },
+            {
+              "fieldLabel": "Approved",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "approved"
+                  },
+                  {
+                    "option": "rejected"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Edited PDF (optional)",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf"
+            },
+            {
+              "fieldLabel": "Feedback",
+              "fieldType": "textarea",
+              "placeholder": "Describe exactly what should change. Reference line numbers from the draft above when possible."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aae3a422-8dc8-4f00-a3ac-3b3021ce9220",
+      "name": "REQ - Human Validation",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -592,
+        -112
+      ],
+      "webhookId": "d6ed6d07-9fc4-40a7-a2cb-63281a77381a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "if-openapi-approved-condition",
+              "leftValue": "={{ $json.Approved }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3048fc10-b4d6-4ce3-9dcb-dcbe7c4bdee9",
+      "name": "REQ - Loop Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "requirements",
+        "binaryPropertyName": "requirements",
+        "options": {
+          "fileName": "requirements.md"
+        }
+      },
+      "id": "35dfd44d-3745-4013-b6c8-a67050dd238d",
+      "name": "REQ - Final File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "﻿﻿const item = $input.first();\nconst json = item?.json ?? {};\n\nconst hvItems = typeof $items === 'function' ? ($items('REQ - Human Validation') || []) : [];\nconst hvJson = hvItems[0]?.json ?? {};\nconst hvBinary = hvItems[0]?.binary ?? {};\n\nconst mergedJson = { ...hvJson, ...json };\nconst mergedBinary = { ...hvBinary, ...(item?.binary ?? {}) };\n\nconst requirements = String(mergedJson.requirements ?? '').trim();\nif (!requirements) throw new Error('Requirements Markdown draft is missing for patch generation.');\n\nconst reviewerFeedback = String(mergedJson.feedback ?? mergedJson.Feedback ?? '').trim() || 'Reviewer requested changes without additional details.';\nconst revisionNumber = Math.max(0, Math.trunc(Number(mergedJson.revisionNumber ?? 0) || 0)) + 1;\n\nconst uploadedPdfTextCandidates = [\n  mergedJson.uploadedPdfText,\n  mergedJson.editedPdfText,\n  mergedJson.pdfText,\n  mergedJson.extractedText,\n  mergedJson.text,\n  json.text,\n]\n  .map((value) => String(value ?? '').trim())\n  .filter((value) => value.length > 0);\n\nlet editedPdfText = uploadedPdfTextCandidates[0] ?? '';\n\nif (!editedPdfText && mergedBinary && typeof mergedBinary === 'object') {\n  const editedPdfKey = Object.keys(mergedBinary).find((key) => key.toLowerCase().startsWith('edited'));\n  if (editedPdfKey) {\n    editedPdfText = '[An edited PDF was uploaded but no readable text was extracted from it. Apply explicit reviewer feedback carefully.]';\n  }\n}\n\nfunction stripInlineMarkdown(value) {\n  return String(value ?? '')\n    .replace(/`([^`]+)`/g, '$1')\n    .replace(/\\*\\*([^*]+)\\*\\*/g, '$1')\n    .replace(/__([^_]+)__/g, '$1')\n    .replace(/\\*([^*]+)\\*/g, '$1')\n    .replace(/_([^_]+)_/g, '$1')\n    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '$1 ($2)');\n}\n\nfunction collapseSpaces(value) {\n  return String(value ?? '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction normalizeCompare(value) {\n  return collapseSpaces(String(value ?? ''))\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-z0-9\\s:/.-]/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction tokenSimilarity(a, b) {\n  const ta = new Set(normalizeCompare(a).split(' ').filter((t) => t.length >= 2));\n  const tb = new Set(normalizeCompare(b).split(' ').filter((t) => t.length >= 2));\n  if (!ta.size && !tb.size) return 1;\n  const union = new Set([...ta, ...tb]);\n  let inter = 0;\n  for (const token of ta) if (tb.has(token)) inter += 1;\n  return union.size ? inter / union.size : 0;\n}\n\nfunction semanticallyEquivalent(currentValue, editedValue, minTokenSimilarity) {\n  const a = normalizeCompare(currentValue);\n  const b = normalizeCompare(editedValue);\n  if (!a || !b) return false;\n  if (a === b) return true;\n  if (a.startsWith(b) || b.startsWith(a)) return true;\n  if (a.includes(b) || b.includes(a)) return true;\n  return tokenSimilarity(a, b) >= minTokenSimilarity;\n}\n\nfunction splitLines(text) {\n  return String(text ?? '').replace(/\\r\\n/g, '\\n').split('\\n');\n}\n\nfunction collectReqMapFromMarkdown(mdText) {\n  const out = new Map();\n  for (const rawLine of splitLines(mdText)) {\n    const plain = collapseSpaces(stripInlineMarkdown(rawLine));\n    const match = plain.match(/^(REQ-\\d{2,})\\s*[:\\-]\\s*(.+)$/i);\n    if (match) out.set(match[1].toUpperCase(), collapseSpaces(match[2]));\n  }\n  return out;\n}\n\nfunction collectReqMapFromPdf(text) {\n  const lines = splitLines(text).map((line) => collapseSpaces(line)).filter(Boolean);\n  const out = new Map();\n\n  for (const line of lines) {\n    const start = line.match(/^(REQ-\\d{2,})\\s*[:\\-]?\\s*(.*)$/i);\n    if (start) {\n      const reqId = start[1].toUpperCase();\n      const reqValue = collapseSpaces(start[2] || '');\n      if (reqValue) out.set(reqId, reqValue);\n    }\n  }\n  return out;\n}\n\nfunction collectKeyValueMapFromLines(lines) {\n  const out = new Map();\n  for (const raw of lines) {\n    const plain = collapseSpaces(stripInlineMarkdown(raw));\n    if (!plain || /^REQ-\\d{2,}\\b/i.test(plain)) continue;\n    const match = plain.match(/^([A-Za-z][A-Za-z0-9 /&()'.-]{2,50}):\\s*(.+)$/);\n    if (!match) continue;\n\n    const keyDisplay = collapseSpaces(match[1]);\n    const value = collapseSpaces(match[2]);\n    if (!value || value.length < 2) continue;\n\n    const keyNorm = normalizeCompare(keyDisplay);\n    if (!keyNorm) continue;\n    if (!out.has(keyNorm)) out.set(keyNorm, { keyDisplay, value });\n  }\n  return out;\n}\n\nfunction findLineForReqId(requirementLines, reqId) {\n  const target = String(reqId ?? '').toUpperCase();\n  for (let i = 0; i < requirementLines.length; i += 1) {\n    const plain = collapseSpaces(stripInlineMarkdown(requirementLines[i])).toUpperCase();\n    if (plain.startsWith(target + ':') || plain.startsWith(target + ' ')) return i + 1;\n  }\n  return null;\n}\n\nfunction findLineForField(requirementLines, keyDisplay) {\n  const keyNorm = normalizeCompare(keyDisplay);\n  for (let i = 0; i < requirementLines.length; i += 1) {\n    const plain = collapseSpaces(stripInlineMarkdown(requirementLines[i]));\n    const match = plain.match(/^([A-Za-z][A-Za-z0-9 /&()'.-]{2,50}):\\s*(.+)$/);\n    if (!match) continue;\n    if (normalizeCompare(match[1]) === keyNorm) return i + 1;\n  }\n  return null;\n}\n\nfunction buildDetectedChanges(requirementsText, editedText) {\n  const requirementLines = splitLines(requirementsText);\n  const reqMd = collectReqMapFromMarkdown(requirementsText);\n  const reqPdf = collectReqMapFromPdf(editedText);\n\n  const kvMd = collectKeyValueMapFromLines(requirementLines);\n  const kvPdf = collectKeyValueMapFromLines(splitLines(editedText));\n\n  const changes = [];\n\n  for (const [reqId, editedValue] of reqPdf.entries()) {\n    if (!editedValue) continue;\n    const currentValue = reqMd.get(reqId);\n    if (!currentValue) {\n      if (editedValue.length < 20 || !/\\b(must|shall|should|cannot|must not|required)\\b/i.test(editedValue)) {\n        continue;\n      }\n      changes.push({\n        type: 'NEW_REQ',\n        anchor: reqId,\n        suggestedLine: null,\n        current: '[NOT PRESENT IN MARKDOWN]',\n        edited: editedValue,\n      });\n      continue;\n    }\n\n    if (!semanticallyEquivalent(currentValue, editedValue, 0.93)) {\n      changes.push({\n        type: 'REQ',\n        anchor: reqId,\n        suggestedLine: findLineForReqId(requirementLines, reqId),\n        current: currentValue,\n        edited: editedValue,\n      });\n    }\n  }\n\n  for (const [keyNorm, editedPair] of kvPdf.entries()) {\n    if (!kvMd.has(keyNorm)) continue;\n    const currentPair = kvMd.get(keyNorm);\n    if (!semanticallyEquivalent(currentPair.value, editedPair.value, 0.96)) {\n      changes.push({\n        type: 'FIELD',\n        anchor: editedPair.keyDisplay,\n        suggestedLine: findLineForField(requirementLines, editedPair.keyDisplay),\n        current: currentPair.value,\n        edited: editedPair.value,\n      });\n    }\n  }\n\n  const deduped = [];\n  const seen = new Set();\n  for (const change of changes) {\n    const key = [change.type, normalizeCompare(change.anchor), normalizeCompare(change.current), normalizeCompare(change.edited)].join('|');\n    if (seen.has(key)) continue;\n    seen.add(key);\n    deduped.push(change);\n  }\n\n  return deduped;\n}\n\nconst requirementLines = splitLines(requirements);\nconst numberedMarkdown = requirementLines\n  .map((line, index) => String(index + 1) + ': ' + line)\n  .join('\\n');\n\nconst detectedChanges = editedPdfText\n  ? buildDetectedChanges(requirements, editedPdfText)\n  : [];\n\nfunction renderDetectedChanges(changes) {\n  if (!changes.length) return '[No deterministic differences were detected from extracted PDF text.]';\n\n  return changes\n    .map((change, index) => {\n      const lineHint = change.suggestedLine ? String(change.suggestedLine) : 'N/A';\n      return [\n        String(index + 1) + ') Type=' + change.type + '; Anchor=' + change.anchor + '; SuggestedLine=' + lineHint,\n        '   CURRENT: ' + change.current,\n        '   EDITED_PDF: ' + change.edited,\n      ].join('\\n');\n    })\n    .join('\\n\\n');\n}\n\nconst patchPromptParts = [\n  'You are correcting an existing Requirements Markdown draft.',\n  'Use all available reviewer inputs below.',\n  '',\n  'Input priority (highest to lowest):',\n  '1) Structured mandatory differences detected from Edited PDF text',\n  '2) Edited PDF text (full extraction)',\n  '3) Explicit reviewer feedback field',\n  '4) Current markdown draft',\n  '',\n  'MANDATORY ENFORCEMENT:',\n  '- If the section \"Mandatory differences detected from edited PDF\" has items, you MUST apply ALL of them.',\n  '- Do NOT ignore a detected difference just because it is not mentioned in the feedback field.',\n  '- If a suggested line exists, patch that line. If not, patch the nearest anchored line.',\n  '- If at least one mandatory difference exists, returning {} is INVALID.',\n  '',\n  'Return ONLY line replacements in this exact format:',\n  '',\n  '{',\n  'line: 12;',\n  '\"replacement text\";',\n  'line: 13;',\n  '\"\";',\n  '}',\n  '',\n  'Rules:',\n  '- Each line number is 1-based and refers to the CURRENT markdown draft shown below.',\n  '- Each replacement MUST be a valid JSON string on its own line.',\n  '- Use \\\\n escapes inside the string if one replacement must expand into multiple markdown lines.',\n  '- Use \"\" to delete a line.',\n  '- Apply semantic/content changes only. Ignore layout-only PDF extraction artifacts (line wraps, merged bullets, table wrapping).',\n  '- DO NOT rewrite unchanged lines. DO NOT output full-document rewrites.',\n  '- Return {} only when there are zero mandatory differences and no feedback-driven changes needed.',\n  '- Do NOT return markdown fences.',\n  '- Do NOT explain your answer.',\n  '',\n  'Mandatory differences detected from edited PDF:',\n  renderDetectedChanges(detectedChanges),\n  '',\n  'Reviewer feedback:',\n  reviewerFeedback,\n  '',\n  'Edited PDF text from reviewer (full extraction):',\n  editedPdfText || '[No edited PDF was provided.]',\n  '',\n  'Current markdown draft with line numbers:',\n  numberedMarkdown,\n];\n\nconst patchPrompt = patchPromptParts.join('\\n');\n\nreturn [{\n  json: {\n    requirements,\n    reviewerFeedback,\n    editedPdfText,\n    revisionNumber,\n    detectedChanges,\n    detectedChangeCount: detectedChanges.length,\n    patchPrompt,\n  },\n  ...(mergedBinary && Object.keys(mergedBinary).length > 0 ? { binary: mergedBinary } : {}),\n}];\r\n\r\n"
+      },
+      "id": "f5d71182-99ad-47d6-b93a-ea1d50a63459",
+      "name": "REQ - Build Refinement Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -192,
+        144
+      ],
+      "id": "11b5e798-1e95-4c1f-9aa9-8c6138bdfbb2",
+      "name": "REQ - Previous and New Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractPatchText(rawText) {\n  if (typeof rawText !== 'string' || !rawText.trim()) {\n    throw new Error('Patch response is empty.');\n  }\n  let text = rawText.trim();\n  const objectMatch = text.match(/{[\\s\\S]*}/);\n  if (objectMatch) text = objectMatch[0].trim();\n  return text;\n}\n\nfunction decodeJsonString(rawValue) {\n  const normalized = rawValue.replace(/\\r/g, '\\\\r').replace(/\\n/g, '\\\\n');\n  return JSON.parse(normalized);\n}\n\nfunction decodePlainReplacement(rawValue) {\n  let value = String(rawValue).replace(/\\s*}\\s*$/, '');\n  value = value.replace(/\\s*;\\s*$/, '');\n  const labelMatch = value.match(/^\\s*(?:replacement(?:\\s*text)?|content|text)\\s*:/i);\n  if (labelMatch) {\n    value = value.slice(labelMatch[0].length);\n    if (value.startsWith(' ')) value = value.slice(1);\n  }\n  const trimmed = value.trim();\n  if (trimmed === \"''\" || trimmed === '\"\"') return '';\n  if (trimmed.startsWith('\"') && trimmed.endsWith('\"')) return decodeJsonString(trimmed);\n  if (trimmed.startsWith(\"'\") && trimmed.endsWith(\"'\")) return trimmed.slice(1, -1);\n  return value\n    .replace(/\\\\r/g, '\\r')\n    .replace(/\\\\n/g, '\\n')\n    .replace(/\\\\t/g, '\\t');\n}\n\nfunction parseLinePatches(rawText) {\n  const text = extractPatchText(rawText);\n  if (text === '{}' || /no changes?/i.test(text)) return [];\n  const headerRegex = /line\\s*:\\s*(\\d+)\\s*;/gim;\n  const headers = [...text.matchAll(headerRegex)];\n  if (!headers.length) throw new Error('Could not parse any line patches from model output.');\n  return headers.map((match, index) => {\n    const line = Number(match[1]);\n    const start = match.index + match[0].length;\n    const end = index + 1 < headers.length ? headers[index + 1].index : text.length;\n    const segment = text.slice(start, end).trim();\n    return { line, content: segment ? decodePlainReplacement(segment) : '' };\n  });\n}\n\nconst item = $input.first();\nreturn [{\n  json: {\n    ...item.json,\n    linePatches: parseLinePatches(item.json?.text),\n    requirements: item.json?.requirements,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "bace013b-190a-405f-90fe-1149c7f475a6",
+      "name": "REQ - Parse Changes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1520,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item.json ?? {};\nconst req = String(json.requirements ?? \"\");\nif (!req.trim()) throw new Error(\"Requirements Markdown draft is missing for patch application.\");\nconst patches = Array.isArray(json.linePatches) ? [...json.linePatches] : [];\nconst lines = req.split(/\\r?\\n/);\npatches.sort((a, b) => Number(b.line) - Number(a.line));\nfor (const patch of patches) {\n  const lineNumber = Number(patch.line);\n  if (!Number.isInteger(lineNumber) || lineNumber < 1) {\n    throw new Error(`Invalid patch line: ${patch.line}`);\n  }\n  const replacement = String(patch.content ?? \"\");\n  const replacementLines = replacement === \"\" ? [] : replacement.split(\"\\n\");\n  const index = Math.min(lineNumber - 1, lines.length);\n  if (index >= lines.length) lines.splice(lines.length, 0, ...replacementLines);\n  else lines.splice(index, 1, ...replacementLines);\n}\nreturn [{\n  json: {\n    response: lines.join(\"\\n\"),\n    revisionNumber: Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0)),\n    reviewerFeedback: String(json.reviewerFeedback ?? \"\"),\n    appliedPatchCount: patches.length,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "08f3861b-b4fe-48b1-a65a-3f9dba533b2d",
+      "name": "REQ - Apply Changes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1184,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Requirements Generation Module\n\nTransforms **the user instructions** into a **structured requirements document**.",
+        "height": 880,
+        "width": 3328,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3264,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "535b355a-c4b5-43dd-87ff-9f5c254d9533",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 2500,
+          "temperature": 0.1
+        }
+      },
+      "id": "4d3c3342-2eaf-468d-9095-c128d480a037",
+      "name": "REQ - Refinement Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        384
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Refinement Loop\n\nApplies **human feedback** to the previously generated requirements.",
+        "height": 816,
+        "width": 1664,
+        "color": "#ECF2F8"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1696,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "84038de7-b3d1-459d-9903-b0285b34340f",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "requirementsZip"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        -2960,
+        -128
+      ],
+      "id": "33919412-274d-41de-bbb7-11aa60067f6f",
+      "name": "REQ - Decompress Zip"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2848,
+        -1008
+      ],
+      "id": "33724596-f3ef-4d9b-af72-9abcfeb253ce",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chunkPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a strict requirements extraction engine. Extract only what is explicitly present in the provided chunk. Never invent or infer beyond text. Keep output concise and concrete."
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 1200
+        }
+      },
+      "id": "e9867c81-6097-44a5-8302-31422f0d3090",
+      "name": "REQ - Analyze Chunk",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -2400,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_BATCH_PROMPT_CHARS = 18000;\n\nconst items = $input.all();\nif (!items.length) {\n  throw new Error('No chunk analysis items to aggregate.');\n}\n\nconst parseItems = typeof $items === 'function'\n  ? ($items('REQ - Parse Information') || [])\n  : [];\n\nfunction getPairedIndices(item, fallbackIndex) {\n  if (!item || item.pairedItem == null) return [fallbackIndex];\n  if (Array.isArray(item.pairedItem)) {\n    return item.pairedItem\n      .map((entry) => Number(entry?.item))\n      .filter((index) => Number.isInteger(index) && index >= 0);\n  }\n\n  const single = Number(item.pairedItem?.item);\n  if (Number.isInteger(single) && single >= 0) return [single];\n  return [fallbackIndex];\n}\n\nfunction pickCoverage(entries) {\n  for (const entry of entries) {\n    const total = Number(entry?.coverage?.totalChunks ?? 0);\n    if (total > 0) return entry.coverage;\n  }\n  return entries[0]?.coverage ?? {};\n}\n\nfunction isNoRelevant(text) {\n  const normalized = String(text || '')\n    .replace(/\\*/g, '')\n    .trim()\n    .toUpperCase();\n  return normalized === 'NO_RELEVANT_REQUIREMENTS';\n}\n\nconst normalized = items.map((item) => {\n  const json = item.json ?? {};\n  const pairCandidates = getPairedIndices(item, 0);\n  const source = pairCandidates\n    .map((index) => parseItems[index]?.json)\n    .find((entry) => entry && typeof entry === 'object') ?? {};\n\n  return {\n    chunkMeta: json.chunkMeta ?? source.chunkMeta ?? {},\n    analysis: String(json.response ?? json.text ?? '').trim() || 'NO_RELEVANT_REQUIREMENTS',\n    coverage: json.coverage ?? source.coverage ?? {},\n    passthrough: { ...source, ...json },\n  };\n});\n\nconst ordered = normalized.sort((a, b) => {\n  const fa = Number(a.chunkMeta.fileOrder ?? 0);\n  const fb = Number(b.chunkMeta.fileOrder ?? 0);\n  if (fa !== fb) return fa - fb;\n  return Number(a.chunkMeta.chunkIndex ?? 0) - Number(b.chunkMeta.chunkIndex ?? 0);\n});\n\nconst coverage = pickCoverage(ordered);\nconst totalChunksExpected = Number(coverage.totalChunks ?? 0);\nconst totalChunksReceived = ordered.length;\nif (totalChunksExpected > 0 && totalChunksReceived < totalChunksExpected) {\n  throw new Error('Missing chunk analyses: expected ' + totalChunksExpected + ', got ' + totalChunksReceived);\n}\n\nconst relevantCount = ordered.filter((entry) => !isNoRelevant(entry.analysis)).length;\nif (relevantCount === 0) {\n  throw new Error(\n    'Chunk analyzer returned NO_RELEVANT_REQUIREMENTS for every chunk. This usually means source extraction failed (for example scanned/image PDFs requiring OCR).',\n  );\n}\n\nconst entries = ordered.map((entry) => {\n  const fileName = entry.chunkMeta.fileName ?? 'unknown-file';\n  const chunkIndex = Number(entry.chunkMeta.chunkIndex ?? 0) + 1;\n  const chunkCount = Number(entry.chunkMeta.chunkCountForFile ?? 0);\n  return [\n    '### ' + fileName + ' [chunk ' + chunkIndex + '/' + chunkCount + ']',\n    entry.analysis,\n  ].join('\\n');\n});\n\nconst batches = [];\nlet current = [];\nlet currentChars = 0;\n\nfor (const entry of entries) {\n  const entryChars = entry.length + 2;\n  if (current.length > 0 && currentChars + entryChars > MAX_BATCH_PROMPT_CHARS) {\n    batches.push(current.join('\\n\\n'));\n    current = [entry];\n    currentChars = entryChars;\n  } else {\n    current.push(entry);\n    currentChars += entryChars;\n  }\n}\nif (current.length > 0) batches.push(current.join('\\n\\n'));\n\nreturn batches.map((batchText, index) => ({\n  json: {\n    ...ordered[0].passthrough,\n    batchIndex: index,\n    batchCount: batches.length,\n    batchPrompt: [\n      'You will merge evidence extracted from multiple chunks.',\n      'Keep all concrete obligations, constraints, deadlines, penalties, deliverables, acceptance criteria, and technical requirements.',\n      'Do not invent facts. Keep contradictions explicit.',\n      '',\n      'Evidence to merge:',\n      batchText,\n    ].join('\\n'),\n    chunkCoverage: {\n      totalChunksExpected,\n      totalChunksReceived,\n      totalFiles: coverage.totalFiles ?? null,\n      skippedFiles: coverage.skippedFiles ?? [],\n    },\n  },\n}));\r\n"
+      },
+      "id": "9a64242d-5b8c-46a9-bd9a-6fc2453af92a",
+      "name": "REQ - Aggregate Chunk Insights",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2048,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.batchPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a strict requirements consolidator. Merge only what is explicitly present in the evidence. Preserve concrete values exactly. Keep output compact but complete."
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 1200
+        }
+      },
+      "id": "d498b8e7-9dbe-44e0-ada4-7a6ff9576d03",
+      "name": "REQ - Synthesize Chunk Batch",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -2736,
+        -128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "const TEXT_EXTENSIONS = new Set(['txt', 'md', 'markdown', 'json', 'yaml', 'yml', 'xml', 'csv', 'html', 'htm']);\n\nfunction getExtension(fileName) {\n  const lower = String(fileName || '').toLowerCase();\n  const idx = lower.lastIndexOf('.');\n  return idx >= 0 ? lower.slice(idx + 1) : '';\n}\n\nfunction parseFileSize(raw) {\n  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;\n  const txt = String(raw || '').trim().toLowerCase();\n  if (!txt) return 0;\n\n  const numeric = Number.parseFloat(txt.replace(',', '.'));\n  if (!Number.isFinite(numeric)) return 0;\n\n  if (txt.endsWith('kb')) return Math.round(numeric * 1024);\n  if (txt.endsWith('mb')) return Math.round(numeric * 1024 * 1024);\n  if (txt.endsWith('gb')) return Math.round(numeric * 1024 * 1024 * 1024);\n  return Math.round(numeric);\n}\n\nconst firstJson = $input.first()?.json ?? {};\nconst items = $input.all();\n\nconst out = [];\nconst skipped = [];\nconst unsupported = [];\n\nfor (let itemIndex = 0; itemIndex < items.length; itemIndex++) {\n  const item = items[itemIndex];\n  const binary = item.binary ?? {};\n\n  for (const [propertyName, meta] of Object.entries(binary)) {\n    const fileName = String(meta.fileName || propertyName);\n    const mimeType = String(meta.mimeType || '').toLowerCase();\n    const extension = getExtension(fileName);\n    const fileSize = parseFileSize(meta.fileSize);\n\n    if (!fileName || fileName.endsWith('/') || fileSize <= 0) {\n      skipped.push({ fileName, propertyName, reason: 'directory_or_empty_entry' });\n      continue;\n    }\n\n    if (fileName.toLowerCase() === 'desktop.ini') {\n      skipped.push({ fileName, propertyName, reason: 'system_file' });\n      continue;\n    }\n\n    if (!(extension === 'pdf' || mimeType.includes('pdf'))) {\n      if (mimeType.startsWith('text/') || TEXT_EXTENSIONS.has(extension)) {\n        unsupported.push({ fileName, propertyName, reason: 'non_pdf_text_file_requires_new_branch' });\n      } else {\n        unsupported.push({ fileName, propertyName, reason: 'unsupported_non_pdf_file' });\n      }\n      continue;\n    }\n\n    out.push({\n      json: {\n        ...firstJson,\n        fileName,\n        propertyName,\n        mimeType,\n        extension,\n        sourceKind: 'pdf',\n        skippedFromZip: skipped,\n      },\n      binary: {\n        data: meta,\n      },\n    });\n  }\n}\n\nif (unsupported.length > 0) {\n  throw new Error(\n    [\n      'ZIP contains non-PDF files in the REQ OCR path. Add text-file branch before OCR or remove those files.',\n      JSON.stringify(unsupported, null, 2),\n    ].join('\\n'),\n  );\n}\n\nif (out.length === 0) {\n  throw new Error('No PDF files found in ZIP after filtering empty/system entries.');\n}\n\nreturn out;\r\n"
+      },
+      "id": "2f2d1d4a-57c1-45d5-b4b7-fd4f8f8ac001",
+      "name": "REQ - Expand Zip for OCR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3168,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "6b6e46ea-fc0c-4f2f-9a93-77be2fca2002",
+      "name": "REQ - OCR Extract Text",
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        -2960,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const CHUNK_MAX_CHARS = 7000;\nconst CHUNK_OVERLAP_CHARS = 500;\n\nfunction normalizeText(text) {\n  let value = String(text || '');\n  value = value.split('\\u0000').join('');\n  value = value.replace(/\\r\\n/g, '\\n');\n  value = value.replace(/\\r/g, '\\n');\n  value = value.replace(/[ \\t]+/g, ' ');\n  value = value.replace(/\\n{3,}/g, '\\n\\n');\n  return value\n    .split('\\n')\n    .map((line) => line.trimEnd())\n    .join('\\n')\n    .trim();\n}\n\nfunction chunkTextFullCoverage(text, maxChars, overlapChars) {\n  const chunks = [];\n  if (!text) return chunks;\n\n  let start = 0;\n  const len = text.length;\n\n  while (start < len) {\n    let end = Math.min(start + maxChars, len);\n\n    if (end < len) {\n      let breakAt = text.lastIndexOf('\\n\\n', end);\n      if (breakAt <= start + Math.floor(maxChars * 0.55)) breakAt = text.lastIndexOf('\\n', end);\n      if (breakAt <= start + Math.floor(maxChars * 0.45)) breakAt = end;\n      end = breakAt;\n    }\n\n    if (end <= start) end = Math.min(start + maxChars, len);\n\n    const chunk = text.slice(start, end).trim();\n    if (chunk) chunks.push({ start, end, text: chunk });\n\n    if (end >= len) break;\n\n    start = Math.max(start + 1, end - overlapChars);\n    while (start < len && /\\s/.test(text[start])) start++;\n  }\n\n  return chunks;\n}\n\nfunction getPairedIndices(item, fallbackIndex) {\n  if (!item || item.pairedItem == null) return [fallbackIndex];\n  if (Array.isArray(item.pairedItem)) {\n    return item.pairedItem\n      .map((entry) => Number(entry?.item))\n      .filter((index) => Number.isInteger(index) && index >= 0);\n  }\n\n  const single = Number(item.pairedItem?.item);\n  if (Number.isInteger(single) && single >= 0) return [single];\n  return [fallbackIndex];\n}\n\nfunction extractOcrContent(payload) {\n  if (!payload || typeof payload !== 'object') return '';\n\n  const pages = Array.isArray(payload.pages) ? payload.pages : [];\n  if (pages.length > 0) {\n    const joinedPages = pages\n      .map((page) => {\n        if (!page || typeof page !== 'object') return '';\n        if (typeof page.markdown === 'string') return page.markdown;\n        if (typeof page.text === 'string') return page.text;\n        if (typeof page.content === 'string') return page.content;\n        return '';\n      })\n      .filter((value) => value && value.trim() !== '')\n      .join('\\n\\n');\n\n    if (joinedPages.trim() !== '') return joinedPages;\n  }\n\n  const directCandidates = ['markdown', 'text', 'content', 'extractedText'];\n  for (const key of directCandidates) {\n    if (typeof payload[key] === 'string' && payload[key].trim() !== '') {\n      return payload[key];\n    }\n  }\n\n  const longStringFields = Object.entries(payload)\n    .filter(([key, value]) => (\n      !['fileName', 'propertyName', 'mimeType', 'extension', 'sourceKind', 'model'].includes(key)\n      && typeof value === 'string'\n      && value.trim().length >= 120\n    ))\n    .map(([, value]) => value);\n\n  return longStringFields.join('\\n\\n');\n}\n\nconst firstJson = $input.first()?.json ?? {};\nconst items = $input.all();\nconst sourceItems = typeof $items === 'function'\n  ? ($items('REQ - Expand Zip for OCR') || [])\n  : [];\n\nconst extractedFiles = [];\nconst unreadableFiles = [];\nconst skippedFiles = [];\n\nfor (let index = 0; index < items.length; index++) {\n  const item = items[index];\n  const json = item.json ?? {};\n\n  const pairCandidates = getPairedIndices(item, index);\n  const source = pairCandidates\n    .map((pairIndex) => sourceItems[pairIndex]?.json)\n    .find((entry) => entry && typeof entry === 'object') ?? {};\n\n  const merged = { ...source, ...json };\n  const fileName = String(merged.fileName || `file_${index + 1}.pdf`);\n  const propertyName = String(merged.propertyName || `file_${index + 1}`);\n\n  const content = normalizeText(extractOcrContent(merged));\n  if (!content) {\n    unreadableFiles.push({\n      fileName,\n      propertyName,\n      reason: 'ocr_no_text_in_response',\n    });\n    continue;\n  }\n\n  extractedFiles.push({\n    fileName,\n    propertyName,\n    mimeType: String(merged.mimeType || 'application/pdf'),\n    extension: String(merged.extension || 'pdf'),\n    extractionMethod: 'mistral_ocr',\n    content,\n  });\n}\n\nif (unreadableFiles.length > 0) {\n  const fileList = unreadableFiles.map((entry) => entry.fileName).join(', ');\n  throw new Error(\n    [\n      'OCR completed but returned no readable text for: ' + fileList,\n      JSON.stringify(unreadableFiles, null, 2),\n    ].join('\\n'),\n  );\n}\n\nif (extractedFiles.length === 0) {\n  throw new Error('No readable text extracted from OCR output.');\n}\n\nconst chunkItems = [];\nconst coverage = {\n  totalFiles: extractedFiles.length,\n  skippedFiles,\n  unreadableFiles,\n  totalChunks: 0,\n  chunkMaxChars: CHUNK_MAX_CHARS,\n  chunkOverlapChars: CHUNK_OVERLAP_CHARS,\n};\n\nextractedFiles.forEach((file, fileOrder) => {\n  const chunks = chunkTextFullCoverage(file.content, CHUNK_MAX_CHARS, CHUNK_OVERLAP_CHARS);\n  if (chunks.length === 0) {\n    throw new Error('No chunks generated for OCR file: ' + file.fileName);\n  }\n\n  coverage.totalChunks += chunks.length;\n\n  chunks.forEach((chunk, chunkIndex) => {\n    const chunkPrompt = [\n      'You are extracting requirements evidence from one chunk of source documents.',\n      'Return concise but complete extracted requirements from this chunk only.',\n      'Do not invent facts. If uncertain, state UNKNOWN.',\n      '',\n      'File: ' + file.fileName,\n      'Chunk: ' + (chunkIndex + 1) + '/' + chunks.length,\n      '',\n      'Output format:',\n      '- Bullet list with concrete obligations, constraints, dates, thresholds, penalties, deliverables, role rules, acceptance criteria, and technical constraints present in this chunk.',\n      '- Preserve exact values when present.',\n      '- If chunk has no useful requirements text, return exactly: NO_RELEVANT_REQUIREMENTS',\n      '',\n      'Chunk content:',\n      chunk.text,\n    ].join('\\n');\n\n    chunkItems.push({\n      json: {\n        ...firstJson,\n        chunkPrompt,\n        chunkMeta: {\n          fileName: file.fileName,\n          fileOrder,\n          chunkIndex,\n          chunkCountForFile: chunks.length,\n          startOffset: chunk.start,\n          endOffset: chunk.end,\n          extractionMethod: file.extractionMethod,\n        },\n        coverage,\n      },\n    });\n  });\n});\n\nif (chunkItems.length === 0) {\n  throw new Error('No chunk prompts generated from OCR extracted content.');\n}\n\nreturn chunkItems;\r\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2704,
+        144
+      ],
+      "id": "a44b1e71-44e7-4aad-9f19-46293b1c98d2",
+      "name": "REQ - Parse Information"
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {
+          "maxTokens": 32768,
+          "temperature": 0.4
+        }
+      },
+      "id": "a16976cc-4def-4385-9962-d07d3dae4d87",
+      "name": "REQ - Chunk Analyser Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -2496,
+        352
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {
+          "maxTokens": 32768,
+          "temperature": 0.4
+        }
+      },
+      "id": "638a4231-2d3d-4963-9b82-4043f1d56584",
+      "name": "REQ - Synthesize Chunk Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -2608,
+        16
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "9qA4lFjMsBaIEbTf",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nif (!items.length) {\n  throw new Error('No batch synthesis outputs found.');\n}\n\nconst ordered = items\n  .map((item) => {\n    const json = item.json ?? {};\n    return {\n      batchIndex: Number(json.batchIndex ?? 0),\n      batchCount: Number(json.batchCount ?? 1),\n      response: String(json.response ?? json.text ?? '').trim() || 'NO_RELEVANT_REQUIREMENTS',\n      chunkCoverage: json.chunkCoverage ?? {},\n      passthrough: json,\n    };\n  })\n  .sort((a, b) => a.batchIndex - b.batchIndex);\n\nconst expectedBatches = ordered[0]?.batchCount ?? ordered.length;\nif (ordered.length < expectedBatches) {\n  throw new Error('Missing synthesized batches: expected ' + expectedBatches + ', got ' + ordered.length);\n}\n\nconst synthesisCorpus = ordered\n  .map((b) => '## Batch ' + (b.batchIndex + 1) + '/' + b.batchCount + '\\n' + b.response)\n  .join('\\n\\n');\n\nconst first = ordered[0]?.passthrough ?? {};\n\nconst userPrompt = [\n  'You now have complete merged evidence produced from all chunks of all files (no source truncation in chunking stage).',\n  'Generate the final authoritative requirements document from ALL evidence below.',\n  'Do not invent facts. Preserve concrete source values exactly. Keep conflicts explicit.',\n  '',\n  'Merged evidence:',\n  synthesisCorpus,\n].join('\\n');\n\nreturn [{\n  json: {\n    userPrompt,\n  },\n}];"
+      },
+      "id": "89098f1a-f1dc-4649-9722-fdd56fe2e6c1",
+      "name": "REQ - Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2400,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "﻿﻿const item = $input.first();\nconst json = item?.json ?? {};\nconst markdown = String(json.response ?? '').replace(/\\r\\n/g, '\\n');\n\nif (!markdown.trim()) {\n  throw new Error('Requirements Markdown is missing, cannot generate PDF.');\n}\n\nconst PAGE_WIDTH = 595;\nconst PAGE_HEIGHT = 842;\nconst MARGIN_X = 48;\nconst MARGIN_Y = 52;\nconst CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);\nconst LINE_GAP = 4;\nconst TABLE_FONT_SIZE = 11;\nconst TABLE_LINE_HEIGHT = 14;\nconst TABLE_CELL_PADDING_X = 5;\nconst TABLE_CELL_PADDING_Y = 4;\n\nconst WIN_ANSI_MAP = {\n  '\\u20AC': 0x80,\n  '\\u201A': 0x82,\n  '\\u0192': 0x83,\n  '\\u201E': 0x84,\n  '\\u2026': 0x85,\n  '\\u2020': 0x86,\n  '\\u2021': 0x87,\n  '\\u02C6': 0x88,\n  '\\u2030': 0x89,\n  '\\u0160': 0x8A,\n  '\\u2039': 0x8B,\n  '\\u0152': 0x8C,\n  '\\u017D': 0x8E,\n  '\\u2018': 0x91,\n  '\\u2019': 0x92,\n  '\\u201C': 0x93,\n  '\\u201D': 0x94,\n  '\\u2022': 0x95,\n  '\\u2013': 0x96,\n  '\\u2014': 0x97,\n  '\\u02DC': 0x98,\n  '\\u2122': 0x99,\n  '\\u0161': 0x9A,\n  '\\u203A': 0x9B,\n  '\\u0153': 0x9C,\n  '\\u017E': 0x9E,\n  '\\u0178': 0x9F,\n};\n\nfunction stripInlineMarkdown(value) {\n  return String(value ?? '')\n    .replace(/`([^`]+)`/g, '$1')\n    .replace(/\\*\\*([^*]+)\\*\\*/g, '$1')\n    .replace(/__([^_]+)__/g, '$1')\n    .replace(/\\*([^*]+)\\*/g, '$1')\n    .replace(/_([^_]+)_/g, '$1')\n    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '$1 ($2)');\n}\n\nfunction normalizeText(value) {\n  return String(value ?? '')\n    .normalize('NFC')\n    .replace(/\\u0000/g, '')\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, '')\n    .replace(/\\t/g, '    ');\n}\n\nfunction collapseSpaces(value) {\n  return String(value ?? '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction estimateMaxChars(fontSize, indent) {\n  const usable = Math.max(60, CONTENT_WIDTH - indent);\n  const avgCharWidth = Math.max(4.6, fontSize * 0.5);\n  return Math.max(18, Math.floor(usable / avgCharWidth));\n}\n\nfunction wrapText(text, maxChars) {\n  const clean = collapseSpaces(text);\n  const limit = Math.max(4, Math.floor(maxChars || 0));\n  if (!clean) return [''];\n\n  const lines = [];\n  let remaining = clean;\n\n  while (remaining.length > limit) {\n    let breakAt = remaining.lastIndexOf(' ', limit);\n    if (breakAt < Math.floor(limit * 0.5)) {\n      breakAt = limit;\n    }\n\n    const segment = remaining.slice(0, breakAt).trim();\n    if (segment) {\n      lines.push(segment);\n      remaining = remaining.slice(breakAt).trimStart();\n    } else {\n      lines.push(remaining.slice(0, limit));\n      remaining = remaining.slice(limit);\n    }\n  }\n\n  if (remaining) lines.push(remaining);\n  return lines.length ? lines : [''];\n}\n\nfunction toWinAnsiString(value) {\n  const input = String(value ?? '').normalize('NFC');\n  let out = '';\n\n  for (const char of input) {\n    const code = char.codePointAt(0);\n\n    if (code <= 0xff) {\n      out += String.fromCharCode(code);\n      continue;\n    }\n\n    if (WIN_ANSI_MAP[char] !== undefined) {\n      out += String.fromCharCode(WIN_ANSI_MAP[char]);\n      continue;\n    }\n\n    if (char === '→') {\n      out += '->';\n      continue;\n    }\n\n    const noDiacritics = char.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '');\n    if (noDiacritics && noDiacritics.codePointAt(0) <= 0xff) {\n      out += String.fromCharCode(noDiacritics.codePointAt(0));\n    }\n  }\n\n  return out;\n}\n\nfunction escapePdfLiteral(value) {\n  return String(value ?? '')\n    .replace(/\\\\/g, '\\\\\\\\')\n    .replace(/\\(/g, '\\\\(')\n    .replace(/\\)/g, '\\\\)');\n}\n\nfunction isTableSeparator(line) {\n  const inner = String(line ?? '').trim().replace(/^\\|/, '').replace(/\\|$/, '');\n  if (!inner) return false;\n  const cells = inner.split('|').map((c) => c.trim());\n  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));\n}\n\nfunction parseTableLine(line) {\n  const inner = String(line ?? '').trim().replace(/^\\|/, '').replace(/\\|$/, '');\n  return inner.split('|').map((cell) => collapseSpaces(stripInlineMarkdown(cell)));\n}\n\nfunction buildTableLayout(tableRows, columnCount) {\n  const safeRows = tableRows.map((row) => Array.from({ length: columnCount }, (_, i) => collapseSpaces(row[i] ?? '')));\n\n  const maxCharsByCol = Array.from({ length: columnCount }, () => 8);\n  for (const row of safeRows) {\n    for (let i = 0; i < columnCount; i += 1) {\n      maxCharsByCol[i] = Math.max(maxCharsByCol[i], Math.min(48, row[i].length || 1));\n    }\n  }\n\n  let widths = maxCharsByCol.map((chars) => Math.max(50, chars * 5.1 + (TABLE_CELL_PADDING_X * 2)));\n  const total = widths.reduce((acc, v) => acc + v, 0);\n\n  if (total > CONTENT_WIDTH) {\n    const scale = CONTENT_WIDTH / total;\n    widths = widths.map((w) => Math.max(44, w * scale));\n    const scaledTotal = widths.reduce((acc, v) => acc + v, 0);\n    if (scaledTotal > CONTENT_WIDTH) {\n      widths[widths.length - 1] -= (scaledTotal - CONTENT_WIDTH);\n    }\n  }\n\n  const rowLayouts = safeRows.map((row, rowIndex) => {\n    const cellLines = row.map((cell, col) => {\n      const maxChars = Math.max(3, Math.floor((widths[col] - (TABLE_CELL_PADDING_X * 2)) / 5.8) - 1);\n      return wrapText(cell, maxChars);\n    });\n\n    const maxLineCount = Math.max(...cellLines.map((c) => c.length));\n    return {\n      font: rowIndex === 0 ? 'F2' : 'F1',\n      fontSize: TABLE_FONT_SIZE,\n      cellLines,\n      height: (maxLineCount * TABLE_LINE_HEIGHT) + (TABLE_CELL_PADDING_Y * 2),\n    };\n  });\n\n  return { widths, rowLayouts };\n}\n\nfunction buildLayout(mdText) {\n  const rows = [];\n  const lines = normalizeText(mdText).split('\\n');\n\n  const firstMeaningful = lines\n    .map((line) => collapseSpaces(stripInlineMarkdown(line)))\n    .find((line) => !!line) ?? 'Requirements Specification';\n\n  const firstHeading = firstMeaningful.match(/^(#{1,6})\\s+(.+)$/);\n  const title = firstHeading\n    ? collapseSpaces(firstHeading[2])\n    : collapseSpaces(firstMeaningful.replace(/^\\*\\*(.*)\\*\\*$/, '$1'));\n\n  rows.push({ text: title, font: 'F2', fontSize: 24, lineHeight: 30, indent: 0, extraAfter: 2 });\n  rows.push({ text: 'Requirements Specification Document', font: 'F1', fontSize: 12, lineHeight: 16, indent: 0, extraAfter: 8 });\n  rows.push({ type: 'rule' });\n  rows.push({ type: 'spacer', amount: 8 });\n\n  let titleConsumed = false;\n\n  for (let idx = 0; idx < lines.length; idx += 1) {\n    const rawLine = lines[idx];\n    const line = String(rawLine ?? '').replace(/\\s+$/g, '');\n    const trimmed = line.trim();\n    const cleanTrimmed = collapseSpaces(stripInlineMarkdown(trimmed.replace(/^#{1,6}\\s+/, '').replace(/^\\*\\*(.*)\\*\\*$/, '$1')));\n\n    if (!titleConsumed && cleanTrimmed && cleanTrimmed === title) {\n      titleConsumed = true;\n      continue;\n    }\n\n    if (!trimmed) {\n      rows.push({ type: 'spacer', amount: 6 });\n      continue;\n    }\n\n    if (trimmed.startsWith('|')) {\n      const tableLines = [trimmed];\n      let probe = idx + 1;\n      while (probe < lines.length) {\n        const candidate = String(lines[probe] ?? '').trim();\n        if (!candidate.startsWith('|')) break;\n        tableLines.push(candidate);\n        probe += 1;\n      }\n\n      if (tableLines.length >= 2 && isTableSeparator(tableLines[1])) {\n        const parsed = tableLines\n          .filter((lineValue, lineIndex) => !(lineIndex === 1 && isTableSeparator(lineValue)))\n          .map(parseTableLine);\n\n        const columnCount = parsed.reduce((acc, row) => Math.max(acc, row.length), 0);\n        if (parsed.length > 0 && columnCount > 0) {\n          rows.push({ type: 'table', rows: parsed, columnCount });\n          rows.push({ type: 'spacer', amount: 8 });\n          idx = probe - 1;\n          continue;\n        }\n      }\n    }\n\n    if (/^---+$/.test(trimmed) || /^___+$/.test(trimmed) || /^\\*\\*\\*+$/.test(trimmed)) {\n      rows.push({ type: 'rule' });\n      rows.push({ type: 'spacer', amount: 8 });\n      continue;\n    }\n\n    const heading = trimmed.match(/^(#{1,6})\\s+(.*)$/);\n    if (heading) {\n      const level = Math.min(6, heading[1].length);\n      const sizeMap = { 1: 20, 2: 16, 3: 14, 4: 12, 5: 11, 6: 10 };\n      rows.push({\n        text: collapseSpaces(stripInlineMarkdown(heading[2])),\n        font: 'F2',\n        fontSize: sizeMap[level],\n        lineHeight: sizeMap[level] + 4,\n        indent: 0,\n        extraBefore: level <= 2 ? 8 : 4,\n        extraAfter: level <= 2 ? 4 : 2,\n      });\n      continue;\n    }\n\n    const bullet = trimmed.match(/^[-*+]\\s+(.*)$/);\n    if (bullet) {\n      rows.push({ text: collapseSpaces(stripInlineMarkdown(bullet[1])), font: 'F1', fontSize: 12, lineHeight: 17, indent: 18, bullet: '- ' });\n      continue;\n    }\n\n    const ordered = trimmed.match(/^(\\d+[.)])\\s+(.*)$/);\n    if (ordered) {\n      rows.push({ text: collapseSpaces(stripInlineMarkdown(ordered[2])), font: 'F1', fontSize: 12, lineHeight: 17, indent: 22, bullet: ordered[1] + ' ' });\n      continue;\n    }\n\n    rows.push({ text: collapseSpaces(stripInlineMarkdown(trimmed)), font: 'F1', fontSize: 12, lineHeight: 17, indent: 0 });\n  }\n\n  return rows;\n}\n\nfunction paginate(rows) {\n  const pages = [];\n  let currentPage = [];\n  let y = PAGE_HEIGHT - MARGIN_Y;\n\n  function pushPage() {\n    pages.push(currentPage);\n    currentPage = [];\n    y = PAGE_HEIGHT - MARGIN_Y;\n  }\n\n  for (const row of rows) {\n    if (row.type === 'spacer') {\n      y -= row.amount;\n      if (y < MARGIN_Y) pushPage();\n      continue;\n    }\n\n    if (row.type === 'rule') {\n      y -= 8;\n      if (y < MARGIN_Y) pushPage();\n      currentPage.push({ type: 'line', x1: MARGIN_X, y1: y, x2: PAGE_WIDTH - MARGIN_X, y2: y, width: 0.2 });\n      y -= 12;\n      if (y < MARGIN_Y) pushPage();\n      continue;\n    }\n\n    if (row.type === 'table') {\n      const table = buildTableLayout(row.rows, row.columnCount);\n      const xBreaks = [MARGIN_X];\n      for (const w of table.widths) xBreaks.push(xBreaks[xBreaks.length - 1] + w);\n\n      for (let r = 0; r < table.rowLayouts.length; r += 1) {\n        const rowLayout = table.rowLayouts[r];\n        const rowHeight = rowLayout.height;\n\n        if ((y - rowHeight) < MARGIN_Y) pushPage();\n\n        const top = y;\n        const bottom = y - rowHeight;\n\n        currentPage.push({ type: 'line', x1: xBreaks[0], y1: top, x2: xBreaks[xBreaks.length - 1], y2: top, width: 0.6 });\n        currentPage.push({ type: 'line', x1: xBreaks[0], y1: bottom, x2: xBreaks[xBreaks.length - 1], y2: bottom, width: 0.6 });\n\n        for (let c = 0; c < xBreaks.length; c += 1) {\n          currentPage.push({ type: 'line', x1: xBreaks[c], y1: top, x2: xBreaks[c], y2: bottom, width: 0.4 });\n        }\n\n        for (let c = 0; c < rowLayout.cellLines.length; c += 1) {\n          const linesInCell = rowLayout.cellLines[c];\n          let textY = top - TABLE_CELL_PADDING_Y - TABLE_FONT_SIZE;\n          for (const segment of linesInCell) {\n            currentPage.push({\n              type: 'text',\n              text: segment,\n              font: rowLayout.font,\n              fontSize: rowLayout.fontSize,\n              x: xBreaks[c] + TABLE_CELL_PADDING_X,\n              y: textY,\n            });\n            textY -= TABLE_LINE_HEIGHT;\n          }\n        }\n\n        y = bottom - 4;\n        if (y < MARGIN_Y) pushPage();\n      }\n      continue;\n    }\n\n    y -= row.extraBefore ?? 0;\n    if (y < MARGIN_Y) pushPage();\n\n    const prefix = row.bullet ?? '';\n    const bodyMaxChars = estimateMaxChars(row.fontSize, row.indent);\n    const wrapped = wrapText(row.text, Math.max(12, bodyMaxChars - prefix.length));\n\n    for (let i = 0; i < wrapped.length; i += 1) {\n      const text = (i === 0 ? prefix : ' '.repeat(prefix.length)) + wrapped[i];\n      currentPage.push({ type: 'text', text, font: row.font, fontSize: row.fontSize, x: MARGIN_X + row.indent, y });\n      y -= row.lineHeight;\n      if (y < MARGIN_Y) pushPage();\n    }\n\n    y -= (row.extraAfter ?? LINE_GAP);\n    if (y < MARGIN_Y) pushPage();\n  }\n\n  if (currentPage.length === 0) {\n    currentPage.push({ type: 'text', text: '(empty document)', font: 'F1', fontSize: 11, x: MARGIN_X, y: PAGE_HEIGHT - MARGIN_Y });\n  }\n\n  pages.push(currentPage);\n  return pages;\n}\n\nfunction pageToStream(pageRows) {\n  const lines = [];\n\n  for (const row of pageRows) {\n    if (row.type === 'line') {\n      lines.push((row.width ?? 0.2).toFixed(2) + ' w');\n      lines.push(row.x1.toFixed(2) + ' ' + row.y1.toFixed(2) + ' m');\n      lines.push(row.x2.toFixed(2) + ' ' + row.y2.toFixed(2) + ' l');\n      lines.push('S');\n      continue;\n    }\n\n    const safe = escapePdfLiteral(toWinAnsiString(row.text || ''));\n    lines.push('BT');\n    lines.push('/' + row.font + ' ' + row.fontSize + ' Tf');\n    lines.push('1 0 0 1 ' + row.x.toFixed(2) + ' ' + row.y.toFixed(2) + ' Tm');\n    lines.push('(' + safe + ') Tj');\n    lines.push('ET');\n  }\n\n  return lines.join('\\n');\n}\n\nfunction buildPdfDocument(pageStreams) {\n  const objects = [];\n  const pageStart = 5;\n  const contentStart = pageStart + pageStreams.length;\n  const pageRefs = pageStreams.map((_, i) => (pageStart + i) + ' 0 R').join(' ');\n\n  objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';\n  objects[2] = '<< /Type /Pages /Kids [' + pageRefs + '] /Count ' + pageStreams.length + ' >>';\n  objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman /Encoding /WinAnsiEncoding >>';\n  objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold /Encoding /WinAnsiEncoding >>';\n\n  for (let i = 0; i < pageStreams.length; i += 1) {\n    const pageObj = pageStart + i;\n    const contentObj = contentStart + i;\n    objects[pageObj] = [\n      '<< /Type /Page',\n      '/Parent 2 0 R',\n      '/MediaBox [0 0 ' + PAGE_WIDTH + ' ' + PAGE_HEIGHT + ']',\n      '/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >>',\n      '/Contents ' + contentObj + ' 0 R',\n      '>>',\n    ].join(' ');\n\n    const stream = pageStreams[i];\n    const len = Buffer.byteLength(stream, 'latin1');\n    objects[contentObj] = '<< /Length ' + len + ' >>\\nstream\\n' + stream + '\\nendstream';\n  }\n\n  const maxObject = objects.length - 1;\n  let pdf = '%PDF-1.4\\n';\n  const offsets = [0];\n\n  for (let i = 1; i <= maxObject; i += 1) {\n    offsets[i] = Buffer.byteLength(pdf, 'latin1');\n    pdf += i + ' 0 obj\\n' + objects[i] + '\\nendobj\\n';\n  }\n\n  const xrefOffset = Buffer.byteLength(pdf, 'latin1');\n  pdf += 'xref\\n0 ' + (maxObject + 1) + '\\n';\n  pdf += '0000000000 65535 f \\n';\n\n  for (let i = 1; i <= maxObject; i += 1) {\n    const offset = String(offsets[i]).padStart(10, '0');\n    pdf += offset + ' 00000 n \\n';\n  }\n\n  pdf += 'trailer\\n<< /Size ' + (maxObject + 1) + ' /Root 1 0 R >>\\n';\n  pdf += 'startxref\\n' + xrefOffset + '\\n%%EOF';\n  return Buffer.from(pdf, 'latin1');\n}\n\nconst rows = buildLayout(markdown);\nconst pages = paginate(rows);\nconst streams = pages.map(pageToStream);\nconst pdfBuffer = buildPdfDocument(streams);\n\nreturn [{\n  json: { ...json },\n  binary: {\n    ...(item.binary ?? {}),\n    requirementsPdf: {\n      data: pdfBuffer.toString('base64'),\n      mimeType: 'application/pdf',\n      fileName: 'requirements.pdf',\n      fileExtension: 'pdf',\n    },\n  },\n}];\r\n\r\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        -48
+      ],
+      "id": "11e0858f-413d-415b-af60-55e92e3968ee",
+      "name": "REQ - Markdown to PDF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "if-req-edited-pdf-exists",
+              "leftValue": "={{ !!Object.keys($binary ?? {}).find((key) => key.toLowerCase().startsWith(\"edited\")) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        -96
+      ],
+      "id": "1a16de4e-e0ba-4d48-b085-19729d0cc1c5",
+      "name": "REQ - Has Edited PDF"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "={{ Object.keys($binary ?? {}).find((key) => key.toLowerCase().startsWith(\"edited\")) || \"editedRequirementsPdf\" }}"
+      },
+      "type": "n8n-nodes-base.readPDF",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        128
+      ],
+      "id": "7abde5f2-5bff-4cc8-baab-35ac2309ed90",
+      "name": "REQ - Read Edited PDF"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1360,
+        48
+      ],
+      "id": "e8c5c219-db5d-48a6-a5f0-32e4750050c9",
+      "name": "REQ - Md and Pdf"
+    },
+    {
+      "parameters": {
+        "content": "### Starter Node\n\nThis node represents the entry point of the AI Application Generation Workflow.  \nIts purpose is to collect the initial project context required to start the automated \npipeline.\n\nAt this stage, the user is asked to upload a **ZIP file containing the project context**. \nThis context may include artefacts such as:\n\n- Business description or project overview\n- Functional and non-functional requirements\n- UX/UI notes or mockups\n- Existing documentation\n- Technical constraints or architectural guidelines\n- Any additional files that help describe the intended system\n\nProviding structured and detailed context at this stage is essential because all \ndownstream modules in the pipeline depend on this information.\n\nThe uploaded context will later be used by the workflow to:\n\n1. Extract and interpret the **software requirements**\n2. Generate **interface concepts**\n3. Produce an **API specification**\n4. Generate **backend and frontend artefacts**\n5. Prepare **infrastructure and testing artefacts**\n\nIn summary, this node initializes the workflow by ensuring that the pipeline \nstarts with sufficient information to generate consistent and meaningful \nsoftware artefacts.",
+        "height": 640,
+        "width": 688
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4160,
+        -608
+      ],
+      "typeVersion": 1,
+      "id": "e16c7820-1de3-4bc1-8957-7e558a0fc9a7",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -3312,
+        -128
+      ],
+      "id": "73c2b1c3-6267-428e-94a7-f57efbc8d9a0",
+      "name": "REQ - Start"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.patchPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior software engineer operating inside an automated software engineering pipeline.\n\nTHIS IS A STRICT REFINEMENT ITERATION TASK.\n\nYou are not starting from zero.\nYou must refine an existing artefact while preserving all already-correct parts.\n\n------------------------------------------------\nGOAL\n------------------------------------------------\n\nProduce one improved, internally consistent next-iteration artefact for the selected module.\n\nThe refinement must:\n- fix concrete issues found in the previous iteration\n- preserve valid behaviour and stable contracts\n- remain compatible with upstream authoritative artefacts\n- be complete and production-ready for this module\n\n------------------------------------------------\nMODULE TARGET\n------------------------------------------------\n\n- Module: requirements\n- Refinement scope: improve and correct the requirements specification while preserving already-valid constraints.\n\nModule authority\n- This requirements artefact is the source of truth for downstream design, api, backend, frontend, infrastructure, and tests.\n\n------------------------------------------------\nINPUT ARTEFACTS (AUTHORITATIVE)\n------------------------------------------------\n\nYou will receive:\n- current module artefact from previous iteration\n- review findings / validation errors / improvement requests\n\nTreat these as authoritative.\n\n------------------------------------------------\nREFINEMENT RULES (MANDATORY)\n------------------------------------------------\n\n1) Preserve stable interfaces.\n- Do not rename fields, endpoints, entities, or public contracts unless explicitly required.\n\n2) Resolve root causes.\n- Do not patch symptoms with fragile workarounds.\n\n3) Keep architecture and boundaries intact.\n- Respect the module architecture and layering constraints unless it is said in the feedback that it has to change.\n\n4) Keep naming consistent.\n- Reuse the same terminology across all updated sections.\n\n5) Keep assumptions minimal.\n- If information is missing, use conservative assumptions.\n\n------------------------------------------------\nQUALITY GATE (SELF-CHECK BEFORE OUTPUT)\n------------------------------------------------\n\nBefore final output, verify:\n- every required section/file for the selected module exists\n- no required part is left incomplete\n- all cited issues in this refinement scope are addressed\n- constraints from authoritative inputs are respected\n- no new contradictions were introduced\n\nIf any check fails, correct it before producing final output."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "2701e6e0-444b-43ff-89ff-e6677b52f80f",
+      "name": "REQ - Generate Refinement Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -544,
+        192
+      ]
+    }
+  ],
+  "pinData": {
+    "API - Generate Response": [
+      {
+        "json": {
+          "text": "openapi: 3.0.3\ninfo:\n  title: TaskBoard API\n  description: |\n    REST API for TaskBoard, a web-based task management system.\n    Supports task CRUD, filtering, and user management with role-based access control.\n  version: 1.0.0\nservers:\n  - url: https://api.taskboard-test.example.com/api/v1\n    description: Test environment\n  - url: https://api.taskboard.example.com/api/v1\n    description: Production environment\ntags:\n  - name: Auth\n    description: Authentication and authorization endpoints\n  - name: Tasks\n    description: Task management endpoints\n  - name: Users\n    description: User management endpoints (ADMIN only)\npaths:\n  /auth/login:\n    post:\n      tags:\n        - Auth\n      summary: Authenticate user\n      description: |\n        Authenticates a user and returns a JWT token in an HTTP-only cookie.\n        Supports both username and email for login.\n      operationId: loginUser\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: '#/components/schemas/LoginRequest'\n      responses:\n        '200':\n          description: Authentication successful\n          headers:\n            Set-Cookie:\n              schema:\n                type: string\n                example: token=abc123; Path=/; HttpOnly; Secure; SameSite=Strict\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/LoginResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n  /auth/logout:\n    post:\n      tags:\n        - Auth\n      summary: Logout user\n      description: |\n        Invalidates the current JWT token by clearing the HTTP-only cookie.\n      operationId: logoutUser\n      security:\n        - cookieAuth: []\n      responses:\n        '204':\n          description: Logout successful\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n  /tasks:\n    get:\n      tags:\n        - Tasks\n      summary: List tasks\n      description: |\n        Returns a paginated list of tasks, filtered by optional query parameters.\n        Users can only see tasks they are assigned to or have created (unless ADMIN).\n      operationId: listTasks\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/statusFilter'\n        - $ref: '#/components/parameters/assigneeFilter'\n        - $ref: '#/components/parameters/page'\n        - $ref: '#/components/parameters/size'\n        - $ref: '#/components/parameters/sortBy'\n        - $ref: '#/components/parameters/sortDirection'\n      responses:\n        '200':\n          description: Task list retrieved\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/TaskPageResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n    post:\n      tags:\n        - Tasks\n      summary: Create task\n      description: |\n        Creates a new task. The creator is automatically set as the assignee if no assignee is specified.\n      operationId: createTask\n      security:\n        - cookieAuth: []\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: '#/components/schemas/TaskRequest'\n      responses:\n        '201':\n          description: Task created\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/TaskResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n  /tasks/{taskId}:\n    get:\n      tags:\n        - Tasks\n      summary: Get task\n      description: |\n        Retrieves a single task by ID. Users can only access tasks they are assigned to or have created (unless ADMIN).\n      operationId: getTask\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/taskId'\n      responses:\n        '200':\n          description: Task retrieved\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/TaskResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '404':\n          $ref: '#/components/responses/NotFound'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n    put:\n      tags:\n        - Tasks\n      summary: Update task\n      description: |\n        Updates an existing task. Users can only update tasks they are assigned to or have created (unless ADMIN).\n      operationId: updateTask\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/taskId'\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: '#/components/schemas/TaskRequest'\n      responses:\n        '200':\n          description: Task updated\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/TaskResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '404':\n          $ref: '#/components/responses/NotFound'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n    delete:\n      tags:\n        - Tasks\n      summary: Delete task\n      description: |\n        Deletes a task. Users can only delete tasks they are assigned to or have created (unless ADMIN).\n      operationId: deleteTask\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/taskId'\n      responses:\n        '204':\n          description: Task deleted\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '404':\n          $ref: '#/components/responses/NotFound'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n  /users:\n    get:\n      tags:\n        - Users\n      summary: List users\n      description: |\n        Returns a paginated list of users. ADMIN-only endpoint.\n      operationId: listUsers\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/page'\n        - $ref: '#/components/parameters/size'\n        - $ref: '#/components/parameters/sortBy'\n        - $ref: '#/components/parameters/sortDirection'\n      responses:\n        '200':\n          description: User list retrieved\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/UserPageResponse'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n    post:\n      tags:\n        - Users\n      summary: Create user\n      description: |\n        Creates a new user. ADMIN-only endpoint.\n      operationId: createUser\n      security:\n        - cookieAuth: []\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: '#/components/schemas/UserRequest'\n      responses:\n        '201':\n          description: User created\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/UserResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n  /users/{userId}:\n    get:\n      tags:\n        - Users\n      summary: Get user\n      description: |\n        Retrieves a single user by ID. ADMIN-only endpoint.\n      operationId: getUser\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/userId'\n      responses:\n        '200':\n          description: User retrieved\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/UserResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '404':\n          $ref: '#/components/responses/NotFound'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n    put:\n      tags:\n        - Users\n      summary: Update user\n      description: |\n        Updates an existing user. ADMIN-only endpoint.\n        Admins cannot assign the ADMIN role to themselves.\n      operationId: updateUser\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/userId'\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: '#/components/schemas/UserRequest'\n      responses:\n        '200':\n          description: User updated\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/UserResponse'\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '404':\n          $ref: '#/components/responses/NotFound'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\n    delete:\n      tags:\n        - Users\n      summary: Delete user\n      description: |\n        Deletes a user. ADMIN-only endpoint.\n        Admins cannot delete themselves.\n      operationId: deleteUser\n      security:\n        - cookieAuth: []\n      parameters:\n        - $ref: '#/components/parameters/userId'\n      responses:\n        '204':\n          description: User deleted\n        '400':\n          $ref: '#/components/responses/BadRequest'\n        '401':\n          $ref: '#/components/responses/Unauthorized'\n        '403':\n          $ref: '#/components/responses/Forbidden'\n        '404':\n          $ref: '#/components/responses/NotFound'\n        '500':\n          $ref: '#/components/responses/InternalServerError'\n\ncomponents:\n  securitySchemes:\n    cookieAuth:\n      type: apiKey\n      in: cookie\n      name: token\n      description: JWT token stored in an HTTP-only cookie\n\n  parameters:\n    taskId:\n      name: taskId\n      in: path\n      description: UUID of the task\n      required: true\n      schema:\n        type: string\n        format: uuid\n\n    userId:\n      name: userId\n      in: path\n      description: UUID of the user\n      required: true\n      schema:\n        type: string\n        format: uuid\n\n    statusFilter:\n      name: status\n      in: query\n      description: Filter tasks by status\n      required: false\n      schema:\n        $ref: '#/components/schemas/TaskStatus'\n\n    assigneeFilter:\n      name: assigneeId\n      in: query\n      description: Filter tasks by assignee ID\n      required: false\n      schema:\n        type: string\n        format: uuid\n\n    page:\n      name: page\n      in: query\n      description: Page number (0-based)\n      required: false\n      schema:\n        type: integer\n        minimum: 0\n        default: 0\n\n    size:\n      name: size\n      in: query\n      description: Page size\n      required: false\n      schema:\n        type: integer\n        minimum: 1\n        maximum: 100\n        default: 20\n\n    sortBy:\n      name: sortBy\n      in: query\n      description: Field to sort by\n      required: false\n      schema:\n        type: string\n        enum: [createdAt, updatedAt, title, status]\n        default: createdAt\n\n    sortDirection:\n      name: sortDirection\n      in: query\n      description: Sort direction\n      required: false\n      schema:\n        type: string\n        enum: [asc, desc]\n        default: desc\n\n  responses:\n    BadRequest:\n      description: Bad request (validation error or invalid parameters)\n      content:\n        application/json:\n          schema:\n            $ref: '#/components/schemas/ErrorResponse'\n\n    Unauthorized:\n      description: Unauthorized (missing or invalid authentication)\n      content:\n        application/json:\n          schema:\n            $ref: '#/components/schemas/ErrorResponse'\n\n    Forbidden:\n      description: Forbidden (insufficient permissions)\n      content:\n        application/json:\n          schema:\n            $ref: '#/components/schemas/ErrorResponse'\n\n    NotFound:\n      description: Resource not found\n      content:\n        application/json:\n          schema:\n            $ref: '#/components/schemas/ErrorResponse'\n\n    InternalServerError:\n      description: Internal server error\n      content:\n        application/json:\n          schema:\n            $ref: '#/components/schemas/ErrorResponse'\n\n  schemas:\n    LoginRequest:\n      type: object\n      required:\n        - credential\n        - password\n      properties:\n        credential:\n          type: string\n          description: Username or email\n          example: admin_test\n        password:\n          type: string\n          format: password\n          example: SecurePass123!\n        rememberMe:\n          type: boolean\n          default: false\n          description: Extends token expiry to 7 days if true\n\n    LoginResponse:\n      type: object\n      required:\n        - userId\n        - username\n        - role\n      properties:\n        userId:\n          type: string\n          format: uuid\n          example: 550e8400-e29b-41d4-a716-446655440000\n        username:\n          type: string\n          example: admin_test\n        role:\n          $ref: '#/components/schemas/UserRole'\n\n    TaskRequest:\n      type: object\n      required:\n        - title\n        - status\n      properties:\n        title:\n          type: string\n          minLength: 1\n          maxLength: 100\n          example: Implement login API\n        description:\n          type: string\n          maxLength: 500\n          example: Design and implement JWT-based authentication\n          nullable: true\n        status:\n          $ref: '#/components/schemas/TaskStatus'\n        assigneeId:\n          type: string\n          format: uuid\n          nullable: true\n          example: 550e8400-e29b-41d4-a716-446655440000\n\n    TaskResponse:\n      type: object\n      required:\n        - id\n        - title\n        - status\n        - createdAt\n        - updatedAt\n      properties:\n        id:\n          type: string\n          format: uuid\n          example: 550e8400-e29b-41d4-a716-446655440000\n        title:\n          type: string\n          example: Implement login API\n        description:\n          type: string\n          nullable: true\n          example: Design and implement JWT-based authentication\n        status:\n          $ref: '#/components/schemas/TaskStatus'\n        assignee:\n          $ref: '#/components/schemas/UserSummary'\n        createdAt:\n          type: string\n          format: date-time\n          example: 2023-10-01T12:00:00Z\n        updatedAt:\n          type: string\n          format: date-time\n          example: 2023-10-01T12:00:00Z\n\n    TaskPageResponse:\n      type: object\n      required:\n        - content\n        - totalElements\n        - totalPages\n      properties:\n        content:\n          type: array\n          items:\n            $ref: '#/components/schemas/TaskResponse'\n        totalElements:\n          type: integer\n          example: 100\n        totalPages:\n          type: integer\n          example: 5\n        number:\n          type: integer\n          example: 0\n        size:\n          type: integer\n          example: 20\n\n    UserRequest:\n      type: object\n      required:\n        - username\n        - email\n        - password\n        - role\n      properties:\n        username:\n          type: string\n          minLength: 3\n          maxLength: 50\n          example: new_user\n        email:\n          type: string\n          format: email\n          example: user@example.com\n        password:\n          type: string\n          format: password\n          minLength: 8\n          example: SecurePass123!\n        role:\n          $ref: '#/components/schemas/UserRole'\n\n    UserResponse:\n      type: object\n      required:\n        - id\n        - username\n        - email\n        - role\n        - createdAt\n      properties:\n        id:\n          type: string\n          format: uuid\n          example: 550e8400-e29b-41d4-a716-446655440000\n        username:\n          type: string\n          example: admin_test\n        email:\n          type: string\n          format: email\n          example: admin@example.com\n        role:\n          $ref: '#/components/schemas/UserRole'\n        createdAt:\n          type: string\n          format: date-time\n          example: 2023-10-01T12:00:00Z\n\n    UserSummary:\n      type: object\n      required:\n        - id\n        - username\n      properties:\n        id:\n          type: string\n          format: uuid\n          example: 550e8400-e29b-41d4-a716-446655440000\n        username:\n          type: string\n          example: admin_test\n\n    UserPageResponse:\n      type: object\n      required:\n        - content\n        - totalElements\n        - totalPages\n      properties:\n        content:\n          type: array\n          items:\n            $ref: '#/components/schemas/UserResponse'\n        totalElements:\n          type: integer\n          example: 10\n        totalPages:\n          type: integer\n          example: 1\n        number:\n          type: integer\n          example: 0\n        size:\n          type: integer\n          example: 20\n\n    ErrorResponse:\n      type: object\n      required:\n        - timestamp\n        - status\n        - error\n        - message\n      properties:\n        timestamp:\n          type: string\n          format: date-time\n          example: 2023-10-01T12:00:00Z\n        status:\n          type: integer\n          example: 400\n        error:\n          type: string\n          example: Bad Request\n        message:\n          type: string\n          example: Validation failed\n        details:\n          type: array\n          items:\n            type: object\n            properties:\n              field:\n                type: string\n                example: title\n              message:\n                type: string\n                example: must not be blank\n\n    TaskStatus:\n      type: string\n      enum:\n        - TODO\n        - IN_PROGRESS\n        - DONE\n      example: TODO\n\n    UserRole:\n      type: string\n      enum:\n        - USER\n        - ADMIN\n      example: USER"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "DESIGN": {
+      "main": [
+        [
+          {
+            "node": "CONVERT DESIGN",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DESIGN_FOR_API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONVERT DESIGN": {
+      "main": [
+        []
+      ]
+    },
+    "DESIGN_FOR_API": {
+      "main": [
+        [
+          {
+            "node": "DESIGN_FOR_API FILE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN_FOR_API FILE": {
+      "main": [
+        [
+          {
+            "node": "API - Requirements and Design",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Loop Decision": {
+      "main": [
+        [
+          {
+            "node": "API - Final File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Human Validation": {
+      "main": [
+        [
+          {
+            "node": "API - Loop Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "API - Human Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Text and Zip": {
+      "main": [
+        [
+          {
+            "node": "API - Create Zip Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Zip to Review": {
+      "main": [
+        [
+          {
+            "node": "API - Text and Zip",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "API - File to Review": {
+      "main": [
+        [
+          {
+            "node": "API - Zip to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Build Refinement Prompt": {
+      "main": [
+        [
+          {
+            "node": "API - Generate Refinement Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - Previous and New Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "API - Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Requirements and Design": {
+      "main": [
+        [
+          {
+            "node": "API - Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Generate Response": {
+      "main": [
+        [
+          {
+            "node": "API - Clean Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "API - Generate Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Refinement Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "API - Generate Refinement Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Generate Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "API - Previous and New Response",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "API - Previous and New Response": {
+      "main": [
+        [
+          {
+            "node": "API - Parse Changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Parse Changes": {
+      "main": [
+        [
+          {
+            "node": "API - Apply Changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Apply Changes": {
+      "main": [
+        [
+          {
+            "node": "API - File to Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - Text and Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "REQ - Generate Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Clean Response": {
+      "main": [
+        [
+          {
+            "node": "API - File to Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - Text and Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Generate Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Clean Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - File to Review": {
+      "main": [
+        [
+          {
+            "node": "REQ - Md and Pdf",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Clean Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - File to Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Text and Zip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Markdown to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Zip to Review": {
+      "main": [
+        [
+          {
+            "node": "REQ - Text and Zip",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Text and Zip": {
+      "main": [
+        [
+          {
+            "node": "REQ - Create Zip Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "REQ - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "API - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "REQ - Human Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Human Validation": {
+      "main": [
+        [
+          {
+            "node": "REQ - Loop Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Loop Decision": {
+      "main": [
+        [
+          {
+            "node": "REQ - Final File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Has Edited PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Build Refinement Prompt": {
+      "main": [
+        [
+          {
+            "node": "REQ - Previous and New Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Generate Refinement Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Previous and New Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Parse Changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Parse Changes": {
+      "main": [
+        [
+          {
+            "node": "REQ - Apply Changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Apply Changes": {
+      "main": [
+        [
+          {
+            "node": "REQ - File to Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Text and Zip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Markdown to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Final File": {
+      "main": [
+        []
+      ]
+    },
+    "REQ - Refinement Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "REQ - Generate Refinement Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Decompress Zip": {
+      "main": [
+        [
+          {
+            "node": "REQ - Expand Zip for OCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "DESIGN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Analyze Chunk": {
+      "main": [
+        [
+          {
+            "node": "REQ - Aggregate Chunk Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Aggregate Chunk Insights": {
+      "main": [
+        [
+          {
+            "node": "REQ - Synthesize Chunk Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Synthesize Chunk Batch": {
+      "main": [
+        [
+          {
+            "node": "REQ - Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Expand Zip for OCR": {
+      "main": [
+        [
+          {
+            "node": "REQ - OCR Extract Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - OCR Extract Text": {
+      "main": [
+        [
+          {
+            "node": "REQ - Parse Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Parse Information": {
+      "main": [
+        [
+          {
+            "node": "REQ - Analyze Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Chunk Analyser Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "REQ - Analyze Chunk",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Synthesize Chunk Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "REQ - Synthesize Chunk Batch",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "REQ - Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Markdown to PDF": {
+      "main": [
+        [
+          {
+            "node": "REQ - Md and Pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Has Edited PDF": {
+      "main": [
+        [
+          {
+            "node": "REQ - Read Edited PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Read Edited PDF": {
+      "main": [
+        [
+          {
+            "node": "REQ - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Md and Pdf": {
+      "main": [
+        [
+          {
+            "node": "REQ - Zip to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Start": {
+      "main": [
+        [
+          {
+            "node": "REQ - Decompress Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Generate Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Previous and New Response",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "9a4848f6-eabf-4a7d-8858-2682f310611f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8db71e6cd806cd646e3036d735235b01787ac6bf74adc87afc57bddf23e92c7"
+  },
+  "id": "f8FTRpl33LCHZCa2",
+  "tags": []
+}
