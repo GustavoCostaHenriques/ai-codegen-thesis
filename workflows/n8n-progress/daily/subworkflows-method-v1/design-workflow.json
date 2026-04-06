@@ -1,0 +1,672 @@
+{
+  "name": "design-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "import base64\nimport io\nimport json\nimport math\nimport zipfile\nfrom PIL import Image, ImageColor, ImageDraw, ImageFont\n\nSW, SH, SG = 1500, 900, 300\nMODAL_W, DIALOG_W = 800, 520\nOVERLAY_BASE_Y = SH + 200\nOVERLAY_GAP_Y = 120\nOVERLAY_COL_GAP = 120\nMODAL_X_OFFSET = 110\n\n\ndef _to_number(value, default=0.0):\n    try:\n        return float(value)\n    except Exception:\n        return float(default)\n\n\ndef _label_from_node(node):\n    for key in (\"txt\", \"label\", \"placeholder\"):\n        value = node.get(key)\n        if isinstance(value, str) and value.strip():\n            return value.strip()\n    return \"\"\n\n\ndef _max_extent(elements):\n    max_h = 0\n\n    def walk(node):\n        nonlocal max_h\n        try:\n            y = int(node.get(\"y\", 0))\n            h = int(node.get(\"h\", 0))\n            max_h = max(max_h, y + h)\n        except Exception:\n            pass\n        children = node.get(\"ch\")\n        if isinstance(children, list):\n            for child in children:\n                if isinstance(child, dict):\n                    walk(child)\n\n    if isinstance(elements, list):\n        for element in elements:\n            if isinstance(element, dict):\n                walk(element)\n    return max_h\n\n\ndef _estimate_overlay_h(extent, is_modal):\n    if is_modal:\n        return int(max(420, min(700, 220 + extent * 0.5)))\n    return int(max(320, min(520, 170 + extent * 0.35)))\n\n\ndef _dialog_option_count(elements):\n    count = 0\n\n    def walk(node):\n        nonlocal count\n        if _label_from_node(node):\n            count += 1\n        children = node.get(\"ch\")\n        if isinstance(children, list):\n            for child in children:\n                if isinstance(child, dict):\n                    walk(child)\n\n    if isinstance(elements, list):\n        for element in elements:\n            if isinstance(element, dict):\n                walk(element)\n    return count\n\n\ndef _compute_frames(dsl):\n    frames = []\n    screens = dsl.get(\"screens\") if isinstance(dsl, dict) else []\n    modals = dsl.get(\"modals\") if isinstance(dsl, dict) else []\n    dialogs = dsl.get(\"dialogs\") if isinstance(dsl, dict) else []\n\n    screens = screens if isinstance(screens, list) else []\n    modals = modals if isinstance(modals, list) else []\n    dialogs = dialogs if isinstance(dialogs, list) else []\n\n    screen_idx = {}\n    for index, screen in enumerate(screens):\n        if not isinstance(screen, dict):\n            continue\n        sid = str(screen.get(\"id\") or f\"S{index+1}\")\n        sname = str(screen.get(\"name\") or sid)\n        fx = index * (SW + SG)\n        screen_idx[sid] = index\n        frames.append(\n            {\n                \"id\": sid,\n                \"name\": sname,\n                \"type\": \"screen\",\n                \"x\": fx,\n                \"y\": 0,\n                \"w\": SW,\n                \"h\": SH,\n            }\n        )\n\n    modal_cursor_y = {}\n    for index, modal in enumerate(modals):\n        if not isinstance(modal, dict):\n            continue\n        mid = str(modal.get(\"id\") or f\"M{index+1}\")\n        mname = str(modal.get(\"name\") or mid)\n        parent = str(modal.get(\"parentScreen\") or \"\")\n        sidx = screen_idx.get(parent, index)\n        sx = sidx * (SW + SG)\n        x = sx + MODAL_X_OFFSET\n        y = float(modal_cursor_y.get(parent, OVERLAY_BASE_Y))\n        oh = _estimate_overlay_h(_max_extent(modal.get(\"elements\")), True)\n        frames.append(\n            {\n                \"id\": mid,\n                \"name\": mname,\n                \"type\": \"modal\",\n                \"parentScreen\": parent,\n                \"x\": x,\n                \"y\": y,\n                \"w\": MODAL_W,\n                \"h\": oh,\n            }\n        )\n        modal_cursor_y[parent] = y + oh + OVERLAY_GAP_Y\n\n    dialog_cursor_y = {}\n    for index, dialog in enumerate(dialogs):\n        if not isinstance(dialog, dict):\n            continue\n        did = str(dialog.get(\"id\") or f\"D{index+1}\")\n        dname = str(dialog.get(\"name\") or did)\n        parent = str(dialog.get(\"parentScreen\") or \"\")\n        sidx = screen_idx.get(parent, index)\n        sx = sidx * (SW + SG)\n        x = sx + MODAL_X_OFFSET + MODAL_W + OVERLAY_COL_GAP\n        y = float(dialog_cursor_y.get(parent, OVERLAY_BASE_Y))\n        options_count = _dialog_option_count(dialog.get(\"elements\"))\n        oh = max(88, min(620, max(1, options_count) * 44))\n        frames.append(\n            {\n                \"id\": did,\n                \"name\": dname,\n                \"type\": \"dialog\",\n                \"parentScreen\": parent,\n                \"x\": x,\n                \"y\": y,\n                \"w\": DIALOG_W,\n                \"h\": oh,\n            }\n        )\n        dialog_cursor_y[parent] = y + oh + OVERLAY_GAP_Y\n\n    return frames\n\n\ndef _element_bounds(element):\n    x = _to_number(element.get(\"x\"), 0)\n    y = _to_number(element.get(\"y\"), 0)\n    w = _to_number(element.get(\"width\"), _to_number(element.get(\"w\"), 0))\n    h = _to_number(element.get(\"height\"), _to_number(element.get(\"h\"), 0))\n    if w < 0:\n        w = 0\n    if h < 0:\n        h = 0\n    return {\"x\": x, \"y\": y, \"w\": w, \"h\": h}\n\n\ndef _intersects(a, b):\n    return not (\n        a[\"x\"] + a[\"w\"] < b[\"x\"]\n        or a[\"x\"] > b[\"x\"] + b[\"w\"]\n        or a[\"y\"] + a[\"h\"] < b[\"y\"]\n        or a[\"y\"] > b[\"y\"] + b[\"h\"]\n    )\n\n\ndef _elements_overall_bbox(elements):\n    xs = []\n    ys = []\n    x2 = []\n    y2 = []\n    if not isinstance(elements, list):\n        return None\n    for element in elements:\n        if not isinstance(element, dict) or element.get(\"isDeleted\"):\n            continue\n        b = _element_bounds(element)\n        xs.append(b[\"x\"])\n        ys.append(b[\"y\"])\n        x2.append(b[\"x\"] + b[\"w\"])\n        y2.append(b[\"y\"] + b[\"h\"])\n    if not xs:\n        return None\n    return {\"x\": min(xs), \"y\": min(ys), \"w\": max(x2) - min(xs), \"h\": max(y2) - min(ys)}\n\n\ndef _overview_bbox(frames, elements):\n    if frames:\n        min_x = min(float(frame[\"x\"]) for frame in frames)\n        min_y = min(float(frame[\"y\"]) for frame in frames) - 36\n        max_x = max(float(frame[\"x\"]) + float(frame[\"w\"]) for frame in frames)\n        max_y = max(float(frame[\"y\"]) + float(frame[\"h\"]) for frame in frames) + 24\n        return {\"x\": min_x, \"y\": min_y, \"w\": max_x - min_x, \"h\": max_y - min_y}\n    bbox = _elements_overall_bbox(elements)\n    if bbox:\n        return bbox\n    return {\"x\": 0.0, \"y\": 0.0, \"w\": 1200.0, \"h\": 800.0}\n\n\ndef _color_to_rgba(value, alpha=255, fallback=\"#000000\"):\n    color = str(value or fallback).strip()\n    if color.lower() in (\"\", \"none\", \"transparent\"):\n        return (0, 0, 0, 0)\n    try:\n        rgb = ImageColor.getrgb(color)\n        if len(rgb) == 4:\n            return (rgb[0], rgb[1], rgb[2], int(max(0, min(255, alpha))))\n        return (rgb[0], rgb[1], rgb[2], int(max(0, min(255, alpha))))\n    except Exception:\n        rgb = ImageColor.getrgb(fallback)\n        return (rgb[0], rgb[1], rgb[2], int(max(0, min(255, alpha))))\n\n\ndef _pick_font(size):\n    size = max(8, int(size))\n    for path in (\n        \"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf\",\n        \"/usr/share/fonts/TTF/DejaVuSans.ttf\",\n    ):\n        try:\n            return ImageFont.truetype(path, size=size)\n        except Exception:\n            continue\n    return ImageFont.load_default()\n\n\ndef _render_png(elements, bbox, padding):\n    px = float(bbox[\"x\"]) - float(padding)\n    py = float(bbox[\"y\"]) - float(padding)\n    pw = max(1.0, float(bbox[\"w\"]) + 2.0 * float(padding))\n    ph = max(1.0, float(bbox[\"h\"]) + 2.0 * float(padding))\n    width = int(math.ceil(pw))\n    height = int(math.ceil(ph))\n\n    ox = -px\n    oy = -py\n\n    img = Image.new(\"RGBA\", (width, height), _color_to_rgba(\"#F7F7F7\"))\n    draw = ImageDraw.Draw(img, \"RGBA\")\n\n    if isinstance(elements, list):\n        for element in elements:\n            if not isinstance(element, dict) or element.get(\"isDeleted\"):\n                continue\n\n            etype = str(element.get(\"type\") or \"\")\n            x = _to_number(element.get(\"x\"), 0) + ox\n            y = _to_number(element.get(\"y\"), 0) + oy\n            w = max(0.0, _to_number(element.get(\"width\"), 0))\n            h = max(0.0, _to_number(element.get(\"height\"), 0))\n            stroke_w = max(1, int(round(_to_number(element.get(\"strokeWidth\"), 1))))\n            opacity = max(0.0, min(1.0, _to_number(element.get(\"opacity\"), 100) / 100.0))\n            alpha = int(255 * opacity)\n\n            stroke = _color_to_rgba(element.get(\"strokeColor\"), alpha=alpha, fallback=\"#000000\")\n            fill = _color_to_rgba(element.get(\"backgroundColor\"), alpha=alpha, fallback=\"#FFFFFF\")\n            if str(element.get(\"backgroundColor\") or \"\").lower() in (\"\", \"none\", \"transparent\"):\n                fill = (0, 0, 0, 0)\n\n            if etype == \"rectangle\":\n                x2 = x + w\n                y2 = y + h\n                radius = 8 if element.get(\"roundness\") else 0\n                if radius > 0:\n                    draw.rounded_rectangle((x, y, x2, y2), radius=radius, fill=fill, outline=stroke, width=stroke_w)\n                else:\n                    draw.rectangle((x, y, x2, y2), fill=fill, outline=stroke, width=stroke_w)\n            elif etype == \"ellipse\":\n                x2 = x + w\n                y2 = y + h\n                draw.ellipse((x, y, x2, y2), fill=fill, outline=stroke, width=stroke_w)\n            elif etype == \"text\":\n                text_value = str(element.get(\"text\") or \"\")\n                if not text_value:\n                    continue\n                fs = max(8, int(_to_number(element.get(\"fontSize\"), 14)))\n                font = _pick_font(fs)\n                line_height = int(fs * 1.25)\n                for idx, line in enumerate(text_value.splitlines() or [\"\"]):\n                    draw.text((x, y + idx * line_height), line, fill=stroke, font=font)\n\n    out = io.BytesIO()\n    img.save(out, format=\"PNG\")\n    return out.getvalue()\n\n\ndef _frame_asset_path(frame):\n    ftype = str(frame.get(\"type\") or \"screen\")\n    folder = \"screens\"\n    if ftype == \"modal\":\n        folder = \"modals\"\n    elif ftype == \"dialog\":\n        folder = \"dialogs\"\n    return f\"{folder}/{frame.get('id', 'item')}.png\"\n\n\noutputs = []\nfor item in _items:\n    src = item.get(\"json\", {}) if isinstance(item, dict) else {}\n    bin_in = item.get(\"binary\", {}) if isinstance(item, dict) and isinstance(item.get(\"binary\"), dict) else {}\n    out_json = dict(src)\n    out_binary = dict(bin_in)\n\n    try:\n        raw_design = src.get(\"design\")\n        raw_dsl = src.get(\"designDsl\")\n\n        if isinstance(raw_design, str):\n            design = json.loads(raw_design)\n        elif isinstance(raw_design, dict):\n            design = raw_design\n        else:\n            design = {\"elements\": []}\n\n        if isinstance(raw_dsl, str):\n            dsl = json.loads(raw_dsl)\n        elif isinstance(raw_dsl, dict):\n            dsl = raw_dsl\n        else:\n            dsl = {\"screens\": [], \"modals\": [], \"dialogs\": []}\n\n        elements = design.get(\"elements\")\n        if not isinstance(elements, list):\n            elements = []\n\n        frames = _compute_frames(dsl)\n        overview = _overview_bbox(frames, elements)\n\n        manifest_assets = []\n        zip_buffer = io.BytesIO()\n        with zipfile.ZipFile(zip_buffer, \"w\", zipfile.ZIP_DEFLATED) as zf:\n            overview_png = _render_png(elements, overview, 32)\n            zf.writestr(\"overview.png\", overview_png)\n            manifest_assets.append(\n                {\n                    \"id\": \"overview\",\n                    \"type\": \"overview\",\n                    \"path\": \"overview.png\",\n                    \"bbox\": overview,\n                    \"elementCount\": len(elements),\n                }\n            )\n\n            for frame in frames:\n                frame_box = {\n                    \"x\": float(frame[\"x\"]),\n                    \"y\": float(frame[\"y\"]) - 36.0,\n                    \"w\": float(frame[\"w\"]),\n                    \"h\": float(frame[\"h\"]) + 56.0,\n                }\n                subset = []\n                for element in elements:\n                    if isinstance(element, dict) and _intersects(_element_bounds(element), frame_box):\n                        subset.append(element)\n\n                path = _frame_asset_path(frame)\n                png = _render_png(subset, frame_box, 16)\n                zf.writestr(path, png)\n                manifest_assets.append(\n                    {\n                        \"id\": frame.get(\"id\"),\n                        \"name\": frame.get(\"name\"),\n                        \"type\": frame.get(\"type\"),\n                        \"path\": path,\n                        \"bbox\": frame_box,\n                        \"elementCount\": len(subset),\n                        \"parentScreen\": frame.get(\"parentScreen\"),\n                    }\n                )\n\n        manifest = {\n            \"counts\": {\n                \"screens\": sum(1 for f in frames if f.get(\"type\") == \"screen\"),\n                \"modals\": sum(1 for f in frames if f.get(\"type\") == \"modal\"),\n                \"dialogs\": sum(1 for f in frames if f.get(\"type\") == \"dialog\"),\n                \"images\": len(manifest_assets),\n            },\n            \"assets\": manifest_assets,\n        }\n\n        zip_bytes = zip_buffer.getvalue()\n        revision = int(src.get(\"revisionNumber\", 0) or 0)\n        zip_name = f\"design-assets-r{revision}.zip\"\n\n        out_binary[\"reviewZip\"] = {\n            \"data\": base64.b64encode(zip_bytes).decode(\"ascii\"),\n            \"mimeType\": \"application/zip\",\n            \"fileName\": zip_name,\n            \"fileExtension\": \"zip\",\n            \"fileSize\": str(len(zip_bytes)),\n        }\n        out_json[\"designAssetCount\"] = len(manifest_assets)\n        out_json[\"designAssetManifest\"] = manifest\n        out_json[\"response\"] = str(src.get(\"response\") or f\"Design assets ZIP generated: {manifest['counts']['images']} PNG images + source file.\")\n        out_json.pop(\"designAssetError\", None)\n    except Exception as err:\n        out_json[\"designAssetCount\"] = 0\n        out_json[\"designAssetError\"] = str(err)\n        out_json[\"response\"] = str(src.get(\"response\") or \"Failed to build design assets ZIP.\")\n\n    outputs.append({\"json\": out_json, \"binary\": out_binary})\n\nreturn outputs\n"
+      },
+      "id": "33fb0f08-5a9f-4228-a26e-e423e46fa7eb",
+      "name": "DESIGN - Build Image ZIP",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6672,
+        2336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function getTextBinary(itemIndex, item, propertyName, fallbackFileName) {\n  const binary = item.binary?.[propertyName];\n  if (!binary) {\n    throw new Error(`Missing binary property '${propertyName}'.`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n  return {\n    fileName: binary.fileName || fallbackFileName,\n    content: buffer.toString('utf8'),\n  };\n}\n\nconst items = $input.all();\n\nreturn await Promise.all(items.map(async (item, itemIndex) => {\n  const requirements = await getTextBinary.call(this, itemIndex, item, 'requirements', 'requirements.md');\n  const requirementsText = String(requirements.content || '').trim();\n\n  if (!requirementsText) {\n    throw new Error('Requirements specification is empty.');\n  }\n\n  const userPrompt = [\n    '------------------------------------------------',\n    'REQUIREMENTS SPECIFICATION INPUT',\n    '------------------------------------------------',\n    requirementsText,\n  ].join('\\n');\n\n  return {\n    json: {\n      ...item.json,\n      userPrompt,\n      requirementsFile: requirements.fileName,\n    },\n    binary: item.binary ?? {},\n  };\n}));\n"
+      },
+      "id": "83b6303d-76aa-40c5-8777-33f9b8db3d39",
+      "name": "DESIGN - Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5344,
+        2336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = item?.json ?? {};\n\nfunction getNodeItems(nodeName) {\n  if (typeof $items !== 'function') return [];\n  try {\n    return $items(nodeName) || [];\n  } catch {\n    return [];\n  }\n}\n\nfunction splitLines(text) {\n  return String(text ?? '').replace(/\\r\\n/g, '\\n').split('\\n');\n}\n\nfunction looksTextLike(binaryEntry, key) {\n  const mime = String(binaryEntry?.mimeType ?? '').toLowerCase();\n  const extRaw = String(binaryEntry?.fileExtension ?? '').toLowerCase();\n  const ext = extRaw.startsWith('.') ? extRaw.slice(1) : extRaw;\n\n  const textExt = new Set([\n    'txt', 'md', 'markdown', 'json', 'yaml', 'yml', 'csv', 'tsv', 'xml', 'html', 'htm',\n    'js', 'ts', 'py', 'java', 'c', 'cpp', 'cs', 'sql', 'log', 'ini', 'cfg',\n  ]);\n\n  if (mime.startsWith('text/')) return true;\n  if (mime.includes('json') || mime.includes('xml') || mime.includes('yaml')) return true;\n  if (textExt.has(ext)) return true;\n\n  const keyLower = String(key ?? '').toLowerCase();\n  if (keyLower.endsWith('.txt') || keyLower.endsWith('.md') || keyLower.endsWith('.json')) return true;\n\n  return false;\n}\n\nfunction decodeText(binaryEntry) {\n  try {\n    const raw = String(binaryEntry?.data ?? '');\n    if (!raw) return '';\n    return Buffer.from(raw, 'base64').toString('utf8');\n  } catch {\n    return '';\n  }\n}\n\nconst hvItems = getNodeItems('DESIGN - Human Validation');\nconst hv1Items = getNodeItems('DESIGN - Human Validation1');\nconst loopItems = getNodeItems('DESIGN - Loop Decision');\n\nconst hvJson = hvItems[0]?.json ?? {};\nconst hv1Json = hv1Items[0]?.json ?? {};\nconst loopJson = loopItems[0]?.json ?? {};\n\nconst hvBinary = hvItems[0]?.binary ?? {};\nconst hv1Binary = hv1Items[0]?.binary ?? {};\nconst loopBinary = loopItems[0]?.binary ?? {};\n\nconst mergedJson = { ...hvJson, ...hv1Json, ...loopJson, ...json };\nconst mergedBinary = { ...hvBinary, ...hv1Binary, ...loopBinary, ...(item?.binary ?? {}) };\n\nconst requirementsBinary = mergedBinary.requirements ?? item?.binary?.requirements ?? null;\nconst requirementsText = decodeText(requirementsBinary).trim();\nif (!requirementsText) {\n  throw new Error('Approved requirements specification is missing for design refinement.');\n}\nconst requirementsFile = String(requirementsBinary?.fileName ?? mergedJson.requirementsFile ?? 'requirements.md').trim() || 'requirements.md';\n\nconst designDsl = [\n  mergedJson.designDsl,\n  mergedJson.firstIterationDesignDsl,\n  mergedJson.response,\n]\n  .map((value) => String(value ?? '').trim())\n  .find((value) => value.length > 0) || '';\n\nif (!designDsl) throw new Error('Design DSL draft is missing for refinement.');\n\nlet parsedDsl;\ntry {\n  parsedDsl = JSON.parse(designDsl);\n} catch (error) {\n  throw new Error('Design DSL draft is not valid JSON: ' + error.message);\n}\n\nif (!parsedDsl || typeof parsedDsl !== 'object' || Array.isArray(parsedDsl)) {\n  throw new Error('Design DSL draft must be a JSON object.');\n}\n\nconst reviewerFeedback = [\n  mergedJson.feedback,\n  mergedJson.Feedback,\n  loopJson.feedback,\n  loopJson.Feedback,\n  hv1Json.feedback,\n  hv1Json.Feedback,\n  hvJson.feedback,\n  hvJson.Feedback,\n]\n  .map((value) => String(value ?? '').trim())\n  .find((value) => value.length > 0)\n  || 'Reviewer requested changes without additional details.';\n\nconst revisionNumber = Math.max(0, Math.trunc(Number(mergedJson.revisionNumber ?? 0) || 0)) + 1;\n\nconst attachmentEntries = Object.entries(mergedBinary)\n  .filter(([key]) => /^attachments?(?:_|$)/i.test(String(key)));\n\nconst attachmentSummaries = [];\nconst attachmentTextBlocks = [];\n\nlet totalTextChars = 0;\nconst maxTotalChars = 24000;\nconst maxPerFileChars = 6000;\n\nfor (const [key, bin] of attachmentEntries) {\n  const fileName = String(bin?.fileName ?? key);\n  const mimeType = String(bin?.mimeType ?? 'application/octet-stream');\n  const fileSize = Number(bin?.fileSize ?? 0);\n\n  attachmentSummaries.push({ key, fileName, mimeType, fileSize });\n\n  if (!looksTextLike(bin, key)) continue;\n  if (totalTextChars >= maxTotalChars) continue;\n\n  const text = decodeText(bin).trim();\n  if (!text) continue;\n\n  const remaining = maxTotalChars - totalTextChars;\n  const take = Math.min(maxPerFileChars, remaining);\n  const excerpt = text.slice(0, take);\n\n  attachmentTextBlocks.push(`Attachment: ${fileName} (${mimeType})\\n---\\n${excerpt}`);\n  totalTextChars += excerpt.length;\n}\n\nconst attachmentSummaryText = attachmentSummaries.length\n  ? attachmentSummaries.map((a, i) => `${i + 1}) ${a.fileName} | mime=${a.mimeType} | size=${a.fileSize}`).join('\\n')\n  : '[No attachments provided.]';\n\nconst attachmentExtractedText = attachmentTextBlocks.length\n  ? attachmentTextBlocks.join('\\n\\n')\n  : '[No text could be extracted from attachments automatically.]';\n\nconst patchPromptParts = [\n  'You are correcting an existing UI Design DSL JSON draft.',\n  'The approved requirements specification remains the source of truth and must be enforced together with the reviewer feedback.',\n  '',\n  'Input priority (highest to lowest):',\n  '1) Explicit reviewer feedback field',\n  '2) Approved requirements specification',\n  '3) Attachment context (metadata + extracted text when available)',\n  '4) Current Design DSL draft',\n  '',\n  'MANDATORY ENFORCEMENT:',\n  '- Apply all explicit reviewer requests when they are structurally compatible with the DSL schema.',\n  '- Keep the refined design aligned with the approved requirements. If feedback conflicts with the requirements, satisfy the requirements first and reinterpret the feedback conservatively.',\n  '- Preserve valid screens/modals/dialogs and navigation links unless they conflict with reviewer requests or the approved requirements.',\n  '- Keep output as valid JSON with top-level keys: screens, modals, dialogs.',\n  '- Keep IDs stable whenever possible.',\n  '',\n  'Return ONLY the FULL corrected DSL JSON object.',\n  '- First character MUST be {',\n  '- Do NOT return markdown fences.',\n  '- Do NOT explain your answer.',\n  '- Do NOT return diffs or patch instructions.',\n  '',\n  `Approved requirements file: ${requirementsFile}`,\n  'Approved requirements specification:',\n  requirementsText,\n  '',\n  'Reviewer feedback:',\n  reviewerFeedback,\n  '',\n  'Attachment metadata:',\n  attachmentSummaryText,\n  '',\n  'Extracted attachment text (partial when available):',\n  attachmentExtractedText,\n  '',\n  'Current Design DSL draft with line numbers:',\n  splitLines(JSON.stringify(parsedDsl, null, 2)).map((line, idx) => `${idx + 1}: ${line}`).join('\\n'),\n];\n\nreturn [{\n  json: {\n    ...mergedJson,\n    designDsl: JSON.stringify(parsedDsl),\n    reviewerFeedback,\n    revisionNumber,\n    attachmentCount: attachmentSummaries.length,\n    attachmentSummaries,\n    requirementsFile,\n    patchPrompt: patchPromptParts.join('\\n'),\n  },\n  ...(mergedBinary && Object.keys(mergedBinary).length > 0 ? { binary: mergedBinary } : {}),\n}];"
+      },
+      "id": "0bcc2a1d-6529-42e9-8b06-e8164393ef12",
+      "name": "DESIGN - Build Refinement Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5712,
+        2032
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseCandidate(raw) {\n  try {\n    const parsed = JSON.parse(raw);\n    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {\n      return parsed;\n    }\n  } catch {}\n  return null;\n}\n\nfunction normalizeText(raw) {\n  let text = String(raw ?? '').trim();\n  if (!text) {\n    throw new Error('Design refinement model output is empty.');\n  }\n\n  const fenced = text.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);\n  if (fenced) {\n    text = fenced[1].trim();\n  }\n\n  return text;\n}\n\nfunction validateDsl(payload) {\n  const requiredKeys = ['screens', 'modals', 'dialogs'];\n  for (const key of requiredKeys) {\n    if (!(key in payload)) {\n      throw new Error(`Design DSL is missing '${key}'.`);\n    }\n    if (!Array.isArray(payload[key])) {\n      throw new Error(`Design DSL key '${key}' must be an array.`);\n    }\n  }\n}\n\nfunction extractDsl(rawText) {\n  const text = normalizeText(rawText);\n  const candidates = [];\n\n  candidates.push(text);\n\n  const firstObjectStart = text.indexOf('{');\n  const lastObjectEnd = text.lastIndexOf('}');\n  if (firstObjectStart >= 0 && lastObjectEnd > firstObjectStart) {\n    candidates.push(text.slice(firstObjectStart, lastObjectEnd + 1));\n  }\n\n  for (const candidate of candidates) {\n    const parsed = parseCandidate(candidate);\n    if (!parsed) continue;\n\n    validateDsl(parsed);\n    return parsed;\n  }\n\n  throw new Error('Could not extract valid DSL JSON from design refinement output.');\n}\n\nconst item = $input.first();\nconst dsl = extractDsl(item?.json?.text);\n\nreturn [{\n  json: {\n    designDsl: JSON.stringify(dsl),\n    revisionNumber: Number(item?.json?.revisionNumber ?? 0) || 0,\n  },\n  ...(item?.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "7134c5e3-127f-4902-81f6-9e9ec1963622",
+      "name": "DESIGN - Clean Refinement Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6752,
+        2048
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseCandidate(raw) {\n  try {\n    const parsed = JSON.parse(raw);\n    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {\n      return parsed;\n    }\n  } catch {}\n  return null;\n}\n\nfunction normalizeText(raw) {\n  let text = String(raw ?? '').trim();\n  if (!text) {\n    throw new Error('Design model output is empty.');\n  }\n\n  const fenced = text.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);\n  if (fenced) {\n    text = fenced[1].trim();\n  }\n\n  return text;\n}\n\nfunction validateDsl(payload) {\n  const requiredKeys = ['screens', 'modals', 'dialogs'];\n  for (const key of requiredKeys) {\n    if (!(key in payload)) {\n      throw new Error(`Design DSL is missing '${key}'.`);\n    }\n    if (!Array.isArray(payload[key])) {\n      throw new Error(`Design DSL key '${key}' must be an array.`);\n    }\n  }\n}\n\nfunction extractDsl(rawText) {\n  const text = normalizeText(rawText);\n  const candidates = [];\n\n  candidates.push(text);\n\n  const firstObjectStart = text.indexOf('{');\n  const lastObjectEnd = text.lastIndexOf('}');\n  if (firstObjectStart >= 0 && lastObjectEnd > firstObjectStart) {\n    candidates.push(text.slice(firstObjectStart, lastObjectEnd + 1));\n  }\n\n  for (const candidate of candidates) {\n    const parsed = parseCandidate(candidate);\n    if (!parsed) continue;\n\n    validateDsl(parsed);\n    return parsed;\n  }\n\n  throw new Error('Could not extract valid DSL JSON from design model output.');\n}\n\nconst item = $input.first();\nconst dsl = extractDsl(item?.json?.text);\n\nreturn [{\n  json: {\n    designDsl: JSON.stringify(dsl),\n    revisionNumber: Number(item?.json?.revisionNumber ?? 0) || 0,\n  },\n  binary: item?.binary ?? {},\n}];"
+      },
+      "id": "7ecf5297-113f-44db-ae2d-2b5661ae086f",
+      "name": "DESIGN - Clean Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6144,
+        2336
+      ]
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "import builtins as _real_builtins\n\ntry:\n    _bc = _real_builtins.__build_class__\n    _b = __builtins__\n    try:\n        if isinstance(_b, dict):\n            if \"__build_class__\" not in _b:\n                _b[\"__build_class__\"] = _bc\n        else:\n            try:\n                _b.__build_class__\n            except Exception:\n                try:\n                    setattr(_b, \"__build_class__\", _bc)\n                except Exception:\n                    pass\n    except Exception:\n        pass\nexcept Exception:\n    pass\n\ntry:\n    __name__\nexcept Exception:\n    __name__ = \"__main__\"\n\nimport hashlib\nimport json\nimport math\nimport re\nfrom dataclasses import dataclass\nfrom typing import Any, Dict, List, Optional, Tuple\n\nSCREEN_ID_RE = re.compile(r\"^S\\d+$\")\nMODAL_ID_RE = re.compile(r\"^\\d+M\\d+$\")\nDIALOG_ID_RE = re.compile(r\"^\\d+D\\d+$\")\n\nVALID_TYPES = {\n    \"container\", \"text\", \"button\", \"input\", \"textarea\", \"checkbox\", \"radio\", \"dropdown\", \"table\", \"list\",\n    \"card\", \"navbar\", \"sidebar\", \"footer\", \"header\", \"image\", \"icon\", \"tabs\", \"badge\", \"alert\", \"search\", \"divider\",\n}\nTABLE_COLUMN_TYPES = {\"text\", \"button\", \"dropdown\"}\nVALID_COLORS = {\"primary\", \"secondary\", \"success\", \"warning\", \"error\", \"neutral\", \"background\", \"surface\", \"accent\"}\nVALID_TEXT_COLORS = {\n    \"primary-txt\", \"secondary-txt\", \"success-txt\", \"warning-txt\", \"error-txt\",\n    \"neutral-txt\", \"background-txt\", \"surface-txt\", \"accent-txt\",\n}\n\nTOKENS = {\n    \"blue100\": \"#F5F9FB\",\n    \"blue200\": \"#E1ECF2\",\n    \"blue300\": \"#B0CCDD\",\n    \"blue400\": \"#74A6C4\",\n    \"blue500\": \"#3980AA\",\n    \"blue600\": \"#327196\",\n    \"blue700\": \"#2C6485\",\n    \"blue800\": \"#25536F\",\n    \"blue900\": \"#173344\",\n    \"gray100\": \"#F7F7F7\",\n    \"gray200\": \"#E8E8E8\",\n    \"gray300\": \"#C2C2C2\",\n    \"gray500\": \"#666666\",\n    \"gray700\": \"#505050\",\n    \"white\": \"#FFFFFF\",\n    \"black\": \"#000000\",\n    \"error200\": \"#FFE8E3\",\n    \"error400\": \"#FF927B\",\n    \"error600\": \"#A0291A\",\n    \"success200\": \"#E5F0E0\",\n    \"success400\": \"#346122\",\n    \"success600\": \"#294C1B\",\n    \"alert200\": \"#FCF5DE\",\n    \"alert600\": \"#FFCF27\",\n    \"info200\": \"#E5EEF6\",\n    \"info600\": \"#103960\",\n}\n\nSEMANTIC_TONES = {\n    \"primary\": {\n        \"strong\": TOKENS[\"blue800\"],\n        \"soft\": TOKENS[\"blue100\"],\n        \"line\": TOKENS[\"blue300\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"blue900\"],\n    },\n    \"secondary\": {\n        \"strong\": TOKENS[\"blue800\"],\n        \"soft\": TOKENS[\"white\"],\n        \"line\": TOKENS[\"blue800\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"blue800\"],\n    },\n    \"success\": {\n        \"strong\": TOKENS[\"success600\"],\n        \"soft\": TOKENS[\"success200\"],\n        \"line\": TOKENS[\"success600\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"success600\"],\n    },\n    \"warning\": {\n        \"strong\": TOKENS[\"alert600\"],\n        \"soft\": TOKENS[\"alert200\"],\n        \"line\": TOKENS[\"alert600\"],\n        \"onStrong\": TOKENS[\"black\"],\n        \"onSoft\": \"#664D03\",\n    },\n    \"error\": {\n        \"strong\": TOKENS[\"error600\"],\n        \"soft\": TOKENS[\"error200\"],\n        \"line\": TOKENS[\"error600\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"error600\"],\n    },\n    \"neutral\": {\n        \"strong\": TOKENS[\"gray700\"],\n        \"soft\": TOKENS[\"white\"],\n        \"line\": TOKENS[\"gray300\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"black\"],\n    },\n    \"background\": {\n        \"strong\": TOKENS[\"blue700\"],\n        \"soft\": TOKENS[\"blue100\"],\n        \"line\": TOKENS[\"blue300\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"blue900\"],\n    },\n    \"surface\": {\n        \"strong\": TOKENS[\"blue700\"],\n        \"soft\": TOKENS[\"white\"],\n        \"line\": TOKENS[\"blue300\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"black\"],\n    },\n    \"accent\": {\n        \"strong\": TOKENS[\"info600\"],\n        \"soft\": TOKENS[\"info200\"],\n        \"line\": TOKENS[\"info600\"],\n        \"onStrong\": TOKENS[\"white\"],\n        \"onSoft\": TOKENS[\"info600\"],\n    },\n}\nTEXT_HEX = {\n    \"primary-txt\": TOKENS[\"blue900\"],\n    \"secondary-txt\": TOKENS[\"blue800\"],\n    \"success-txt\": TOKENS[\"success600\"],\n    \"warning-txt\": \"#664D03\",\n    \"error-txt\": TOKENS[\"error600\"],\n    \"neutral-txt\": TOKENS[\"gray700\"],\n    \"background-txt\": TOKENS[\"black\"],\n    \"surface-txt\": TOKENS[\"black\"],\n    \"accent-txt\": TOKENS[\"info600\"],\n}\nTS = 1762041600000\n\n\nclass DSLValidationError(ValueError):\n    pass\n\n\ndef _normalized_target(value: Any) -> Optional[str]:\n    if not isinstance(value, str):\n        return None\n    target = value.strip()\n    if not target or target.lower() in {\"none\", \"null\", \"n/a\", \"na\"}:\n        return None\n    return target\n\n\ndef _normalize_dropdown_option(value: Any) -> Optional[str]:\n    if isinstance(value, str):\n        text = value.strip()\n        return text if text else None\n    if isinstance(value, dict):\n        raw = value.get(\"txt\", value.get(\"label\", value.get(\"value\")))\n        if isinstance(raw, str):\n            text = raw.strip()\n            return text if text else None\n    return None\n\n\ndef _extract_dropdown_options(value: Any) -> List[str]:\n    if not isinstance(value, list):\n        return []\n    options: List[str] = []\n    for item in value:\n        option = _normalize_dropdown_option(item)\n        if option:\n            options.append(option)\n    return options\n\n\n@dataclass(frozen=True)\nclass Geo:\n    fx: float\n    fy: float\n    fw: float\n    fh: float\n    ix: float\n    iy: float\n    iw: float\n    ih: float\n\n    def p(self, x: int, y: int, w: int, h: int) -> Tuple[float, float, float, float]:\n        sx = self.iw / 1000.0\n        sy = self.ih / 1000.0\n        return self.fx + self.ix + x * sx, self.fy + self.iy + y * sy, max(1.0, w * sx), max(1.0, h * sy)\n\n\nclass Excal:\n    def __init__(self) -> None:\n        self.elements: List[Dict[str, Any]] = []\n        self.i = 1\n\n    def _id(self, p: str) -> str:\n        out = f\"{p}{self.i:04d}\"\n        self.i += 1\n        return out\n\n    @staticmethod\n    def _q(v: float) -> float | int:\n        r = round(v, 2)\n        return int(round(r)) if abs(r - round(r)) < 0.001 else r\n\n    @staticmethod\n    def _txt_size(text: str, fs: int) -> Tuple[int, int, int]:\n        lines = text.splitlines() or [\"\"]\n        longest = max(len(l) for l in lines)\n        return max(1, int(longest * fs * 0.56)), max(fs, int(len(lines) * fs * 1.2)), max(1, int(fs * 0.85))\n\n    def _base(self, t: str, x: float, y: float, w: float, h: float, stroke: str, bg: str, sw: int, round_rect: bool, link: Optional[str]) -> Dict[str, Any]:\n        seed = 1000 + self.i * 37\n        nonce = int(hashlib.sha256(str(seed).encode()).hexdigest()[:8], 16)\n        e = {\n            \"id\": self._id(\"r\" if t == \"rectangle\" else \"e\"),\n            \"type\": t, \"x\": self._q(x), \"y\": self._q(y), \"width\": self._q(w), \"height\": self._q(h), \"angle\": 0,\n            \"strokeColor\": stroke, \"backgroundColor\": bg, \"fillStyle\": \"solid\", \"strokeWidth\": sw, \"strokeStyle\": \"solid\",\n            \"roughness\": 0, \"opacity\": 100, \"seed\": seed, \"version\": 1, \"versionNonce\": nonce, \"isDeleted\": False,\n            \"groupIds\": [], \"frameId\": None, \"roundness\": {\"type\": 3} if (t == \"rectangle\" and round_rect) else None,\n            \"boundElements\": None, \"updated\": TS, \"link\": link, \"locked\": False,\n        }\n        self.elements.append(e)\n        return e\n\n    def rect(self, x: float, y: float, w: float, h: float, stroke: str, fill: str, sw: int = 1, rounded: bool = True, link: Optional[str] = None) -> Dict[str, Any]:\n        return self._base(\"rectangle\", x, y, w, h, stroke, fill, sw, rounded, link)\n\n    def ellipse(self, x: float, y: float, w: float, h: float, stroke: str, fill: str, sw: int = 1, link: Optional[str] = None) -> Dict[str, Any]:\n        return self._base(\"ellipse\", x, y, w, h, stroke, fill, sw, False, link)\n\n    def text(self, text: str, x: float, y: float, color: str, fs: int = 14, link: Optional[str] = None) -> Dict[str, Any]:\n        w, h, bl = self._txt_size(text, fs)\n        seed = 1000 + self.i * 37\n        nonce = int(hashlib.sha256(str(seed).encode()).hexdigest()[:8], 16)\n        e = {\n            \"id\": self._id(\"t\"), \"type\": \"text\", \"x\": self._q(x), \"y\": self._q(y), \"width\": w, \"height\": h, \"angle\": 0,\n            \"strokeColor\": color, \"backgroundColor\": \"transparent\", \"fillStyle\": \"solid\", \"strokeWidth\": 1, \"strokeStyle\": \"solid\",\n            \"roughness\": 0, \"opacity\": 100, \"seed\": seed, \"version\": 1, \"versionNonce\": nonce, \"isDeleted\": False,\n            \"groupIds\": [], \"frameId\": None, \"roundness\": None, \"boundElements\": None, \"updated\": TS, \"link\": link, \"locked\": False,\n            \"text\": text, \"fontSize\": fs, \"fontFamily\": 2, \"textAlign\": \"left\", \"verticalAlign\": \"top\", \"baseline\": bl,\n        }\n        self.elements.append(e)\n        return e\n\n    def out(self) -> Dict[str, Any]:\n        return {\n            \"type\": \"excalidraw\",\n            \"version\": 2,\n            \"source\": \"https://excalidraw.com\",\n            \"elements\": self.elements,\n            \"appState\": {\"viewBackgroundColor\": \"#F7F7F7\", \"gridSize\": None},\n            \"files\": {},\n        }\n\n\ndef validate_dsl(dsl: Dict[str, Any]) -> None:\n    errs: List[str] = []\n    for k in (\"screens\", \"modals\", \"dialogs\"):\n        if k not in dsl:\n            errs.append(f\"Missing '{k}'.\")\n        elif not isinstance(dsl[k], list):\n            errs.append(f\"'{k}' must be an array.\")\n    screens = dsl.get(\"screens\", []) if isinstance(dsl.get(\"screens\"), list) else []\n    modals = dsl.get(\"modals\", []) if isinstance(dsl.get(\"modals\"), list) else []\n    dialogs = dsl.get(\"dialogs\", []) if isinstance(dsl.get(\"dialogs\"), list) else []\n    ids: List[str] = []\n    for s in screens:\n        sid = s.get(\"id\")\n        if not isinstance(sid, str) or not SCREEN_ID_RE.match(sid):\n            errs.append(f\"Invalid screen id: {sid!r}\")\n        else:\n            ids.append(sid)\n    screen_ids = set(ids)\n    for arr, rgx, lbl in ((modals, MODAL_ID_RE, \"modal\"), (dialogs, DIALOG_ID_RE, \"dialog\")):\n        for obj in arr:\n            cid = obj.get(\"id\")\n            if not isinstance(cid, str) or not rgx.match(cid):\n                errs.append(f\"Invalid {lbl} id: {cid!r}\")\n            else:\n                ids.append(cid)\n            if obj.get(\"parentScreen\") not in screen_ids:\n                errs.append(f\"{lbl} '{cid}' has unknown parentScreen '{obj.get('parentScreen')}'.\")\n    dup = sorted({x for x in ids if ids.count(x) > 1})\n    errs.extend([f\"Duplicate canvas id '{d}'.\" for d in dup])\n    targets = set(ids)\n\n    def _validate_table_button(btn: Any, p: str) -> None:\n        if not isinstance(btn, dict):\n            errs.append(f\"{p}: button must be object.\")\n            return\n        txt = btn.get(\"txt\")\n        color = btn.get(\"c\")\n        act = btn.get(\"act\")\n        if not isinstance(txt, str) or not txt.strip():\n            errs.append(f\"{p}: button.txt must be non-empty string.\")\n        if color not in VALID_COLORS:\n            errs.append(f\"{p}: button.c invalid color '{color}'.\")\n        if act is None:\n            return\n        if not isinstance(act, dict):\n            errs.append(f\"{p}: button.act must be object when present.\")\n            return\n        if act.get(\"type\") != \"navigate\":\n            errs.append(f\"{p}: button.act.type must be 'navigate' when act is present.\")\n            return\n        target = _normalized_target(act.get(\"target\"))\n        if target is not None and target not in targets:\n            errs.append(f\"{p}: button.act invalid target '{target}'.\")\n\n    def check_e(e: Dict[str, Any], p: str) -> None:\n        if e.get(\"t\") not in VALID_TYPES:\n            errs.append(f\"{p}: invalid type '{e.get('t')}'.\")\n        if e.get(\"c\") not in VALID_COLORS:\n            errs.append(f\"{p}: invalid color '{e.get('c')}'.\")\n        if e.get(\"t\") == \"text\" and e.get(\"tc\") not in VALID_TEXT_COLORS:\n            errs.append(f\"{p}: text element requires valid tc.\")\n        if e.get(\"t\") != \"text\" and e.get(\"tc\") is not None:\n            errs.append(f\"{p}: tc only allowed on text.\")\n        for k in (\"x\", \"y\", \"w\", \"h\"):\n            v = e.get(k)\n            if not isinstance(v, int):\n                errs.append(f\"{p}: '{k}' must be integer.\")\n            elif v < 0 or v > 1000:\n                errs.append(f\"{p}: '{k}' out of range [0,1000].\")\n        act = e.get(\"act\")\n        if act is not None:\n            if not isinstance(act, dict):\n                errs.append(f\"{p}: act must be object when present.\")\n            elif act.get(\"type\") != \"navigate\":\n                errs.append(f\"{p}: act.type must be 'navigate' when act is present.\")\n            else:\n                target = _normalized_target(act.get(\"target\"))\n                if target is not None and target not in targets:\n                    errs.append(f\"{p}: invalid act target '{target}'.\")\n        if e.get(\"t\") == \"table\":\n            items = e.get(\"items\")\n            if not isinstance(items, dict):\n                errs.append(f\"{p}: table requires items object.\")\n            else:\n                cols = items.get(\"columns\")\n                row = items.get(\"row\")\n                if not isinstance(cols, list):\n                    errs.append(f\"{p}: table requires items.columns.\")\n                    cols = []\n                if not isinstance(row, list):\n                    errs.append(f\"{p}: table requires items.row.\")\n                    row = []\n\n                col_ids: List[str] = []\n                col_by_id: Dict[str, Dict[str, Any]] = {}\n                for i, c in enumerate(cols):\n                    if not isinstance(c, dict):\n                        errs.append(f\"{p}.items.columns[{i}] must be object.\")\n                        continue\n                    cid = c.get(\"id\")\n                    label = c.get(\"label\")\n                    ctype = c.get(\"type\")\n                    if not isinstance(cid, str) or not cid.strip():\n                        errs.append(f\"{p}.items.columns[{i}]: id must be non-empty string.\")\n                        continue\n                    if cid in col_by_id:\n                        errs.append(f\"{p}.items.columns[{i}]: duplicate column id '{cid}'.\")\n                        continue\n                    if not isinstance(label, str) or not label.strip():\n                        errs.append(f\"{p}.items.columns[{i} ({cid})]: label must be non-empty string.\")\n                    if ctype not in TABLE_COLUMN_TYPES:\n                        errs.append(f\"{p}.items.columns[{i} ({cid})]: invalid type '{ctype}'.\")\n                    if ctype == \"button\":\n                        buttons = c.get(\"buttons\")\n                        if not isinstance(buttons, list) or len(buttons) < 1:\n                            errs.append(f\"{p}.items.columns[{i} ({cid})]: button column requires buttons array.\")\n                        else:\n                            for bi, b in enumerate(buttons):\n                                _validate_table_button(b, f\"{p}.items.columns[{i} ({cid})].buttons[{bi}]\")\n                    if ctype == \"dropdown\":\n                        options = _extract_dropdown_options(c.get(\"items\"))\n                        if len(options) < 1:\n                            errs.append(f\"{p}.items.columns[{i} ({cid})]: dropdown column requires non-empty items array.\")\n                    col_ids.append(cid)\n                    col_by_id[cid] = c\n\n                if isinstance(row, list) and isinstance(cols, list):\n                    if len(row) != len(cols):\n                        errs.append(\n                            f\"{p}.items.row: must contain same number of entries as columns \"\n                            f\"({len(row)} != {len(cols)}).\"\n                        )\n                    seen_cols: List[str] = []\n                    for ri, cell in enumerate(row):\n                        if not isinstance(cell, dict):\n                            errs.append(f\"{p}.items.row[{ri}] must be object.\")\n                            continue\n                        cid = cell.get(\"column\")\n                        if not isinstance(cid, str) or not cid.strip():\n                            errs.append(f\"{p}.items.row[{ri}]: 'column' must be non-empty string.\")\n                            continue\n                        seen_cols.append(cid)\n                        col = col_by_id.get(cid)\n                        if col is None:\n                            errs.append(f\"{p}.items.row[{ri}]: unknown column '{cid}'.\")\n                            continue\n                        ctype = col.get(\"type\")\n                        if ctype == \"text\":\n                            if not isinstance(cell.get(\"value\"), str):\n                                errs.append(f\"{p}.items.row[{ri}] ({cid}): text cell requires string 'value'.\")\n                        elif ctype == \"button\":\n                            buttons = cell.get(\"buttons\")\n                            if not isinstance(buttons, list) or len(buttons) < 1:\n                                errs.append(f\"{p}.items.row[{ri}] ({cid}): button cell requires 'buttons' array.\")\n                            else:\n                                for bi, b in enumerate(buttons):\n                                    _validate_table_button(b, f\"{p}.items.row[{ri}] ({cid}).buttons[{bi}]\")\n                        elif ctype == \"dropdown\":\n                            value_ok = isinstance(cell.get(\"value\"), str)\n                            options = _extract_dropdown_options(cell.get(\"items\"))\n                            col_options = _extract_dropdown_options(col.get(\"items\"))\n                            if not value_ok and len(options) < 1 and len(col_options) < 1:\n                                errs.append(\n                                    f\"{p}.items.row[{ri}] ({cid}): dropdown cell requires 'value' \"\n                                    \"or non-empty 'items' array.\"\n                                )\n\n                    missing = sorted(set(col_ids) - set(seen_cols))\n                    extra = sorted(set(seen_cols) - set(col_ids))\n                    if missing:\n                        errs.append(f\"{p}.items.row: missing entries for columns {missing}.\")\n                    if extra:\n                        errs.append(f\"{p}.items.row: unknown column references {extra}.\")\n        ch = e.get(\"ch\")\n        if ch is not None and not isinstance(ch, list):\n            errs.append(f\"{p}: ch must be array.\")\n        if isinstance(ch, list):\n            for i, c in enumerate(ch):\n                if isinstance(c, dict):\n                    check_e(c, f\"{p}.ch[{i}]\")\n                else:\n                    errs.append(f\"{p}.ch[{i}] must be object.\")\n\n    for group in (\"screens\", \"modals\", \"dialogs\"):\n        for c in dsl.get(group, []):\n            for i, e in enumerate(c.get(\"elements\", [])):\n                if isinstance(e, dict):\n                    check_e(e, f\"{group}[{c.get('id')}].elements[{i}]\")\n                else:\n                    errs.append(f\"{group}[{c.get('id')}].elements[{i}] must be object.\")\n    if errs:\n        raise DSLValidationError(\"\\n\".join(errs))\n\n\nclass Compiler:\n    SW, SH, SG, SI = 1500, 900, 300, 48\n    MODAL_W, DIALOG_W = 800, 520\n    OI = 24\n    OVERLAY_BASE_Y = SH + 200\n    OVERLAY_GAP_Y = 120\n    OVERLAY_COL_GAP = 120\n    MODAL_X_OFFSET = 110\n\n    def __init__(self, dsl: Dict[str, Any]) -> None:\n        self.dsl = dsl\n        self.ex = Excal()\n        self.screen_idx: Dict[str, int] = {}\n\n    def _style(self, token: str, role: str = \"surface\") -> Dict[str, str]:\n        tone = SEMANTIC_TONES.get(token, SEMANTIC_TONES[\"neutral\"])\n        if role == \"action\":\n            if token == \"secondary\":\n                return {\"stroke\": tone[\"line\"], \"fill\": TOKENS[\"white\"], \"text\": tone[\"onSoft\"], \"border\": 2}\n            return {\"stroke\": tone[\"strong\"], \"fill\": tone[\"strong\"], \"text\": tone[\"onStrong\"], \"border\": 1}\n        if role == \"status\":\n            return {\"stroke\": tone[\"strong\"], \"fill\": tone[\"strong\"], \"text\": tone[\"onStrong\"], \"border\": 1}\n        if role == \"field\":\n            return {\"stroke\": TOKENS[\"gray300\"], \"fill\": TOKENS[\"white\"], \"text\": TOKENS[\"gray700\"], \"border\": 1}\n        if role == \"nav\":\n            if token in {\"primary\", \"secondary\", \"neutral\", \"background\", \"surface\"}:\n                return {\"stroke\": TOKENS[\"blue500\"], \"fill\": TOKENS[\"blue500\"], \"text\": TOKENS[\"white\"], \"border\": 1}\n            return {\"stroke\": tone[\"strong\"], \"fill\": tone[\"strong\"], \"text\": tone[\"onStrong\"], \"border\": 1}\n        if role == \"panel\":\n            return {\"stroke\": tone[\"line\"], \"fill\": tone[\"soft\"], \"text\": tone[\"onSoft\"], \"border\": 1}\n        if role == \"text\":\n            return {\"stroke\": tone[\"onSoft\"], \"fill\": \"transparent\", \"text\": tone[\"onSoft\"], \"border\": 0}\n        if token in {\"primary\", \"background\"}:\n            return {\"stroke\": TOKENS[\"blue300\"], \"fill\": TOKENS[\"blue100\"], \"text\": TOKENS[\"blue900\"], \"border\": 1}\n        return {\"stroke\": tone[\"line\"], \"fill\": tone[\"soft\"], \"text\": tone[\"onSoft\"], \"border\": 1}\n\n    def _tcolor(self, tc: Optional[str], fb: str) -> str:\n        return TEXT_HEX.get(tc, fb) if tc else fb\n\n    def _label(self, e: Dict[str, Any]) -> str:\n        for k in (\"txt\", \"label\", \"placeholder\"):\n            v = e.get(k)\n            if isinstance(v, str) and v.strip():\n                return v.strip()\n        return \"\"\n\n    def _target(self, e: Dict[str, Any]) -> Optional[str]:\n        act = e.get(\"act\")\n        if isinstance(act, dict) and act.get(\"type\") == \"navigate\" and isinstance(act.get(\"target\"), str):\n            return act[\"target\"]\n        return None\n\n    def _link(self, e: Dict[str, Any]) -> Optional[str]:\n        # Excalidraw renders a visible link badge; keep links hidden in UI output.\n        return None\n\n    def _hint(self, t: Optional[str], x: float, y: float, w: float) -> None:\n        if not t:\n            return\n        tw, _, _ = self.ex._txt_size(t, 11)\n        ty = y - 16 if y >= 18 else y + 2\n        self.ex.text(t, x + max(0.0, (w - tw) / 2.0), ty, TOKENS[\"blue700\"], fs=11)\n\n    def _center_text(self, text: str, x: float, y: float, w: float, h: float, color: str, fs: int = 14, link: Optional[str] = None) -> None:\n        tw, th, _ = self.ex._txt_size(text, fs)\n        self.ex.text(text, x + max(0.0, (w - tw) / 2.0), y + max(0.0, (h - th) / 2.0), color, fs=fs, link=link)\n\n    def _fit_text_fs(self, text: str, box_w: float, box_h: float, *, preferred: int = 14, min_fs: int = 11, max_fs: int = 16) -> int:\n        fs = max(min_fs, min(max_fs, min(preferred, int(max(min_fs, box_h * 0.45)))))\n        while fs > min_fs:\n            tw, th, _ = self.ex._txt_size(text, fs)\n            if tw <= box_w and th <= box_h:\n                break\n            fs -= 1\n        return fs\n\n    def _frame_screen(self, cid: str, name: str, g: Geo) -> None:\n        self.ex.text(f\"{cid} - {name}\", g.fx, g.fy - 26, TOKENS[\"blue800\"], fs=14)\n        self.ex.rect(g.fx, g.fy, g.fw, g.fh, TOKENS[\"blue700\"], TOKENS[\"white\"], sw=2, rounded=True)\n\n    def _frame_modal(self, cid: str, name: str, parent: str, g: Geo) -> None:\n        self.ex.text(f\"{cid} - {name} (Modal of {parent})\", g.fx, g.fy - 24, TOKENS[\"blue800\"], fs=12)\n        self.ex.rect(g.fx, g.fy, g.fw, g.fh, TOKENS[\"blue300\"], TOKENS[\"white\"], sw=1, rounded=True)\n        self.ex.text(name, g.fx + 24, g.fy + 24, TOKENS[\"blue800\"], fs=24)\n        self.ex.rect(g.fx + 24, g.fy + 64, g.fw - 48, 1, TOKENS[\"blue300\"], TOKENS[\"blue300\"], rounded=False)\n\n    def _frame_dialog(self, cid: str, name: str, parent: str, g: Geo) -> None:\n        self.ex.text(f\"{cid} - {name} (Dialog of {parent})\", g.fx, g.fy - 24, TOKENS[\"blue800\"], fs=12)\n        self.ex.rect(g.fx, g.fy, g.fw, g.fh, TOKENS[\"gray300\"], TOKENS[\"white\"], sw=1, rounded=True)\n        self.ex.text(name, g.fx + 20, g.fy + 18, TOKENS[\"blue800\"], fs=20)\n        self.ex.rect(g.fx + 20, g.fy + 52, g.fw - 40, 1, TOKENS[\"blue300\"], TOKENS[\"blue300\"], rounded=False)\n\n    def _dialog_options(self, elements: List[Dict[str, Any]]) -> List[Tuple[str, Optional[str]]]:\n        options: List[Tuple[str, Optional[str]]] = []\n\n        def walk(node: Dict[str, Any]) -> None:\n            label = self._label(node)\n            target = self._target(node)\n            if label:\n                options.append((label, target))\n            for ch in node.get(\"ch\", []) if isinstance(node.get(\"ch\"), list) else []:\n                if isinstance(ch, dict):\n                    walk(ch)\n\n        for item in elements:\n            if isinstance(item, dict):\n                walk(item)\n        return options\n\n    def _render_dialog_options(self, cid: str, name: str, parent: str, g: Geo, options: List[Tuple[str, Optional[str]]]) -> None:\n        self.ex.text(f\"{cid} - {name} (Dialog of {parent})\", g.fx, g.fy - 24, TOKENS[\"blue800\"], fs=12)\n        self.ex.rect(g.fx, g.fy, g.fw, g.fh, TOKENS[\"blue700\"], TOKENS[\"white\"], sw=1, rounded=True)\n        if not options:\n            self._center_text(name, g.fx, g.fy, g.fw, g.fh, TOKENS[\"blue800\"], fs=16)\n            return\n        row_h = g.fh / max(1, len(options))\n        for idx, (label, target) in enumerate(options):\n            ry = g.fy + idx * row_h\n            fill = TOKENS[\"blue200\"] if idx == 0 else TOKENS[\"white\"]\n            self.ex.rect(g.fx, ry, g.fw, row_h, TOKENS[\"blue300\"], fill, rounded=False)\n            self.ex.text(label, g.fx + 16, ry + max(8.0, (row_h - 16) / 2.0), TOKENS[\"black\"], fs=14)\n            self._hint(target, g.fx, ry, g.fw)\n\n    def _screen_geo(self, idx: int) -> Geo:\n        fx = idx * (self.SW + self.SG)\n        return Geo(fx, 0, self.SW, self.SH, self.SI, self.SI, self.SW - 2 * self.SI, self.SH - 2 * self.SI)\n\n    def _overlay_geo(self, fx: float, fy: float, fw: float, fh: float, header_h: float) -> Geo:\n        return Geo(fx, fy, fw, fh, self.OI, header_h, fw - 2 * self.OI, max(1.0, fh - header_h - self.OI))\n\n    @staticmethod\n    def _max_extent(elements: List[Dict[str, Any]]) -> int:\n        max_h = 0\n\n        def walk(node: Dict[str, Any]) -> None:\n            nonlocal max_h\n            try:\n                max_h = max(max_h, int(node.get(\"y\", 0)) + int(node.get(\"h\", 0)))\n            except Exception:\n                pass\n            for ch in node.get(\"ch\", []) if isinstance(node.get(\"ch\"), list) else []:\n                if isinstance(ch, dict):\n                    walk(ch)\n\n        for item in elements:\n            if isinstance(item, dict):\n                walk(item)\n        return max_h\n\n    @staticmethod\n    def _estimate_overlay_h(extent: int, *, is_modal: bool) -> int:\n        if is_modal:\n            return int(max(420, min(700, 220 + extent * 0.5)))\n        return int(max(320, min(520, 170 + extent * 0.35)))\n\n    def compile(self) -> Dict[str, Any]:\n        for i, s in enumerate(self.dsl.get(\"screens\", [])):\n            sid = s[\"id\"]\n            self.screen_idx[sid] = i\n            g = self._screen_geo(i)\n            self._frame_screen(sid, s.get(\"name\", sid), g)\n            for e in s.get(\"elements\", []):\n                self._render_element(e, g)\n\n        modal_cursor_y: Dict[str, float] = {}\n        dialog_cursor_y: Dict[str, float] = {}\n\n        for i, m in enumerate(self.dsl.get(\"modals\", [])):\n            p = m[\"parentScreen\"]\n            sidx = self.screen_idx.get(p, i)\n            sx = sidx * (self.SW + self.SG)\n            x = sx + self.MODAL_X_OFFSET\n            y = modal_cursor_y.get(p, self.OVERLAY_BASE_Y)\n            oh = self._estimate_overlay_h(self._max_extent(m.get(\"elements\", [])), is_modal=True)\n            g = self._overlay_geo(x, y, self.MODAL_W, oh, header_h=84)\n            self._frame_modal(m[\"id\"], m.get(\"name\", m[\"id\"]), p, g)\n            for e in m.get(\"elements\", []):\n                self._render_element(e, g)\n            modal_cursor_y[p] = y + oh + self.OVERLAY_GAP_Y\n\n        for i, d in enumerate(self.dsl.get(\"dialogs\", [])):\n            p = d[\"parentScreen\"]\n            sidx = self.screen_idx.get(p, i)\n            sx = sidx * (self.SW + self.SG)\n            x = sx + self.MODAL_X_OFFSET + self.MODAL_W + self.OVERLAY_COL_GAP\n            y = dialog_cursor_y.get(p, self.OVERLAY_BASE_Y)\n            options = self._dialog_options(d.get(\"elements\", []))\n            oh = max(88, min(620, max(1, len(options)) * 44))\n            g = self._overlay_geo(x, y, self.DIALOG_W, oh, header_h=0)\n            self._render_dialog_options(d[\"id\"], d.get(\"name\", d[\"id\"]), p, g, options)\n            dialog_cursor_y[p] = y + oh + self.OVERLAY_GAP_Y\n        return self.ex.out()\n\n    def _extract_table_columns_and_row(self, items: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]]]:\n        cols = items.get(\"columns\") if isinstance(items.get(\"columns\"), list) else []\n        row_entries = items.get(\"row\") if isinstance(items.get(\"row\"), list) else []\n        row_map: Dict[str, Dict[str, Any]] = {}\n        for entry in row_entries:\n            if not isinstance(entry, dict):\n                continue\n            col = entry.get(\"column\")\n            if isinstance(col, str) and col.strip():\n                row_map[col] = entry\n        return [c for c in cols if isinstance(c, dict)], row_map\n\n    @staticmethod\n    def _row_text_value(cell: Dict[str, Any]) -> str:\n        value = cell.get(\"value\")\n        return value if isinstance(value, str) else \"\"\n\n    @staticmethod\n    def _row_buttons_value(cell: Dict[str, Any], col: Dict[str, Any]) -> List[Dict[str, Any]]:\n        if isinstance(cell.get(\"buttons\"), list):\n            return [b for b in cell[\"buttons\"] if isinstance(b, dict)]\n        if isinstance(col.get(\"buttons\"), list):\n            return [b for b in col[\"buttons\"] if isinstance(b, dict)]\n        return []\n\n    @staticmethod\n    def _row_dropdown_options(cell: Dict[str, Any], col: Dict[str, Any]) -> List[str]:\n        options = _extract_dropdown_options(cell.get(\"items\"))\n        if options:\n            return options\n        return _extract_dropdown_options(col.get(\"items\"))\n\n    @staticmethod\n    def _row_dropdown_value(cell: Dict[str, Any], col: Dict[str, Any]) -> str:\n        value = cell.get(\"value\")\n        if isinstance(value, str) and value.strip():\n            return value.strip()\n        options = Compiler._row_dropdown_options(cell, col)\n        return options[0] if options else \"\"\n\n    def _render_table(self, e: Dict[str, Any], x: float, y: float, w: float, h: float, target: Optional[str]) -> None:\n        items = e.get(\"items\") if isinstance(e.get(\"items\"), dict) else {}\n        cols, row_map = self._extract_table_columns_and_row(items) if isinstance(items, dict) else ([], {})\n        rows: List[Dict[str, Dict[str, Any]]] = [row_map] if cols and row_map else []\n\n        pagination_h = max(56.0, min(76.0, h * 0.22))\n        table_h = max(120.0, h - pagination_h - 10.0)\n        header_h = 46.0\n        row_count = len(rows)\n        body_h = max(1.0, table_h - header_h)\n        row_h = min(56.0, body_h) if row_count <= 1 else body_h / row_count\n\n        self.ex.rect(x, y, w, table_h, TOKENS[\"blue300\"], TOKENS[\"white\"], sw=1, rounded=True)\n        self.ex.rect(x, y, w, header_h, TOKENS[\"blue300\"], TOKENS[\"blue200\"], rounded=False)\n\n        if not cols:\n            self._center_text(\"Table\", x, y, w, table_h, TOKENS[\"blue800\"])\n            self._hint(target, x, y, w)\n            return\n\n        weights: List[float] = []\n        for col in cols:\n            col_type = str(col.get(\"type\", \"text\"))\n            weights.append(1.4 if col_type == \"button\" else 1.0)\n        total = sum(weights) if sum(weights) > 0 else float(len(cols))\n        widths = [w * (wt / total) for wt in weights]\n        starts: List[float] = []\n        run = x\n        for cw in widths:\n            starts.append(run)\n            run += cw\n\n        for idx, col in enumerate(cols):\n            cx, cw = starts[idx], widths[idx]\n            title = str(col.get(\"label\") or col.get(\"id\") or f\"Column {idx + 1}\")\n            self.ex.text(title, cx + 12, y + 14, TOKENS[\"blue800\"], fs=14)\n\n        for r_idx, row in enumerate(rows):\n            ry = y + header_h + r_idx * row_h\n            fill = TOKENS[\"white\"] if r_idx % 2 == 0 else TOKENS[\"blue100\"]\n            self.ex.rect(x, ry, w, row_h, TOKENS[\"blue300\"], fill, rounded=False)\n            if r_idx > 0:\n                self.ex.rect(x, ry, w, 1, TOKENS[\"blue300\"], TOKENS[\"blue300\"], rounded=False)\n\n            for c_idx, col in enumerate(cols):\n                cx, cw = starts[c_idx], widths[c_idx]\n                ctype = str(col.get(\"type\", \"text\"))\n                cid = str(col.get(\"id\", \"\"))\n                cell = row.get(cid, {})\n                cy = ry + max(10.0, (row_h - 16.0) / 2.0)\n\n                if ctype == \"button\":\n                    btns = self._row_buttons_value(cell, col)\n                    if not btns:\n                        continue\n                    gap = 8.0\n                    bw = max(72.0, min(140.0, (cw - 24.0 - gap * (len(btns) - 1)) / max(1, len(btns))))\n                    bh = min(32.0, max(24.0, row_h - 12.0))\n                    by = ry + (row_h - bh) / 2.0\n                    for b_idx, button in enumerate(btns):\n                        bx = cx + 12 + b_idx * (bw + gap)\n                        bstyle = self._style(str(button.get(\"c\", col.get(\"c\", \"secondary\"))), role=\"action\")\n                        border_w = int(bstyle.get(\"border\", 1))\n                        self.ex.rect(bx, by, bw, bh, bstyle[\"stroke\"], bstyle[\"fill\"], sw=border_w, link=None)\n                        btxt = str(button.get(\"txt\") or \"\")\n                        if btxt:\n                            self._center_text(btxt, bx, by, bw, bh, bstyle[\"text\"], fs=14, link=None)\n                        btarget = button.get(\"act\", {}).get(\"target\") if isinstance(button.get(\"act\"), dict) else None\n                        self._hint(btarget if isinstance(btarget, str) else None, bx, by, bw)\n                    continue\n\n                if ctype == \"dropdown\":\n                    field_h = min(32.0, max(24.0, row_h - 12.0))\n                    field_y = ry + (row_h - field_h) / 2.0\n                    field_x = cx + 12.0\n                    field_w = max(72.0, cw - 24.0)\n                    self.ex.rect(field_x, field_y, field_w, field_h, TOKENS[\"gray300\"], TOKENS[\"white\"], sw=1, rounded=False)\n                    dvalue = self._row_dropdown_value(cell, col)\n                    if dvalue:\n                        fs = self._fit_text_fs(dvalue, field_w - 26.0, field_h - 8.0, preferred=13, min_fs=11, max_fs=14)\n                        self.ex.text(dvalue, field_x + 8.0, field_y + max(6.0, (field_h - 14.0) / 2.0), TOKENS[\"gray700\"], fs=fs)\n                    self.ex.text(\"v\", field_x + field_w - 14.0, field_y + max(6.0, (field_h - 14.0) / 2.0), TOKENS[\"blue800\"], fs=12)\n                    continue\n\n                text_value = self._row_text_value(cell)\n                if text_value:\n                    fs = self._fit_text_fs(text_value, cw - 24.0, row_h - 10.0, preferred=14, min_fs=11, max_fs=14)\n                    self.ex.text(text_value, cx + 12, cy, TOKENS[\"black\"], fs=fs)\n\n        py = y + table_h + 8\n        total_rows = len(rows)\n        page_size = min(4, total_rows) if total_rows > 0 else 0\n        from_idx = 1 if total_rows > 0 else 0\n        self.ex.text(f\"{from_idx} de {page_size} dos {total_rows} resultados\", x + 12, py + 16, TOKENS[\"black\"], fs=14)\n        btn = 44.0\n        gap = 12.0\n        pages = max(1, math.ceil(total_rows / max(1, page_size if page_size > 0 else 1)))\n        nx = x + w - (btn * 4 + gap * 3) - 12.0\n        prev_next = self._style(\"secondary\", role=\"action\")\n        current = self._style(\"primary\", role=\"action\")\n        page_btn = self._style(\"secondary\", role=\"action\")\n        self.ex.rect(nx, py + 2, btn, btn, prev_next[\"stroke\"], prev_next[\"fill\"], sw=int(prev_next.get(\"border\", 1)))\n        self._center_text(\"<\", nx, py + 2, btn, btn, prev_next[\"text\"], fs=16)\n        self.ex.rect(nx + (btn + gap), py + 2, btn, btn, current[\"stroke\"], current[\"fill\"], sw=int(current.get(\"border\", 1)))\n        self._center_text(\"1\", nx + (btn + gap), py + 2, btn, btn, current[\"text\"], fs=14)\n        self.ex.rect(nx + (btn + gap) * 2, py + 2, btn, btn, page_btn[\"stroke\"], page_btn[\"fill\"], sw=int(page_btn.get(\"border\", 1)))\n        self._center_text(\"2\" if pages >= 2 else \"1\", nx + (btn + gap) * 2, py + 2, btn, btn, page_btn[\"text\"], fs=14)\n        self.ex.rect(nx + (btn + gap) * 3, py + 2, btn, btn, prev_next[\"stroke\"], prev_next[\"fill\"], sw=int(prev_next.get(\"border\", 1)))\n        self._center_text(\">\", nx + (btn + gap) * 3, py + 2, btn, btn, prev_next[\"text\"], fs=16)\n        self._hint(target, x, y, w)\n\n    def _render_element(self, e: Dict[str, Any], g: Geo) -> None:\n        t = e.get(\"t\")\n        x, y, w, h = int(e.get(\"x\", 0)), int(e.get(\"y\", 0)), int(e.get(\"w\", 1)), int(e.get(\"h\", 1))\n        gx, gy, gw, gh = g.p(x, y, w, h)\n        token = str(e.get(\"c\", \"neutral\"))\n        s = self._style(token, role=\"surface\")\n        lbl = self._label(e)\n        link = self._link(e)\n        target = self._target(e)\n\n        if t == \"text\":\n            if lbl:\n                fs = self._fit_text_fs(lbl, gw, gh, preferred=14, min_fs=11, max_fs=16)\n                txt_style = self._style(token, role=\"text\")\n                self.ex.text(lbl, gx, gy, self._tcolor(e.get(\"tc\"), txt_style[\"text\"]), fs=fs, link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"radio\":\n            field = self._style(token, role=\"field\")\n            size = min(gw, gh, 18.0)\n            cy = gy + max(0.0, (gh - size) / 2)\n            self.ex.ellipse(gx, cy, size, size, field[\"stroke\"], TOKENS[\"white\"], sw=2, link=link)\n            if lbl:\n                self.ex.text(lbl, gx + size + 8, gy + max(0.0, (gh - 14) / 2), self._style(token, role=\"text\")[\"text\"], link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"checkbox\":\n            field = self._style(token, role=\"field\")\n            size = min(gw, gh, 18.0)\n            cy = gy + max(0.0, (gh - size) / 2)\n            self.ex.rect(gx, cy, size, size, field[\"stroke\"], TOKENS[\"white\"], sw=2, rounded=False, link=link)\n            if lbl:\n                self.ex.text(lbl, gx + size + 8, gy + max(0.0, (gh - 14) / 2), self._style(token, role=\"text\")[\"text\"], link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"divider\":\n            dh = max(1.0, min(gh, 2.0))\n            self.ex.rect(gx, gy + (gh - dh) / 2, gw, dh, TOKENS[\"blue300\"], TOKENS[\"blue300\"], rounded=False, link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"table\":\n            self._render_table(e, gx, gy, gw, gh, target)\n        elif t == \"icon\":\n            icon_style = self._style(token, role=\"status\")\n            size = min(gw, gh)\n            self.ex.ellipse(gx, gy, size, size, icon_style[\"stroke\"], icon_style[\"fill\"], link=link)\n            if lbl:\n                self._center_text(lbl[:2].upper(), gx, gy, size, size, icon_style[\"text\"], fs=12, link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"button\":\n            btn = self._style(token, role=\"action\")\n            self.ex.rect(gx, gy, gw, gh, btn[\"stroke\"], btn[\"fill\"], sw=int(btn.get(\"border\", 1)), link=link)\n            self._center_text(lbl, gx, gy, gw, gh, btn[\"text\"], fs=max(12, min(16, int(gh * 0.45))), link=link)\n            self._hint(target, gx, gy, gw)\n        elif t in {\"badge\", \"alert\"}:\n            status = self._style(token, role=\"status\")\n            self.ex.rect(gx, gy, gw, gh, status[\"stroke\"], status[\"fill\"], sw=int(status.get(\"border\", 1)), link=link)\n            self._center_text(lbl, gx, gy, gw, gh, status[\"text\"], fs=max(12, min(16, int(gh * 0.45))), link=link)\n            self._hint(target, gx, gy, gw)\n        elif t in {\"input\", \"textarea\", \"dropdown\", \"search\"}:\n            field = self._style(token, role=\"field\")\n            self.ex.rect(gx, gy, gw, gh, field[\"stroke\"], field[\"fill\"], link=link)\n            ph = str(e.get(\"placeholder\") or e.get(\"txt\") or e.get(\"label\") or \"\")\n            if ph:\n                self.ex.text(ph, gx + 12, gy + max(6.0, (gh - 14) / 2), field[\"text\"], link=link)\n            if t == \"dropdown\":\n                self.ex.text(\"v\", gx + gw - 18, gy + max(6.0, (gh - 14) / 2), TOKENS[\"blue800\"], link=link)\n            if t == \"search\":\n                si = min(gh - 12.0, 12.0)\n                self.ex.ellipse(gx + 8, gy + (gh - si) / 2, si, si, TOKENS[\"blue800\"], \"transparent\", link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"list\":\n            panel = self._style(token, role=\"panel\")\n            self.ex.rect(gx, gy, gw, gh, panel[\"stroke\"], TOKENS[\"white\"], link=link)\n            title_h = min(44.0, gh * 0.26)\n            self.ex.rect(gx, gy, gw, title_h, panel[\"stroke\"], TOKENS[\"blue100\"], rounded=False, link=link)\n            self.ex.text(lbl or \"List\", gx + 12, gy + 12, panel[\"text\"], fs=14, link=link)\n            self.ex.text(\"Lorem ipsum dolor sit amet consectetur.\", gx + 12, gy + title_h + 14, TOKENS[\"black\"], fs=14, link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"tabs\":\n            tab_surface = self._style(token, role=\"panel\")\n            self.ex.rect(gx, gy, gw, gh, tab_surface[\"stroke\"], TOKENS[\"white\"], link=link)\n            tw = gw / 3.0\n            for i in range(3):\n                tx = gx + i * tw\n                fill = TOKENS[\"white\"] if i == 0 else TOKENS[\"blue100\"]\n                self.ex.rect(tx, gy, tw, gh, tab_surface[\"stroke\"], fill, rounded=False, link=link)\n                if i == 0:\n                    self.ex.rect(tx, gy + gh - 2, tw, 2, TOKENS[\"blue900\"], TOKENS[\"blue900\"], rounded=False, link=link)\n                self._center_text(f\"Tab {i+1}\", tx, gy, tw, gh, TOKENS[\"blue800\"], fs=12, link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"image\":\n            self.ex.rect(gx, gy, gw, gh, TOKENS[\"blue300\"], TOKENS[\"white\"], link=link)\n            self._center_text(\"Image\", gx, gy, gw, gh, TOKENS[\"gray700\"], link=link)\n            self._hint(target, gx, gy, gw)\n        elif t in {\"navbar\", \"header\", \"footer\"}:\n            nav = self._style(token, role=\"nav\")\n            self.ex.rect(gx, gy, gw, gh, nav[\"stroke\"], nav[\"fill\"], sw=int(nav.get(\"border\", 1)), link=link)\n            if lbl:\n                self.ex.text(lbl, gx + 12, gy + max(8.0, (gh - 16) / 2.0), nav[\"text\"], fs=14, link=link)\n            self._hint(target, gx, gy, gw)\n        elif t == \"sidebar\":\n            panel = self._style(token, role=\"panel\")\n            self.ex.rect(gx, gy, gw, gh, panel[\"stroke\"], panel[\"fill\"], sw=int(panel.get(\"border\", 1)), link=link)\n            if lbl:\n                self.ex.text(lbl, gx + 12, gy + 10, panel[\"text\"], fs=max(12, min(16, int(gh * 0.45))), link=link)\n            self._hint(target, gx, gy, gw)\n        else:\n            self.ex.rect(gx, gy, gw, gh, s[\"stroke\"], s[\"fill\"], link=link)\n            if lbl:\n                self.ex.text(lbl, gx + 12, gy + 10, s[\"text\"], fs=max(12, min(16, int(gh * 0.45))), link=link)\n            self._hint(target, gx, gy, gw)\n\n        ch = e.get(\"ch\")\n        if isinstance(ch, list):\n            for c in ch:\n                if isinstance(c, dict):\n                    self._render_element(c, g)\n\n\ndef compile_dsl_to_excalidraw(dsl: Dict[str, Any]) -> Dict[str, Any]:\n    validate_dsl(dsl)\n    return Compiler(dsl).compile()\n\n# n8n wrapper: compile incoming DSL from item.json.designDsl\noutputs = []\nfor item in _items:\n    src = item.get(\"json\", {}) if isinstance(item, dict) else {}\n    out_json = dict(src)\n\n    try:\n        raw = src.get(\"designDsl\")\n        if raw is None:\n            raise ValueError(\"Missing 'designDsl' in input json\")\n\n        if isinstance(raw, str):\n            dsl_payload = json.loads(raw)\n        elif isinstance(raw, dict):\n            dsl_payload = raw\n        else:\n            raise ValueError(\"'designDsl' must be a JSON string or object\")\n\n        compiled = compile_dsl_to_excalidraw(dsl_payload)\n        out_json[\"design\"] = json.dumps(compiled, ensure_ascii=False)\n        out_json[\"designElementCount\"] = len(compiled.get(\"elements\", []))\n        out_json[\"designStopReason\"] = \"compiled-python\"\n        out_json.pop(\"designCompileError\", None)\n    except Exception as err:\n        fallback = {\n            \"type\": \"excalidraw\",\n            \"version\": 2,\n            \"source\": \"https://excalidraw.com\",\n            \"elements\": [],\n            \"appState\": {\"viewBackgroundColor\": \"#F7F7F7\", \"gridSize\": None},\n            \"files\": {},\n        }\n        out_json[\"design\"] = json.dumps(fallback, ensure_ascii=False)\n        out_json[\"designElementCount\"] = 0\n        out_json[\"designStopReason\"] = \"compile-error\"\n        out_json[\"designCompileError\"] = str(err)\n\n    out_item = {\"json\": out_json}\n    if isinstance(item, dict) and item.get(\"binary\") is not None:\n        out_item[\"binary\"] = item.get(\"binary\")\n\n    outputs.append(out_item)\n\nreturn outputs\n\n"
+      },
+      "id": "94c57c6f-e88b-4a52-a30a-c653600ae4fb",
+      "name": "DESIGN - Compile DSL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6432,
+        2336
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Se3rPyRTvgimNBXz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Se3rPyRTvgimNBXz",
+          "cachedResultName": "Subworkflow - Create Link"
+        },
+        "workflowInputs": {
+          "value": {
+            "archiveData": "={{ $binary.reviewZip ? ($binary.reviewZip.data || ($binary.reviewZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.reviewZip ? $binary.reviewZip.mimeType : \"application/zip\" }}",
+            "response": "={{ $json.response }}",
+            "archiveFileName": "={{ $binary.reviewZip ? $binary.reviewZip.fileName : \"design-assets.zip\" }}",
+            "archiveId": "={{ $binary.reviewZip ? ($binary.reviewZip.id || \"\") : \"\" }}"
+          },
+          "mappingMode": "defineBelow",
+          "schema": [
+            {
+              "id": "archiveMimeType",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveMimeType",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveFileName",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveFileName",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "revisionNumber",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "revisionNumber",
+              "type": "number",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "response",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "response",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveData",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveData",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveId",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveId",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveBinaryProperty",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveBinaryProperty",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "matchingColumns": [],
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        6928,
+        2448
+      ],
+      "id": "c21ef1f3-54e5-4509-ba88-57135f036923",
+      "name": "DESIGN - Create Zip Link"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.patchPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior UI information architect operating inside an automated software engineering pipeline.\n\nTHIS IS A STRICT UI DSL GENERATION TASK.\n\nYou are NOT generating:\n- Excalidraw JSON\n- HTML\n- CSS\n- implementation code\n- explanations\n- markdown\n- natural language commentary\n\nYou must generate a compact JSON UI description using the DSL defined below.\n\nThis DSL will later be compiled automatically into Excalidraw JSON by a downstream renderer.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nGenerate a complete JSON document strictly following the DSL specification.\n\nThe JSON must be:\n\n- deterministic\n- machine parseable\n- strictly compliant with the DSL\n- free of invented structures\n\nIf something is not defined in this DSL specification, you MUST NOT generate it.\n\n------------------------------------------------\nINPUT\n------------------------------------------------\n\nYou will receive a requirements specification produced in a previous stage of the pipeline.\n\nThe requirements describe the system behaviour, screens, workflows, and user interactions that must exist in the application.\n\nYour task is to convert those requirements into the UI DSL defined in this prompt.\n\nRules:\n\n- Treat the requirements as the authoritative source of truth.\n- Only generate screens, modals, dialogs, and elements that are justified by the requirements.\n- Do NOT invent features, screens, or interactions that are not implied by the requirements.\n\n------------------------------------------------\nOUTPUT CONTRACT\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nDo NOT include:\n\n- explanations\n- comments\n- markdown fences\n- text before the JSON\n- text after the JSON\n\n------------------------------------------------\nTOP LEVEL STRUCTURE\n------------------------------------------------\n\nThe JSON MUST follow exactly this structure:\n\n{\n  \"screens\": [...],\n  \"modals\": [...],\n  \"dialogs\": [...]\n}\n\nRules:\n\nAll keys MUST exist.\nIf empty use [].\n\n------------------------------------------------\nSCREEN IDENTIFIERS\n------------------------------------------------\n\nScreens MUST be:\n\nS1, S2, S3 ...\n\nStructure:\n\n{\n  \"id\": \"S1\",\n  \"name\": \"Screen Name\",\n  \"elements\": [...]\n}\n\n------------------------------------------------\nMODAL IDENTIFIERS\n------------------------------------------------\n\nFormat:\n\n1M1\n1M2\n2M1\n\nStructure:\n\n{\n  \"id\": \"1M1\",\n  \"parentScreen\": \"S1\",\n  \"name\": \"Modal Name\",\n  \"elements\": [...]\n}\n\n------------------------------------------------\nDIALOG IDENTIFIERS\n------------------------------------------------\n\nFormat:\n\n1D1\n1D2\n2D1\n\nStructure:\n\n{\n  \"id\": \"1D1\",\n  \"parentScreen\": \"S1\",\n  \"name\": \"Dialog Name\",\n  \"elements\": [...]\n}\n\n------------------------------------------------\nCOORDINATE SYSTEM\n------------------------------------------------\n\nEvery element MUST include:\n\nx\ny\nw\nh\n\nDefinitions:\n\nx = horizontal position  \ny = vertical position  \nw = width  \nh = height  \n\nRules:\n\n- integer values only\n- range 0-1000\n- coordinates are absolute inside the screen/modal/dialog\n- represent the top-left corner\n\n------------------------------------------------\nELEMENT MODEL\n------------------------------------------------\n\nEvery element MUST contain:\n\nid  \nt  \nx  \ny  \nw  \nh  \nc  \n\nOptional fields depending on type:\n\ntc  \ntxt  \nlabel  \nplaceholder  \nact  \nch  \nitems  \n\nRules:\n\n- c is REQUIRED for ALL elements\n- tc is REQUIRED ONLY when t = \"text\"\n- tc MUST NOT appear on elements that are not text\n- no additional fields are allowed\n\n------------------------------------------------\nELEMENT TYPE CATALOG\n------------------------------------------------\n\nOnly these element types are allowed:\n\ncontainer  \ntext  \nbutton  \ninput  \ntextarea  \ncheckbox  \nradio  \ndropdown  \ntable  \nlist  \ncard  \nnavbar  \nsidebar  \nfooter  \nheader  \nimage  \nicon  \ntabs  \nbadge  \nalert  \nsearch  \ndivider  \n\nRules:\n\n- DO NOT invent new types\n- DO NOT use synonyms\n- if unsure use container\n\n------------------------------------------------\nCOLOR SYSTEM\n------------------------------------------------\n\nEvery element MUST include a color token.\n\nField:\n\nc\n\nAllowed values:\n\nprimary  \nsecondary  \nsuccess  \nwarning  \nerror  \nneutral  \nbackground  \nsurface  \naccent  \n\n------------------------------------------------\nTEXT COLOR SYSTEM\n------------------------------------------------\n\nText elements MUST include a text color token.\n\nField:\n\ntc\n\nAllowed values:\n\nprimary-txt  \nsecondary-txt  \nsuccess-txt  \nwarning-txt  \nerror-txt  \nneutral-txt  \nbackground-txt  \nsurface-txt  \naccent-txt  \n\nRules:\n\n- tc MUST exist when t = text\n- tc MUST NOT appear in other element types\n\n------------------------------------------------\nTEXT FIELDS\n------------------------------------------------\n\nAllowed text fields:\n\ntxt  \nlabel  \nplaceholder  \n\n------------------------------------------------\nHIERARCHY\n------------------------------------------------\n\nChildren elements MUST be stored in:\n\n\"ch\": []\n\n------------------------------------------------\nINTERACTION MODEL (STRICT TARGET VALIDATION)\n------------------------------------------------\n\nInteractive elements MUST contain:\n\n\"act\": {\n  \"type\": \"navigate\",\n  \"target\": \"targetId\"\n}\n\nSTRICT RULES:\n\n- act.type is ALWAYS \"navigate\"\n- target MUST reference an EXISTING id\n- target MUST reference ONLY:\n  - a screen id (S*)\n  - a modal id (*M*)\n  - a dialog id (*D*)\n\nCRITICAL CONSTRAINT:\n\n- EVERY target MUST correspond to a REAL, DECLARED entity in:\n  - screens\n  - modals\n  - dialogs\n- NO dangling targets are allowed\n- NO references to non-existent ids\n- NO implicit targets\n\n------------------------------------------------\nTABLE STRUCTURE\n------------------------------------------------\n\nTables MUST contain an items object.\n\nStructure:\n\n\"items\": {\n  \"columns\": [\n    {\n      \"id\": \"columnId\",\n      \"label\": \"Column Label\",\n      \"type\": \"text\"\n    },\n    {\n      \"id\": \"columnId\",\n      \"label\": \"Column Label\",\n      \"type\": \"button\",\n      \"buttons\": [\n        {\n          \"txt\": \"Button Label\",\n          \"c\": \"colorToken\",\n          \"act\": {\n            \"type\": \"navigate\",\n            \"target\": \"targetId\"\n          }\n        }\n      ]\n    }\n  ],\n  \"row\": [\n    {\n      \"column\": \"columnId\",\n      \"value\": \"example text\"\n    },\n    {\n      \"column\": \"columnId\",\n      \"buttons\": [\n        {\n          \"txt\": \"Button Label\",\n          \"c\": \"colorToken\",\n          \"act\": {\n            \"type\": \"navigate\",\n            \"target\": \"targetId\"\n          }\n        }\n      ]\n    }\n  ]\n}\n\nRules:\n\n- each column MUST define its type\n- allowed column types: text, button, dropdown\n- when type = button the column MUST include the buttons array\n- the buttons array can contain one or more buttons\n- every button MUST include txt and c\n- act is optional for button actions that do not navigate\n- if act is present, act.type MUST be \"navigate\" and target MUST be a valid id\n\nRow rules:\n\n- the \"row\" field MUST exist\n- the row MUST contain the same number of entries as the number of columns\n- each row entry MUST include the field \"column\" referencing a column id\n- text columns MUST use the field \"value\" with a string example\n- button columns MUST use the field \"buttons\"\n- button cells MUST follow the same button structure defined in the column\n- dropdown columns MUST provide either a string \"value\" or an \"items\" array\n\n------------------------------------------------\nCONSISTENCY VALIDATION\n------------------------------------------------\n\nBefore returning the JSON ensure:\n\n- all ids are unique\n- screen ids valid\n- modal ids valid\n- dialog ids valid\n- all action targets exist\n- coordinates are integers\n- every element has color c\n- text elements have tc\n- only allowed element types are used\n- JSON is valid\n\n------------------------------------------------\nEXAMPLE OUTPUT\n------------------------------------------------\n\n{\n  \"screens\": [\n    {\n      \"id\": \"S1\",\n      \"name\": \"Users Dashboard\",\n      \"elements\": [\n        {\n          \"id\": \"mainNavbar\",\n          \"t\": \"navbar\",\n          \"x\": 0,\n          \"y\": 0,\n          \"w\": 1000,\n          \"h\": 80,\n          \"c\": \"primary\"\n        },\n        {\n          \"id\": \"usersTable\",\n          \"t\": \"table\",\n          \"x\": 100,\n          \"y\": 200,\n          \"w\": 800,\n          \"h\": 400,\n          \"c\": \"surface\",\n          \"items\": {\n            \"columns\": [\n              {\n                \"id\": \"name\",\n                \"label\": \"Name\",\n                \"type\": \"text\"\n              },\n              {\n                \"id\": \"role\",\n                \"label\": \"Role\",\n                \"type\": \"text\"\n              },\n              {\n                \"id\": \"actions\",\n                \"label\": \"Actions\",\n                \"type\": \"button\",\n                \"buttons\": [\n                  {\n                    \"txt\": \"Edit\",\n                    \"c\": \"secondary\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"S2\"\n                    }\n                  },\n                  {\n                    \"txt\": \"Delete\",\n                    \"c\": \"error\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"1D1\"\n                    }\n                  }\n                ]\n              }\n            ],\n            \"row\": [\n              {\n                \"column\": \"name\",\n                \"value\": \"John Doe\"\n              },\n              {\n                \"column\": \"role\",\n                \"value\": \"Administrator\"\n              },\n              {\n                \"column\": \"actions\",\n                \"buttons\": [\n                  {\n                    \"txt\": \"Edit\",\n                    \"c\": \"secondary\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"S2\"\n                    }\n                  },\n                  {\n                    \"txt\": \"Delete\",\n                    \"c\": \"error\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"1D1\"\n                    }\n                  }\n                ]\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ],\n  \"modals\": [],\n  \"dialogs\": [\n    {\n      \"id\": \"1D1\",\n      \"parentScreen\": \"S1\",\n      \"name\": \"Delete Confirmation\",\n      \"elements\": [\n        {\n          \"id\": \"dialogContainer\",\n          \"t\": \"container\",\n          \"x\": 350,\n          \"y\": 350,\n          \"w\": 300,\n          \"h\": 200,\n          \"c\": \"surface\",\n          \"ch\": [\n            {\n              \"id\": \"dialogText\",\n              \"t\": \"text\",\n              \"x\": 370,\n              \"y\": 380,\n              \"w\": 260,\n              \"h\": 40,\n              \"txt\": \"Are you sure you want to delete this user?\",\n              \"c\": \"surface\",\n              \"tc\": \"neutral-txt\"\n            },\n            {\n              \"id\": \"confirmDeleteBtn\",\n              \"t\": \"button\",\n              \"x\": 380,\n              \"y\": 440,\n              \"w\": 100,\n              \"h\": 40,\n              \"txt\": \"Delete\",\n              \"c\": \"error\",\n              \"act\": {\n                \"type\": \"navigate\",\n                \"target\": \"S1\"\n              }\n            },\n            {\n              \"id\": \"cancelDeleteBtn\",\n              \"t\": \"button\",\n              \"x\": 500,\n              \"y\": 440,\n              \"w\": 100,\n              \"h\": 40,\n              \"txt\": \"Cancel\",\n              \"c\": \"secondary\",\n              \"act\": {\n                \"type\": \"navigate\",\n                \"target\": \"S1\"\n              }\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "4367d075-dbc6-4683-b69a-95b38413b6aa",
+      "name": "DESIGN - Generate Refinement Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        6048,
+        2096
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior UI information architect operating inside an automated software engineering pipeline.\n\nTHIS IS A STRICT UI DSL GENERATION TASK.\n\nYou are NOT generating:\n- Excalidraw JSON\n- HTML\n- CSS\n- implementation code\n- explanations\n- markdown\n- natural language commentary\n\nYou must generate a compact JSON UI description using the DSL defined below.\n\nThis DSL will later be compiled automatically into Excalidraw JSON by a downstream renderer.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nGenerate a complete JSON document strictly following the DSL specification.\n\nThe JSON must be:\n\n- deterministic\n- machine parseable\n- strictly compliant with the DSL\n- free of invented structures\n\nIf something is not defined in this DSL specification, you MUST NOT generate it.\n\n------------------------------------------------\nINPUT\n------------------------------------------------\n\nYou will receive a requirements specification produced in a previous stage of the pipeline.\n\nThe requirements describe the system behaviour, screens, workflows, and user interactions that must exist in the application.\n\nYour task is to convert those requirements into the UI DSL defined in this prompt.\n\nRules:\n\n- Treat the requirements as the authoritative source of truth.\n- Only generate screens, modals, dialogs, and elements that are justified by the requirements.\n- Do NOT invent features, screens, or interactions that are not implied by the requirements.\n\n------------------------------------------------\nOUTPUT CONTRACT\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nDo NOT include:\n\n- explanations\n- comments\n- markdown fences\n- text before the JSON\n- text after the JSON\n\n------------------------------------------------\nTOP LEVEL STRUCTURE\n------------------------------------------------\n\nThe JSON MUST follow exactly this structure:\n\n{\n  \"screens\": [...],\n  \"modals\": [...],\n  \"dialogs\": [...]\n}\n\nRules:\n\nAll keys MUST exist.\nIf empty use [].\n\n------------------------------------------------\nSCREEN IDENTIFIERS\n------------------------------------------------\n\nScreens MUST be:\n\nS1, S2, S3 ...\n\nStructure:\n\n{\n  \"id\": \"S1\",\n  \"name\": \"Screen Name\",\n  \"elements\": [...]\n}\n\n------------------------------------------------\nMODAL IDENTIFIERS\n------------------------------------------------\n\nFormat:\n\n1M1\n1M2\n2M1\n\nStructure:\n\n{\n  \"id\": \"1M1\",\n  \"parentScreen\": \"S1\",\n  \"name\": \"Modal Name\",\n  \"elements\": [...]\n}\n\n------------------------------------------------\nDIALOG IDENTIFIERS\n------------------------------------------------\n\nFormat:\n\n1D1\n1D2\n2D1\n\nStructure:\n\n{\n  \"id\": \"1D1\",\n  \"parentScreen\": \"S1\",\n  \"name\": \"Dialog Name\",\n  \"elements\": [...]\n}\n\n------------------------------------------------\nCOORDINATE SYSTEM\n------------------------------------------------\n\nEvery element MUST include:\n\nx\ny\nw\nh\n\nDefinitions:\n\nx = horizontal position  \ny = vertical position  \nw = width  \nh = height  \n\nRules:\n\n- integer values only\n- range 0-1000\n- coordinates are absolute inside the screen/modal/dialog\n- represent the top-left corner\n\n------------------------------------------------\nELEMENT MODEL\n------------------------------------------------\n\nEvery element MUST contain:\n\nid  \nt  \nx  \ny  \nw  \nh  \nc  \n\nOptional fields depending on type:\n\ntc  \ntxt  \nlabel  \nplaceholder  \nact  \nch  \nitems  \n\nRules:\n\n- c is REQUIRED for ALL elements\n- tc is REQUIRED ONLY when t = \"text\"\n- tc MUST NOT appear on elements that are not text\n- no additional fields are allowed\n\n------------------------------------------------\nELEMENT TYPE CATALOG\n------------------------------------------------\n\nOnly these element types are allowed:\n\ncontainer  \ntext  \nbutton  \ninput  \ntextarea  \ncheckbox  \nradio  \ndropdown  \ntable  \nlist  \ncard  \nnavbar  \nsidebar  \nfooter  \nheader  \nimage  \nicon  \ntabs  \nbadge  \nalert  \nsearch  \ndivider  \n\nRules:\n\n- DO NOT invent new types\n- DO NOT use synonyms\n- if unsure use container\n\n------------------------------------------------\nCOLOR SYSTEM\n------------------------------------------------\n\nEvery element MUST include a color token.\n\nField:\n\nc\n\nAllowed values:\n\nprimary  \nsecondary  \nsuccess  \nwarning  \nerror  \nneutral  \nbackground  \nsurface  \naccent  \n\n------------------------------------------------\nTEXT COLOR SYSTEM\n------------------------------------------------\n\nText elements MUST include a text color token.\n\nField:\n\ntc\n\nAllowed values:\n\nprimary-txt  \nsecondary-txt  \nsuccess-txt  \nwarning-txt  \nerror-txt  \nneutral-txt  \nbackground-txt  \nsurface-txt  \naccent-txt  \n\nRules:\n\n- tc MUST exist when t = text\n- tc MUST NOT appear in other element types\n\n------------------------------------------------\nTEXT FIELDS\n------------------------------------------------\n\nAllowed text fields:\n\ntxt  \nlabel  \nplaceholder  \n\n------------------------------------------------\nHIERARCHY\n------------------------------------------------\n\nChildren elements MUST be stored in:\n\n\"ch\": []\n\n------------------------------------------------\nINTERACTION MODEL (STRICT TARGET VALIDATION)\n------------------------------------------------\n\nInteractive elements MUST contain:\n\n\"act\": {\n  \"type\": \"navigate\",\n  \"target\": \"targetId\"\n}\n\nSTRICT RULES:\n\n- act.type is ALWAYS \"navigate\"\n- target MUST reference an EXISTING id\n- target MUST reference ONLY:\n  - a screen id (S*)\n  - a modal id (*M*)\n  - a dialog id (*D*)\n\nCRITICAL CONSTRAINT:\n\n- EVERY target MUST correspond to a REAL, DECLARED entity in:\n  - screens\n  - modals\n  - dialogs\n- NO dangling targets are allowed\n- NO references to non-existent ids\n- NO implicit targets\n\n------------------------------------------------\nTABLE STRUCTURE\n------------------------------------------------\n\nTables MUST contain an items object.\n\nStructure:\n\n\"items\": {\n  \"columns\": [\n    {\n      \"id\": \"columnId\",\n      \"label\": \"Column Label\",\n      \"type\": \"text\"\n    },\n    {\n      \"id\": \"columnId\",\n      \"label\": \"Column Label\",\n      \"type\": \"button\",\n      \"buttons\": [\n        {\n          \"txt\": \"Button Label\",\n          \"c\": \"colorToken\",\n          \"act\": {\n            \"type\": \"navigate\",\n            \"target\": \"targetId\"\n          }\n        }\n      ]\n    }\n  ],\n  \"row\": [\n    {\n      \"column\": \"columnId\",\n      \"value\": \"example text\"\n    },\n    {\n      \"column\": \"columnId\",\n      \"buttons\": [\n        {\n          \"txt\": \"Button Label\",\n          \"c\": \"colorToken\",\n          \"act\": {\n            \"type\": \"navigate\",\n            \"target\": \"targetId\"\n          }\n        }\n      ]\n    }\n  ]\n}\n\nRules:\n\n- each column MUST define its type\n- allowed column types: text, button, dropdown\n- when type = button the column MUST include the buttons array\n- the buttons array can contain one or more buttons\n- every button MUST include txt and c\n- act is optional for button actions that do not navigate\n- if act is present, act.type MUST be \"navigate\" and target MUST be a valid id\n\nRow rules:\n\n- the \"row\" field MUST exist\n- the row MUST contain the same number of entries as the number of columns\n- each row entry MUST include the field \"column\" referencing a column id\n- text columns MUST use the field \"value\" with a string example\n- button columns MUST use the field \"buttons\"\n- button cells MUST follow the same button structure defined in the column\n- dropdown columns MUST provide either a string \"value\" or an \"items\" array\n\n------------------------------------------------\nCONSISTENCY VALIDATION\n------------------------------------------------\n\nBefore returning the JSON ensure:\n\n- all ids are unique\n- screen ids valid\n- modal ids valid\n- dialog ids valid\n- all action targets exist\n- coordinates are integers\n- every element has color c\n- text elements have tc\n- only allowed element types are used\n- JSON is valid\n\n------------------------------------------------\nEXAMPLE OUTPUT\n------------------------------------------------\n\n{\n  \"screens\": [\n    {\n      \"id\": \"S1\",\n      \"name\": \"Users Dashboard\",\n      \"elements\": [\n        {\n          \"id\": \"mainNavbar\",\n          \"t\": \"navbar\",\n          \"x\": 0,\n          \"y\": 0,\n          \"w\": 1000,\n          \"h\": 80,\n          \"c\": \"primary\"\n        },\n        {\n          \"id\": \"usersTable\",\n          \"t\": \"table\",\n          \"x\": 100,\n          \"y\": 200,\n          \"w\": 800,\n          \"h\": 400,\n          \"c\": \"surface\",\n          \"items\": {\n            \"columns\": [\n              {\n                \"id\": \"name\",\n                \"label\": \"Name\",\n                \"type\": \"text\"\n              },\n              {\n                \"id\": \"role\",\n                \"label\": \"Role\",\n                \"type\": \"text\"\n              },\n              {\n                \"id\": \"actions\",\n                \"label\": \"Actions\",\n                \"type\": \"button\",\n                \"buttons\": [\n                  {\n                    \"txt\": \"Edit\",\n                    \"c\": \"secondary\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"S2\"\n                    }\n                  },\n                  {\n                    \"txt\": \"Delete\",\n                    \"c\": \"error\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"1D1\"\n                    }\n                  }\n                ]\n              }\n            ],\n            \"row\": [\n              {\n                \"column\": \"name\",\n                \"value\": \"John Doe\"\n              },\n              {\n                \"column\": \"role\",\n                \"value\": \"Administrator\"\n              },\n              {\n                \"column\": \"actions\",\n                \"buttons\": [\n                  {\n                    \"txt\": \"Edit\",\n                    \"c\": \"secondary\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"S2\"\n                    }\n                  },\n                  {\n                    \"txt\": \"Delete\",\n                    \"c\": \"error\",\n                    \"act\": {\n                      \"type\": \"navigate\",\n                      \"target\": \"1D1\"\n                    }\n                  }\n                ]\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ],\n  \"modals\": [],\n  \"dialogs\": [\n    {\n      \"id\": \"1D1\",\n      \"parentScreen\": \"S1\",\n      \"name\": \"Delete Confirmation\",\n      \"elements\": [\n        {\n          \"id\": \"dialogContainer\",\n          \"t\": \"container\",\n          \"x\": 350,\n          \"y\": 350,\n          \"w\": 300,\n          \"h\": 200,\n          \"c\": \"surface\",\n          \"ch\": [\n            {\n              \"id\": \"dialogText\",\n              \"t\": \"text\",\n              \"x\": 370,\n              \"y\": 380,\n              \"w\": 260,\n              \"h\": 40,\n              \"txt\": \"Are you sure you want to delete this user?\",\n              \"c\": \"surface\",\n              \"tc\": \"neutral-txt\"\n            },\n            {\n              \"id\": \"confirmDeleteBtn\",\n              \"t\": \"button\",\n              \"x\": 380,\n              \"y\": 440,\n              \"w\": 100,\n              \"h\": 40,\n              \"txt\": \"Delete\",\n              \"c\": \"error\",\n              \"act\": {\n                \"type\": \"navigate\",\n                \"target\": \"S1\"\n              }\n            },\n            {\n              \"id\": \"cancelDeleteBtn\",\n              \"t\": \"button\",\n              \"x\": 500,\n              \"y\": 440,\n              \"w\": 100,\n              \"h\": 40,\n              \"txt\": \"Cancel\",\n              \"c\": \"secondary\",\n              \"act\": {\n                \"type\": \"navigate\",\n                \"target\": \"S1\"\n              }\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}\n"
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 1500
+        }
+      },
+      "id": "635121d7-ecbb-416c-986d-70ac45bbfda1",
+      "name": "DESIGN - Generate Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        5632,
+        2336
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "b9b9610f-8417-42b9-8c3f-ea7555281cc2",
+      "name": "DESIGN - Link and Zip",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        7120,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst designExcalidraw = String(json.finalDesignExcalidraw ?? json.design ?? json.response ?? '').trim();\nif (!designExcalidraw) throw new Error('Design Excalidraw draft is missing.');\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Design ZIP (PNGs)</a></p>';\nconst output = {\n  json: {\n    ...json,\n    design: designExcalidraw,\n    finalDesignExcalidraw: designExcalidraw,\n    revisionNumber,\n    zipDownloadUrl,\n    zipDownloadToken,\n    downloadLinkHtml,\n  },\n};\ndelete output.json.designDsl;\ndelete output.json.firstIterationDesignDsl;\nif (item.binary && Object.keys(item.binary).length > 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+      },
+      "id": "d2408725-f838-4aa1-8a6d-faaf150e1286",
+      "name": "DESIGN - Prepare Information",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7360,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6432,
+        2048
+      ],
+      "id": "aa7b88bf-4fa5-48ec-9efd-6e485310362f",
+      "name": "DESIGN - Previous and New Response"
+    },
+    {
+      "parameters": {
+        "content": "## Design Generation Module\n\nTransforms **structured requirements document**.into a **design json file**.",
+        "height": 944,
+        "width": 2720,
+        "color": "#EDE9FE"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4864,
+        1712
+      ],
+      "typeVersion": 1,
+      "id": "ec5001a0-507c-464a-86eb-6de5b1146535",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-68a8b20b-fb09-4d0d-9491-ea0fe586bd91",
+              "leftValue": "={{ $json.reviewMode }}",
+              "rightValue": "refine",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "98fafc32-9e99-4b6e-a2a1-16210c7c7499",
+      "name": "DESIGN - Execute Refinement?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5360,
+        2048
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json['Start Again'];\n  delete json.reviewMode;\n  delete json.designDsl;\n  delete json.firstIterationDesignDsl;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) => !String(key).endsWith('_firstIteration')),\n  );\n}\n\nfunction firstNonEmpty(values) {\n  for (const value of values) {\n    if (typeof value === 'string' && value.trim()) return value.trim();\n  }\n  return '';\n}\n\nfunction makeTextBinary(text, fileName, mimeType) {\n  const value = String(text ?? '').trim();\n  if (!value) return null;\n  return {\n    data: Buffer.from(value, 'utf8').toString('base64'),\n    fileName,\n    mimeType,\n  };\n}\n\nconst firstNode = getNodeItemSafe('DESIGN - Prepare Information for First Iteration');\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\n\nconst currentValue = firstNonEmpty([\n  currentJson.finalDesignExcalidraw,\n  currentJson.design,\n  currentJson.response,\n]);\n\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst currentArtifact = makeTextBinary(currentValue, 'design.excalidraw.json', 'application/json');\nif (currentArtifact) cleanCurrentBinary.design = currentArtifact;\n\nconst firstValue = firstNonEmpty([\n  firstJson.finalDesignExcalidraw,\n  firstJson.design,\n  baseJson.firstIterationDesign,\n  currentValue,\n]);\n\nconst firstArtifact = makeTextBinary(firstValue, 'design.excalidraw.json', 'application/json');\nconst inheritedFirst = rawBinary.design_firstIteration;\nif (firstArtifact || inheritedFirst) cleanCurrentBinary.design_firstIteration = firstArtifact || inheritedFirst;\n\nconst outputJson = {\n  ...baseJson,\n  reviewMode: '',\n  design: currentValue,\n  finalDesignExcalidraw: currentValue,\n  firstIterationDesign: firstValue,\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? '').trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? '').trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? '').trim(),\n};\n\ndelete outputJson.designDsl;\ndelete outputJson.firstIterationDesignDsl;\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+      },
+      "id": "a907206a-8a5f-4d21-b171-7aa92bbe61f1",
+      "name": "DESIGN - Review Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7360,
+        2128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nfor (const key of ['Approved', 'Start Again', 'Feedback', 'feedback', 'Attachments (optional)', 'reviewMode', 'designDsl', 'firstIterationDesignDsl']) {\n  delete json[key];\n}\nconst binary = Object.fromEntries(\n  Object.entries(item.binary ?? {}).filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n);\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];"
+      },
+      "id": "9991a189-cc6e-486f-b6b4-e9841cee01c4",
+      "name": "DESIGN - Sanitize Output Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6176,
+        1888
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "f64a1b8b-3761-424c-93ff-a919a8594d82",
+      "name": "DESIGN -Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        4816,
+        1888
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "8634f807-f05c-464e-8851-fa8dcd1d39cf",
+      "name": "DESIGN - Workflow Output",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        7536,
+        1904
+      ]
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        5552,
+        2528
+      ],
+      "id": "9db851e1-30df-4a60-90e1-162a3a739545",
+      "name": "DESIGN - Model",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZTb6SwoWYVTNTucr",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        5936,
+        2240
+      ],
+      "id": "9b8bf5a9-a971-4156-9aa9-68d8878716c1",
+      "name": "DESIGN - Refinement Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZTb6SwoWYVTNTucr",
+          "name": "Mistral Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "DESIGN - Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Generate Response": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Clean Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Clean Response": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Compile DSL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Compile DSL": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Build Image ZIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Build Image ZIP": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Create Zip Link",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DESIGN - Link and Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Link and Zip",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "DESIGN - Link and Zip": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Review Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Build Refinement Prompt": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Generate Refinement Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DESIGN - Previous and New Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Generate Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Previous and New Response",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "DESIGN - Previous and New Response": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Clean Refinement Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Clean Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Compile DSL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Review Output": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Workflow Output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "DESIGN - Execute Refinement?": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DESIGN - Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Sanitize Output Context": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN -Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "DESIGN - Execute Refinement?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DESIGN - Sanitize Output Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "DESIGN - Generate Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESIGN - Refinement Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "DESIGN - Generate Refinement Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 1200
+  },
+  "versionId": "4dd3dee6-a883-4295-8346-c9ad5ac4cb4a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "af49a67438f7e7c513a029a95d0dadb7f585243236e86464fcac385b6f1438c3"
+  },
+  "id": "jC1AUZvgAX3hPGaX",
+  "tags": []
+}

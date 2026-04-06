@@ -1,0 +1,1414 @@
+{
+  "name": "frontend-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "function beAssembleBackendZipInputs() {\n    function getExtension(filePath) {\n      const fileName = String(filePath || '').split('/').pop() || '';\n      if (fileName === 'pom.xml') return 'xml';\n      if (fileName === '.gitignore') return 'gitignore';\n      const match = fileName.match(/\\.([A-Za-z0-9]+)$/);\n      return match ? match[1].toLowerCase() : 'txt';\n    }\n    function getMimeType(filePath) {\n      const ext = getExtension(filePath);\n      const mimeByExtension = {\n        java: 'text/x-java-source',\n        xml: 'application/xml',\n        yaml: 'text/yaml',\n        yml: 'text/yaml',\n        json: 'application/json',\n        properties: 'text/plain',\n        md: 'text/markdown',\n        txt: 'text/plain',\n        sql: 'application/sql',\n        csv: 'text/csv',\n        gitignore: 'text/plain',\n      };\n      return mimeByExtension[ext] || 'text/plain';\n    }\n    function isIntentionallyEmptyFile(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      return lower.endsWith('/.gitkeep') || lower.endsWith('/.keep') || lower.endsWith('/.placeholder');\n    }\n    function normalizeContent(contentValue) {\n      if (typeof contentValue === 'string') {\n        return contentValue;\n      }\n      if (contentValue === null || contentValue === undefined) {\n        return '';\n      }\n      if (typeof contentValue === 'object') {\n        return JSON.stringify(contentValue, null, 2);\n      }\n      return String(contentValue);\n    }\n    const item = $input.first();\n    if (!item) {\n      throw new Error('No frontend generation state available for ZIP assembly.');\n    }\n    const json = item.json || {};\n    const generatedFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const remainingFiles = Array.isArray(json.remainingFiles) ? json.remainingFiles : [];\n    if (remainingFiles.length > 0) {\n      throw new Error('Cannot assemble frontend ZIP while files are still remaining.');\n    }\n    if (!generatedFiles.length) {\n      throw new Error('No generated frontend files available to assemble ZIP.');\n    }\n    const binary = {};\n    const manifest = [];\n    generatedFiles.forEach((file, index) => {\n      const filePath = String(file?.path || '').trim();\n      const content = normalizeContent(file?.content);\n      if (!filePath.startsWith('frontend/')) {\n        throw new Error(`Generated frontend file path must start with \"frontend/\": ${filePath || '<empty>'}`);\n      }\n      // Empty files are allowed and must still be included in the assembled ZIP.\n      const key = `file_${index}`;\n      binary[key] = {\n        data: Buffer.from(content, 'utf8').toString('base64'),\n        mimeType: getMimeType(filePath),\n        fileExtension: getExtension(filePath),\n        fileName: filePath,\n      };\n      manifest.push({ path: filePath });\n    });\n    return [{\n      json: {\n        frontendRoot: 'frontend',\n        fileCount: manifest.length,\n        files: manifest,\n        zipBinaryFields: Object.keys(binary).join(','),\n      },\n      binary,\n    }];\n  }\nreturn beAssembleBackendZipInputs();\n"
+      },
+      "id": "a1df2a46-1ec8-49f3-b823-a1115cd94d1a",
+      "name": "FE - Assemble Frontend Zip Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6160,
+        3504
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function beAssembleFrontendZipInputs() {\n    function getExtension(filePath) {\n      const fileName = String(filePath || '').split('/').pop() || '';\n      if (fileName === 'pom.xml') return 'xml';\n      if (fileName === '.gitignore') return 'gitignore';\n      const match = fileName.match(/\\.([A-Za-z0-9]+)$/);\n      return match ? match[1].toLowerCase() : 'txt';\n    }\n    function getMimeType(filePath) {\n      const ext = getExtension(filePath);\n      const mimeByExtension = {\n        java: 'text/x-java-source',\n        xml: 'application/xml',\n        yaml: 'text/yaml',\n        yml: 'text/yaml',\n        json: 'application/json',\n        properties: 'text/plain',\n        md: 'text/markdown',\n        txt: 'text/plain',\n        sql: 'application/sql',\n        csv: 'text/csv',\n        gitignore: 'text/plain',\n      };\n      return mimeByExtension[ext] || 'text/plain';\n    }\n    function isIntentionallyEmptyFile(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      return lower.endsWith('/.gitkeep') || lower.endsWith('/.keep') || lower.endsWith('/.placeholder');\n    }\n    function normalizeContent(contentValue) {\n      if (typeof contentValue === 'string') {\n        return contentValue;\n      }\n      if (contentValue === null || contentValue === undefined) {\n        return '';\n      }\n      if (typeof contentValue === 'object') {\n        return JSON.stringify(contentValue, null, 2);\n      }\n      return String(contentValue);\n    }\n    function normalizeFrontendPath(rawPath, frontendRoot, rawDirectory) {\n      const normalizedRoot = String(frontendRoot || 'frontend').replace(/\\\\/g, '/').trim().replace(/\\/+$/, '') || 'frontend';\n      const directory = String(rawDirectory ?? '').replace(/\\\\/g, '/').trim().replace(/^\\.\\//, '').replace(/\\/+$/, '');\n      const fileName = String(rawPath ?? '').replace(/\\\\/g, '/').trim().replace(/^\\.\\//, '');\n      const combined = [directory, fileName]\n        .filter(Boolean)\n        .join('/')\n        .replace(/\\/+/g, '/')\n        .replace(/^\\.\\//, '')\n        .replace(/\\/+/g, '/');\n      if (!combined) return '';\n      if (combined === normalizedRoot || combined === normalizedRoot + '.zip') return '';\n      if (combined.startsWith(normalizedRoot + '/')) return combined;\n      return normalizedRoot + '/' + combined.replace(/^\\/+/, '');\n    }\n    async function readBinaryText(propertyName, binaryEntry) {\n      try {\n        if (typeof this?.helpers?.getBinaryDataBuffer === 'function') {\n          const buffer = await this.helpers.getBinaryDataBuffer(0, propertyName);\n          if (buffer) return buffer.toString('utf8');\n        }\n      } catch {}\n      try {\n        const raw = String(binaryEntry?.data ?? '');\n        return raw && raw !== 'filesystem-v2' ? Buffer.from(raw, 'base64').toString('utf8') : '';\n      } catch {\n        return '';\n      }\n    }\n    async function collectGeneratedFilesFromBinary(binary, frontendRoot) {\n      const byPath = new Map();\n      for (const [propertyName, entry] of Object.entries(binary || {})) {\n        if (!/^current_/i.test(propertyName)) continue;\n        const filePath = normalizeFrontendPath(entry?.fileName, frontendRoot, entry?.directory);\n        if (!filePath || filePath.endsWith('.zip')) continue;\n        byPath.set(filePath, { path: filePath, content: await readBinaryText.call(this, propertyName, entry) });\n      }\n      return Array.from(byPath.values()).sort((a, b) => a.path.localeCompare(b.path));\n    }\n    const item = $input.first();\n    if (!item) {\n      throw new Error('No frontend generation state available for ZIP assembly.');\n    }\n    const json = item.json || {};\n    const frontendRoot = String(json.frontendRoot ?? 'frontend').trim() || 'frontend';\n    const remainingFiles = Array.isArray(json.remainingFiles) ? json.remainingFiles : [];\n    if (remainingFiles.length > 0) {\n      throw new Error('Cannot assemble frontend ZIP while files are still remaining.');\n    }\n    const generatedFilesInput = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const generatedFiles = generatedFilesInput.length\n      ? generatedFilesInput\n      : await collectGeneratedFilesFromBinary.call(this, item.binary || {}, frontendRoot);\n    if (!generatedFiles.length) {\n      throw new Error('No generated frontend files available to assemble ZIP.');\n    }\n    const byPath = new Map();\n    for (const file of generatedFiles) {\n      const path = String(file?.path || '').trim();\n      if (!path) continue;\n      if (!byPath.has(path)) byPath.set(path, { path, content: file.content });\n    }\n    const binary = {};\n    const manifest = [];\n    Array.from(byPath.values()).forEach((file, index) => {\n      const filePath = String(file?.path || '').trim();\n      const content = normalizeContent(file?.content);\n      if (!filePath.startsWith('frontend/')) {\n        throw new Error(`Generated frontend file path must start with \"frontend/\": ${filePath || '<empty>'}`);\n      }\n      // Empty files are allowed and must still be included in the assembled ZIP.\n      const key = `file_${index}`;\n      binary[key] = {\n        data: Buffer.from(content, 'utf8').toString('base64'),\n        mimeType: getMimeType(filePath),\n        fileExtension: getExtension(filePath),\n        fileName: filePath,\n      };\n      manifest.push({ path: filePath });\n    });\n    return [{\n      json: {\n        frontendRoot: 'frontend',\n        fileCount: manifest.length,\n        files: manifest,\n        zipBinaryFields: Object.keys(binary).join(','),\n      },\n      binary,\n    }];\n  }\nreturn beAssembleFrontendZipInputs();\n"
+      },
+      "id": "6d676dca-bab0-4d01-b68c-666ba1e00d9b",
+      "name": "FE - Assemble Refined Frontend Zip Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7968,
+        3024
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function feBuildChunkPrompt() {\n  const MAX_MEMORY_ITEMS = 4;\n\n  function compactJson(value) {\n    return JSON.stringify(value);\n  }\n\n  function trimImplementationMemory(generatedImplementationIndex, recentImplementationSummaries) {\n    const seen = new Set();\n    const selected = [];\n\n    for (const collection of [recentImplementationSummaries || [], generatedImplementationIndex || []]) {\n      for (const entry of collection) {\n        if (!entry || typeof entry !== 'object') continue;\n        const path = String(entry.path || '').trim();\n        if (!path || seen.has(path)) continue;\n        seen.add(path);\n        selected.push(entry);\n        if (selected.length >= MAX_MEMORY_ITEMS) {\n          return selected;\n        }\n      }\n    }\n\n    return selected;\n  }\n\n  return $input.all().map((item) => {\n    const json = item.json || {};\n    const requirementsText = String(json.requirementsText || '').trim();\n    const openapiText = String(json.openapiText || '').trim();\n    const designText = String(json.designText || '').trim();\n    if (!requirementsText) throw new Error('Missing requirements text for frontend generation.');\n    if (!openapiText) throw new Error('Missing OpenAPI text for frontend generation.');\n    if (!designText) throw new Error('Missing design text for frontend generation.');\n\n    const batchSize = Math.max(1, Number(json.batchSize || 15));\n    const currentBatchFiles = Array.isArray(json.currentBatchFiles) && json.currentBatchFiles.length\n      ? json.currentBatchFiles.slice(0, batchSize)\n      : (Array.isArray(json.remainingFiles) ? json.remainingFiles.slice(0, batchSize) : []);\n\n    if (!currentBatchFiles.length) {\n      throw new Error('No current batch files available for frontend generation.');\n    }\n\n    const allPlannedFiles = Array.isArray(json.allPlannedFiles) && json.allPlannedFiles.length\n      ? json.allPlannedFiles\n      : currentBatchFiles;\n    const allPlannedPaths = allPlannedFiles\n      .map((file) => String(file?.path || '').trim())\n      .filter(Boolean);\n    const batchPaths = currentBatchFiles\n      .map((file) => String(file?.path || '').trim())\n      .filter(Boolean);\n\n    const implementationMemory = trimImplementationMemory(\n      Array.isArray(json.generatedImplementationIndex) ? json.generatedImplementationIndex : [],\n      Array.isArray(json.recentImplementationSummaries) ? json.recentImplementationSummaries : [],\n    );\n\n    const userPrompt = [\n      'REQ',\n      requirementsText,\n      'API',\n      openapiText,\n      'DESIGN',\n      designText,\n      'PLAN',\n      compactJson(allPlannedPaths),\n      'BATCH',\n      compactJson(batchPaths),\n      'STATE',\n      compactJson({\n        i: json.iteration,\n        g: json.generatedFileCountTotal,\n        r: json.remainingFileCount,\n        t: allPlannedPaths.length,\n        b: batchSize,\n        c: currentBatchFiles.length,\n      }),\n      implementationMemory.length ? 'MEMORY\\n' + compactJson(implementationMemory) : '',\n      'RULES',\n      [\n        'Generate only BATCH paths.',\n        'PLAN is the full allowed frontend path set.',\n        'Requirements define frontend features and business behavior.',\n        'DESIGN defines screens, dialogs, navigation, layout intent, and component structure.',\n        'OpenAPI is absolute truth for API requests, response fields, methods, auth-related contracts, and data shapes exchanged with the backend.',\n        'Do not add or rewrite API path prefixes.',\n        'Do not reference files or types outside BATCH, MEMORY, or PLAN.',\n        'Reuse existing naming and generated types consistently.',\n        'Return only valid JSON with a top-level files array.',\n      ].join('\\n'),\n    ].filter(Boolean).join('\\n');\n\n    return {\n      json: {\n        ...json,\n        batchSize,\n        allPlannedFiles,\n        currentBatchFiles,\n        currentBatchFileCount: currentBatchFiles.length,\n        userPrompt,\n        requirementsPromptLength: requirementsText.length,\n        openapiPromptLength: openapiText.length,\n        designPromptLength: designText.length,\n        implementationMemoryLength: compactJson(implementationMemory).length,\n        fullPromptLength: userPrompt.length,\n      },\n      binary: item.binary ?? {},\n    };\n  });\n}\n\nreturn feBuildChunkPrompt();\n"
+      },
+      "id": "a1537050-6cd3-49dc-a9e0-1bb32d419680",
+      "name": "FE - Build Chunk Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5456,
+        3248
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function feBuildPrompt() {\n  const items = $input.all();\n  if (!items.length) {\n    throw new Error('Frontend structure prompt builder received no input.');\n  }\n\n  async function readBinaryText(itemIndex, propertyName, fallbackFileName) {\n    const item = items[itemIndex];\n    const binary = item.binary?.[propertyName];\n    if (!binary) return null;\n\n    const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n    return {\n      fileName: binary.fileName || fallbackFileName,\n      text: buffer.toString('utf8'),\n    };\n  }\n\n  let requirements = null;\n  let openapi = null;\n  let design = null;\n\n  for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {\n    if (!requirements) {\n      requirements = await readBinaryText.call(this, itemIndex, 'requirements', 'requirements-compact.txt');\n    }\n    if (!openapi) {\n      openapi = await readBinaryText.call(this, itemIndex, 'openapiSpec', 'openapi-compact.json');\n    }\n    if (!design) {\n      design = await readBinaryText.call(this, itemIndex, 'designSpec', 'design-compact.json');\n    }\n  }\n\n  if (!requirements) {\n    throw new Error('Missing compact requirements binary for frontend structure generation.');\n  }\n  if (!openapi) {\n    throw new Error('Missing compact openapiSpec binary for frontend structure generation.');\n  }\n  if (!design) {\n    throw new Error('Missing compact designSpec binary for frontend structure generation.');\n  }\n\n  const requirementsText = String(requirements.text || '').trim();\n  const openapiText = String(openapi.text || '').trim();\n  const designText = String(design.text || '').trim();\n  if (!requirementsText) {\n    throw new Error('Requirements text is empty for frontend structure generation.');\n  }\n  if (!openapiText) {\n    throw new Error('OpenAPI text is empty for frontend structure generation.');\n  }\n  if (!designText) {\n    throw new Error('Design text is empty for frontend structure generation.');\n  }\n\n  const userPrompt = [\n    'REQ',\n    requirementsText,\n    'API',\n    openapiText,\n    'DESIGN',\n    designText,\n  ].join('\\n');\n\n  return [{\n    json: {\n      requirementsFile: requirements.fileName,\n      requirementsText,\n      requirementsPromptLength: requirementsText.length,\n      openapiFile: openapi.fileName || 'openapi-compact.json',\n      openapiText,\n      openapiPromptLength: openapiText.length,\n      designFile: design.fileName || 'design-compact.json',\n      designText,\n      designPromptLength: designText.length,\n      userPrompt,\n      fullPromptLength: userPrompt.length,\n    },\n    binary: items[0].binary ?? {},\n  }];\n}\n\nreturn await feBuildPrompt.call(this);\n"
+      },
+      "id": "e02efbde-ae64-4902-ad17-ef9ac4e4c867",
+      "name": "FE - Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5536,
+        2800
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function feBuildRefinementChunkPrompt() {\n  const MAX_MEMORY_ITEMS = 6;\n  const ATTACHMENT_CHAR_LIMIT = 12000;\n  const ATTACHMENT_FILE_CHAR_LIMIT = 3000;\n  function compactJson(value) { return JSON.stringify(value); }\n  function normalizeFiles(value) {\n    const files = Array.isArray(value) ? value : [];\n    return files.map((entry) => {\n      if (typeof entry === 'string') return { path: entry.trim() };\n      if (entry && typeof entry === 'object') return { path: String(entry.path ?? '').trim() };\n      return { path: '' };\n    }).filter((entry) => entry.path);\n  }\n  function decodeText(binaryEntry) {\n    try {\n      const raw = String(binaryEntry?.data ?? '');\n      return raw ? Buffer.from(raw, 'base64').toString('utf8') : '';\n    } catch {\n      return '';\n    }\n  }\n  function looksTextLike(binaryEntry, key) {\n    const mime = String(binaryEntry?.mimeType ?? '').toLowerCase();\n    const extRaw = String(binaryEntry?.fileExtension ?? '').toLowerCase();\n    const ext = extRaw.startsWith('.') ? extRaw.slice(1) : extRaw;\n    const textExt = new Set(['txt','md','markdown','json','yaml','yml','csv','tsv','xml','html','htm','js','ts','py','java','sql','log','ini','cfg']);\n    if (mime.startsWith('text/')) return true;\n    if (mime.includes('json') || mime.includes('xml') || mime.includes('yaml')) return true;\n    if (textExt.has(ext)) return true;\n    const keyLower = String(key ?? '').toLowerCase();\n    return keyLower.endsWith('.txt') || keyLower.endsWith('.md') || keyLower.endsWith('.json');\n  }\n  function splitTokens(value) {\n    const text = String(value || '').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[^A-Za-z0-9]+/g, ' ').toLowerCase();\n    return Array.from(new Set(text.split(/\\s+/).filter((token) => token.length > 1)));\n  }\n  function detectLanguage(filePath) {\n    const lower = String(filePath || '').toLowerCase();\n    if (lower.endsWith('.java')) return 'java';\n    if (lower.endsWith('.kt')) return 'kotlin';\n    if (lower.endsWith('.py')) return 'python';\n    if (lower.endsWith('.ts')) return 'typescript';\n    if (lower.endsWith('.tsx')) return 'tsx';\n    if (lower.endsWith('.js')) return 'javascript';\n    if (lower.endsWith('.jsx')) return 'jsx';\n    if (lower.endsWith('.cs')) return 'csharp';\n    if (lower.endsWith('.go')) return 'go';\n    if (lower.endsWith('.rb')) return 'ruby';\n    if (lower.endsWith('.php')) return 'php';\n    return 'other';\n  }\n  function isImplementationFile(filePath) {\n    const lower = String(filePath || '').toLowerCase();\n    if (!lower.startsWith('frontend/')) return false;\n    if (lower.includes('/src/test/') || lower.includes('/tests/') || lower.includes('/test/')) return false;\n    if (lower.includes('/resources/') || lower.includes('/db/') || lower.includes('/docs/') || lower.includes('/helm/')) return false;\n    if (lower.endsWith('.md') || lower.endsWith('.txt') || lower.endsWith('.yaml') || lower.endsWith('.yml') || lower.endsWith('.xml') || lower.endsWith('.properties') || lower.endsWith('.sql') || lower.endsWith('.json') || lower.endsWith('.csv')) return false;\n    return new Set(['java', 'kotlin', 'python', 'typescript', 'tsx', 'javascript', 'jsx', 'csharp', 'go', 'ruby', 'php']).has(detectLanguage(filePath));\n  }\n\n  function summarizeFile(file) {\n    const filePath = String(file?.path || '').trim();\n    const content = String(file?.content || '');\n    const language = detectLanguage(filePath);\n    const imports = [];\n    for (const regex of [/^[ \\t]*import\\s+([^;\\n]+)[;\\n]?/gm, /^[ \\t]*using\\s+([^;\\n]+);/gm, /^[ \\t]*from\\s+([^\\n]+)\\s+import\\s+([^\\n]+)/gm, /^[ \\t]*require\\(['\"]([^'\"]+)['\"]\\)/gm]) {\n      let match;\n      while ((match = regex.exec(content)) !== null && imports.length < 20) imports.push(match.slice(1).filter(Boolean).join(' ').trim());\n      regex.lastIndex = 0;\n    }\n    const types = [];\n    let match;\n    const typeRegex = /^[ \\t]*(?:export\\s+)?(?:public\\s+|private\\s+|protected\\s+|internal\\s+)?(?:abstract\\s+|final\\s+|sealed\\s+)?(class|interface|enum|record|type|struct)\\s+([A-Za-z0-9_]+)/gm;\n    while ((match = typeRegex.exec(content)) !== null && types.length < 12) types.push({ kind: match[1], name: match[2] });\n    typeRegex.lastIndex = 0;\n    const functions = [];\n    const fnRegex = /^[ \\t]*(?:export\\s+)?(?:async\\s+)?(?:function|def|func|fn)\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm;\n    while ((match = fnRegex.exec(content)) !== null && functions.length < 20) functions.push({ name: match[1], parameters: String(match[2] || '').trim() });\n    fnRegex.lastIndex = 0;\n    return { path: filePath, language, imports: Array.from(new Set(imports)).slice(0, 20), types, functions, lineCount: content ? content.replace(/\\r\\n/g, '\\n').split('\\n').length : 0 };\n  }\n  function getRole(path) {\n    const lower = String(path || '').toLowerCase();\n    for (const role of ['controller', 'service', 'repository', 'dto', 'mapper', 'entity', 'config', 'security']) {\n      if (lower.includes(role)) return role;\n    }\n    return 'other';\n  }\n  function sharedPrefixDepth(pathA, pathB) {\n    const a = String(pathA || '').split('/');\n    const b = String(pathB || '').split('/');\n    let depth = 0;\n    while (depth < a.length && depth < b.length && a[depth] === b[depth]) depth += 1;\n    return depth;\n  }\n  function scoreSummary(summary, batchItems) {\n    const summaryTokens = splitTokens(summary.path + ' ' + JSON.stringify(summary.types || []) + ' ' + JSON.stringify(summary.functions || []));\n    const summaryRole = getRole(summary.path);\n    let score = 0;\n    for (const batchItem of batchItems) {\n      const batchPath = String(batchItem.path || '').trim();\n      const overlap = splitTokens(batchPath).filter((token) => summaryTokens.includes(token)).length;\n      score += overlap * 2 + sharedPrefixDepth(summary.path, batchPath) * 3;\n      if (getRole(batchPath) === summaryRole && summaryRole !== 'other') score += 4;\n    }\n    return score;\n  }\n  function selectRelevantMemory(currentFiles, batchItems) {\n    const batchPaths = new Set(batchItems.map((item) => String(item.path || '').trim()));\n    return currentFiles\n      .filter((file) => isImplementationFile(file.path))\n      .filter((file) => !batchPaths.has(String(file.path || '').trim()))\n      .map(summarizeFile)\n      .map((summary) => ({ summary, score: scoreSummary(summary, batchItems) }))\n      .filter((entry) => entry.score > 0)\n      .sort((a, b) => b.score - a.score || a.summary.path.localeCompare(b.summary.path))\n      .slice(0, MAX_MEMORY_ITEMS)\n      .map((entry) => entry.summary);\n  }\n  return $input.all().map((item) => {\n    const json = item.json || {};\n    const binary = item.binary || {};\n    const reviewerFeedback = String(json.reviewerFeedback || json.feedback || '').trim() || 'Reviewer requested frontend changes without additional details.';\n    const batchSize = Math.max(1, Number(json.batchSize || 4));\n    const currentBatchFiles = Array.isArray(json.currentBatchFiles) && json.currentBatchFiles.length ? json.currentBatchFiles.slice(0, batchSize) : (Array.isArray(json.remainingFiles) ? json.remainingFiles.slice(0, batchSize) : []);\n    if (!currentBatchFiles.length) throw new Error('No current refinement batch files available for frontend refinement.');\n    const currentFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const currentFileMap = new Map(currentFiles.map((file) => [String(file.path || '').trim(), String(file.content ?? '')]));\n    const batchPayload = currentBatchFiles.map((entry) => {\n      const path = String(entry.path || '').trim();\n      const action = String(entry.action || 'modify').trim().toLowerCase();\n      const payload = { path, action };\n      if (action === 'modify' && currentFileMap.has(path)) payload.currentContent = currentFileMap.get(path);\n      return payload;\n    });\n    const attachmentBlocks = [];\n    let totalChars = 0;\n    for (const [key, entry] of Object.entries(binary).filter(([name]) => /^attachments?(?:_|$)/i.test(String(name)))) {\n      if (totalChars >= ATTACHMENT_CHAR_LIMIT || !looksTextLike(entry, key)) continue;\n      const text = decodeText(entry).trim();\n      if (!text) continue;\n      const take = Math.min(ATTACHMENT_FILE_CHAR_LIMIT, ATTACHMENT_CHAR_LIMIT - totalChars);\n      attachmentBlocks.push(`Attachment: ${String(entry.fileName || key)}\\n---\\n${text.slice(0, take)}`);\n      totalChars += Math.min(text.length, take);\n    }\n    const memory = selectRelevantMemory(currentFiles, currentBatchFiles);\n    const currentPlanPaths = normalizeFiles(json.currentPlanFiles).map((file) => file.path);\n    const userPrompt = [\n      'FEEDBACK', reviewerFeedback,\n      attachmentBlocks.length ? 'ATTACHMENTS\\n' + attachmentBlocks.join('\\n\\n') : '',\n      'CURRENT_PLAN', compactJson(currentPlanPaths),\n      'BATCH', compactJson(batchPayload),\n      memory.length ? 'MEMORY\\n' + compactJson(memory) : '',\n      'RULES', [\n        'Generate only the files listed in BATCH with action create or modify.',\n        'Do not output files whose action is remove.',\n        'For modify actions, return the complete updated file content.',\n        'For create actions, return the complete new file content.',\n        'Keep changes tightly aligned with FEEDBACK and ATTACHMENTS.',\n        'Preserve frontend consistency with the existing package.',\n        'Return only valid JSON with a top-level files array.',\n      ].join('\\n'),\n    ].filter(Boolean).join('\\n');\n    return { json: { ...json, currentBatchFiles, currentBatchFileCount: currentBatchFiles.length, allPlannedFiles: currentPlanPaths.map((path) => ({ path })), allowedOutputFiles: currentBatchFiles.map((entry) => ({ path: String(entry.path || '').trim() })), userPrompt, fullPromptLength: userPrompt.length, refinementMemoryLength: compactJson(memory).length }, binary };\n  });\n}\n\nreturn feBuildRefinementChunkPrompt();"
+      },
+      "id": "1075edc6-2ff1-4551-9df2-54471b47296b",
+      "name": "FE - Build Refinement Chunk Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7296,
+        2752
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemsSafe(nodeName) {\n  if (typeof $items !== 'function') return [];\n  try {\n    return $items(nodeName) || [];\n  } catch (error) {\n    const message = String(error?.message ?? error ?? '');\n    if (message.includes(\"hasn't been executed\") || message.includes('not executed')) {\n      return [];\n    }\n    return [];\n  }\n}\n\nfunction looksTextLike(binaryEntry, key) {\n  const mime = String(binaryEntry?.mimeType ?? '').toLowerCase();\n  const extRaw = String(binaryEntry?.fileExtension ?? '').toLowerCase();\n  const ext = extRaw.startsWith('.') ? extRaw.slice(1) : extRaw;\n  const textExt = new Set(['txt','md','markdown','json','yaml','yml','csv','tsv','xml','html','htm','js','ts','py','java','sql','log','ini','cfg']);\n  if (mime.startsWith('text/')) return true;\n  if (mime.includes('json') || mime.includes('xml') || mime.includes('yaml')) return true;\n  if (textExt.has(ext)) return true;\n  const keyLower = String(key ?? '').toLowerCase();\n  return keyLower.endsWith('.txt') || keyLower.endsWith('.md') || keyLower.endsWith('.json');\n}\n\nfunction decodeText(binaryEntry) {\n  try {\n    const raw = String(binaryEntry?.data ?? '');\n    if (!raw) return '';\n    return Buffer.from(raw, 'base64').toString('utf8');\n  } catch {\n    return '';\n  }\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  return files\n    .map((entry) => {\n      if (typeof entry === 'string') return { path: entry.trim() };\n      if (entry && typeof entry === 'object') {\n        return { path: String(entry.path ?? '').trim() };\n      }\n      return { path: '' };\n    })\n    .filter((entry) => entry.path);\n}\n\nfunction normalizeStructureObject(value) {\n  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;\n  const files = normalizeFiles(value.files);\n  if (!files.length) return null;\n  return { files };\n}\n\nfunction parseStructureText(text) {\n  const raw = String(text ?? '').trim();\n  if (!raw) return null;\n  try {\n    return normalizeStructureObject(JSON.parse(raw));\n  } catch {\n    return null;\n  }\n}\n\nfunction stringifyStructureObject(value) {\n  try {\n    return JSON.stringify(value);\n  } catch {\n    return '';\n  }\n}\n\nconst previousPlanItems = getNodeItemsSafe('FE - Clean Refinement Response');\nconst previousPlanJson = previousPlanItems[0]?.json ?? {};\n\nconst mergedJson = { ...previousPlanJson, ...(item.json ?? {}) };\nconst mergedBinary = { ...(item.binary ?? {}) };\n\nconst reviewerFeedback = [\n  mergedJson.feedback,\n  mergedJson.Feedback,\n].map((value) => String(value ?? '').trim()).find((value) => value.length > 0)\n  || 'Reviewer requested frontend changes without additional details.';\n\nconst currentFilesCandidates = [\n  normalizeFiles(mergedJson.files),\n  normalizeFiles(mergedJson.currentFiles),\n  normalizeFiles(mergedJson.firstIterationFiles),\n  normalizeFiles(mergedJson.plannedFiles),\n];\nconst currentFiles = currentFilesCandidates.find((files) => files.length > 0) || [];\nif (!currentFiles.length) {\n  throw new Error('Current frontend file structure is missing for refinement planning.');\n}\n\nconst structureObject =\n  normalizeStructureObject(mergedJson.frontendStructureObject) ||\n  normalizeStructureObject(mergedJson.structurePlanObject) ||\n  parseStructureText(mergedJson.frontendStructure) ||\n  parseStructureText(mergedJson.structurePlan) ||\n  parseStructureText(decodeText(mergedBinary.frontendStructure)) ||\n  normalizeStructureObject({ files: normalizeFiles(mergedJson.plannedFiles) }) ||\n  normalizeStructureObject({ files: currentFiles });\n\nif (!structureObject) {\n  throw new Error('Frontend structure plan from the refinement context is missing.');\n}\n\nconst structureText = [\n  String(mergedJson.frontendStructure ?? '').trim(),\n  String(mergedJson.structurePlan ?? '').trim(),\n  decodeText(mergedBinary.frontendStructure).trim(),\n  stringifyStructureObject(structureObject),\n].find((value) => String(value ?? '').trim().length > 0) || '';\n\nif (!structureText) {\n  throw new Error('Frontend structure plan from the refinement context is not valid JSON.');\n}\n\nconst plannedFilesResolved = normalizeFiles(structureObject.files);\nif (!plannedFilesResolved.length) {\n  throw new Error('Frontend structure plan from the refinement context does not contain any files.');\n}\n\nconst firstIterationFiles = normalizeFiles(mergedJson.firstIterationFiles);\nconst previousPlanFiles = Array.isArray(previousPlanJson.files) ? previousPlanJson.files : [];\n\nconst attachmentEntries = Object.entries(mergedBinary)\n  .filter(([key]) => /^attachments?(?:_|$)/i.test(String(key)));\n\nconst attachmentSummaries = [];\nconst attachmentTextBlocks = [];\nlet totalTextChars = 0;\nconst maxTotalChars = 16000;\nconst maxPerFileChars = 4000;\n\nfor (const [key, bin] of attachmentEntries) {\n  const fileName = String(bin?.fileName ?? key);\n  const mimeType = String(bin?.mimeType ?? 'application/octet-stream');\n  const fileSize = Number(bin?.fileSize ?? 0);\n  attachmentSummaries.push({ key, fileName, mimeType, fileSize });\n  if (!looksTextLike(bin, key) || totalTextChars >= maxTotalChars) continue;\n  const text = decodeText(bin).trim();\n  if (!text) continue;\n  const remaining = maxTotalChars - totalTextChars;\n  const take = Math.min(maxPerFileChars, remaining);\n  const excerpt = text.slice(0, take);\n  attachmentTextBlocks.push(`Attachment: ${fileName} (${mimeType})\\n---\\n${excerpt}`);\n  totalTextChars += excerpt.length;\n}\n\nconst attachmentSummaryText = attachmentSummaries.length\n  ? attachmentSummaries.map((a, i) => `${i + 1}) ${a.fileName} | mime=${a.mimeType} | size=${a.fileSize}`).join('\\n')\n  : '[No attachments provided.]';\n\nconst attachmentExtractedText = attachmentTextBlocks.length\n  ? attachmentTextBlocks.join('\\n\\n')\n  : '[No text could be extracted from attachments automatically.]';\n\nconst patchPrompt = [\n  'Feedback:',\n  reviewerFeedback,\n  '',\n  'Attachment metadata:',\n  attachmentSummaryText,\n  '',\n  'Extracted attachment text:',\n  attachmentExtractedText,\n  '',\n  'Current frontend package files:',\n  JSON.stringify(currentFiles),\n].filter(Boolean).join('\\n');\n\nreturn [{\n  json: {\n    reviewerFeedback,\n    revisionNumber: Math.max(0, Math.trunc(Number(mergedJson.revisionNumber ?? 0) || 0)) + 1,\n    currentFiles,\n    plannedFiles: plannedFilesResolved,\n    firstIterationFiles,\n    previousPlanFiles,\n    attachmentCount: attachmentSummaries.length,\n    attachmentSummaries,\n    patchPrompt,\n    frontendStructure: structureText,\n    frontendStructureObject: structureObject,\n  },\n  ...(mergedBinary && Object.keys(mergedBinary).length > 0 ? { binary: mergedBinary } : {}),\n}];"
+      },
+      "id": "5349a998-0bc8-4328-a4dc-989418d1b4bb",
+      "name": "FE - Build Refinement Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6768,
+        2432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function beCleanChunkResponse() {\n    function parseCandidate(raw) {\n      try {\n        const parsed = JSON.parse(raw);\n        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {\n          return parsed;\n        }\n      } catch {}\n      return null;\n    }\n\n    function normalizeText(raw) {\n      let text = String(raw ?? '').trim();\n      if (!text) {\n        throw new Error('Frontend chunk model output is empty.');\n      }\n\n      if (text.startsWith('```')) {\n        const firstNewlineIndex = text.indexOf('\\n');\n        if (firstNewlineIndex !== -1) {\n          const openingFence = text.slice(0, firstNewlineIndex).trim();\n          if (/^\\`\\`\\`(?:json)?$/i.test(openingFence)) {\n            text = text.slice(firstNewlineIndex + 1);\n            const trailingFenceIndex = text.lastIndexOf('\\n\\`\\`\\`');\n            if (trailingFenceIndex !== -1 && text.slice(trailingFenceIndex).trim() === '```') {\n              text = text.slice(0, trailingFenceIndex).trim();\n            } else if (text.endsWith('```')) {\n              text = text.slice(0, -3).trim();\n            } else {\n              text = text.trim();\n            }\n          }\n        }\n      }\n\n      return text;\n    }\n\n    function extractBalancedObject(text) {\n      let depth = 0;\n      let start = -1;\n      let inString = false;\n      let escaped = false;\n\n      for (let index = 0; index < text.length; index += 1) {\n        const char = text[index];\n\n        if (escaped) {\n          escaped = false;\n          continue;\n        }\n\n        if (char === '\\\\') {\n          if (inString) escaped = true;\n          continue;\n        }\n\n        if (char === '\"') {\n          inString = !inString;\n          continue;\n        }\n\n        if (inString) continue;\n\n        if (char === '{') {\n          if (depth === 0) start = index;\n          depth += 1;\n          continue;\n        }\n\n        if (char === '}') {\n          if (depth > 0) {\n            depth -= 1;\n            if (depth === 0 && start !== -1) {\n              return text.slice(start, index + 1);\n            }\n          }\n        }\n      }\n\n      return null;\n    }\n\n    function isQuoteEscaped(text, quoteIndex) {\n      let backslashCount = 0;\n      for (let index = quoteIndex - 1; index >= 0 && text[index] === '\\\\'; index -= 1) {\n        backslashCount += 1;\n      }\n      return backslashCount % 2 === 1;\n    }\n\n    function findPropertyKey(text, key, fromIndex) {\n      const pattern = '\"' + key + '\"';\n      return text.indexOf(pattern, fromIndex);\n    }\n\n    function findValueStart(text, keyIndex) {\n      const colonIndex = text.indexOf(':', keyIndex);\n      if (colonIndex === -1) return -1;\n      for (let index = colonIndex + 1; index < text.length; index += 1) {\n        if (/\\s/.test(text[index])) continue;\n        return index;\n      }\n      return -1;\n    }\n\n    function decodeLooseJsonString(raw) {\n      let output = '';\n\n      for (let index = 0; index < raw.length; index += 1) {\n        const char = raw[index];\n        if (char !== '\\\\') {\n          output += char;\n          continue;\n        }\n\n        const next = raw[index + 1];\n        if (next === undefined) {\n          output += '\\\\';\n          break;\n        }\n\n        if (next === 'n') {\n          output += '\\n';\n          index += 1;\n          continue;\n        }\n        if (next === 'r') {\n          output += '\\r';\n          index += 1;\n          continue;\n        }\n        if (next === 't') {\n          output += '\\t';\n          index += 1;\n          continue;\n        }\n        if (next === 'b') {\n          output += '\\b';\n          index += 1;\n          continue;\n        }\n        if (next === 'f') {\n          output += '\\f';\n          index += 1;\n          continue;\n        }\n        if (next === '\"' || next === '\\\\' || next === '/') {\n          output += next;\n          index += 1;\n          continue;\n        }\n        if (next === 'u' && /^[0-9a-fA-F]{4}$/.test(raw.slice(index + 2, index + 6))) {\n          output += String.fromCharCode(parseInt(raw.slice(index + 2, index + 6), 16));\n          index += 5;\n          continue;\n        }\n\n        output += '\\\\' + next;\n        index += 1;\n      }\n\n      return output;\n    }\n\n    function readStrictQuotedString(text, quoteStart) {\n      for (let index = quoteStart + 1; index < text.length; index += 1) {\n        if (text[index] === '\"' && !isQuoteEscaped(text, index)) {\n          return {\n            value: decodeLooseJsonString(text.slice(quoteStart + 1, index)),\n            endIndex: index,\n          };\n        }\n      }\n      throw new Error('Could not find closing quote for JSON string.');\n    }\n\n    function readStructuredJsonValue(text, valueStart) {\n      const openingChar = text[valueStart];\n      const closingChar = openingChar === '{' ? '}' : ']';\n      const stack = [closingChar];\n      let inString = false;\n      let escaped = false;\n\n      for (let index = valueStart + 1; index < text.length; index += 1) {\n        const char = text[index];\n\n        if (escaped) {\n          escaped = false;\n          continue;\n        }\n\n        if (char === '\\\\') {\n          if (inString) escaped = true;\n          continue;\n        }\n\n        if (char === '\"') {\n          inString = !inString;\n          continue;\n        }\n\n        if (inString) continue;\n\n        if (char === '{') {\n          stack.push('}');\n          continue;\n        }\n        if (char === '[') {\n          stack.push(']');\n          continue;\n        }\n\n        if (char === stack[stack.length - 1]) {\n          stack.pop();\n          if (!stack.length) {\n            const rawValue = text.slice(valueStart, index + 1);\n            return {\n              value: JSON.parse(rawValue),\n              endIndex: index,\n            };\n          }\n        }\n      }\n\n      throw new Error('Could not find the end of generated file content JSON value.');\n    }\n\n    function readPrimitiveJsonValue(text, valueStart) {\n      let endIndex = valueStart;\n      while (endIndex < text.length && !/[\\s,\\}\\]]/.test(text[endIndex])) {\n        endIndex += 1;\n      }\n\n      const rawValue = text.slice(valueStart, endIndex).trim();\n      if (!rawValue) {\n        throw new Error('Generated file content JSON value is empty.');\n      }\n\n      return {\n        value: JSON.parse(rawValue),\n        endIndex: endIndex - 1,\n      };\n    }\n\n    function readLooseJsonValue(text, valueStart) {\n      if (valueStart < 0 || valueStart >= text.length) {\n        throw new Error('Could not find content value in generated file object.');\n      }\n\n      const firstChar = text[valueStart];\n      if (firstChar === '\"') {\n        return readStrictQuotedString(text, valueStart);\n      }\n      if (firstChar === '{' || firstChar === '[') {\n        return readStructuredJsonValue(text, valueStart);\n      }\n\n      return readPrimitiveJsonValue(text, valueStart);\n    }\n\n    function canRecoverTruncatedTextFile(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      return lower.endsWith('.md') || lower.endsWith('.txt');\n    }\n\n    function decodeLooseJsonTail(raw) {\n      let tail = String(raw || '');\n      if (tail.endsWith('```')) {\n        tail = tail.slice(0, -3);\n      }\n      return decodeLooseJsonString(tail).trimEnd();\n    }\n\n    function isLikelyIncompletePayloadError(error) {\n      const message = String(error?.message ?? error ?? '');\n      return (\n        message.includes('Could not find closing quote') ||\n        message.includes('Could not find the end of generated file content JSON value') ||\n        message.includes('did not end after content field') ||\n        message.includes('files array was not closed') ||\n        message.includes('ended before files array closed') ||\n        message.includes('Could not find content value')\n      );\n    }\n\n    function parseLooseFilesPayload(text, allowPartial = false) {\n      const filesKeyIndex = findPropertyKey(text, 'files', 0);\n      if (filesKeyIndex === -1) {\n        throw new Error('Chunk payload does not contain a files property.');\n      }\n\n      const arrayStart = text.indexOf('[', filesKeyIndex);\n      if (arrayStart === -1) {\n        throw new Error('Chunk payload files property does not contain an array.');\n      }\n\n      const files = [];\n      let cursor = arrayStart + 1;\n\n      while (cursor < text.length) {\n        while (cursor < text.length && /[\\s,]/.test(text[cursor])) cursor += 1;\n        if (cursor >= text.length) {\n          if (allowPartial) {\n            return {\n              files,\n              recoveredPartialChunkPayload: true,\n              ignoredIncompleteTrailingFile: true,\n              recoveryReason: files.length\n                ? 'Chunk payload ended before files array closed.'\n                : 'Ignored incomplete trailing generated file because the model output ended before the payload closed.',\n            };\n          }\n          break;\n        }\n        if (text[cursor] === ']') {\n          return { files };\n        }\n        if (text[cursor] !== '{') {\n          cursor += 1;\n          continue;\n        }\n\n        let pathInfo = null;\n        let contentValueStart = -1;\n\n        try {\n          const objectStart = cursor;\n          const pathKeyIndex = findPropertyKey(text, 'path', objectStart);\n          if (pathKeyIndex === -1) {\n            throw new Error('Could not find path property in generated file object.');\n          }\n          const pathQuoteStart = findValueStart(text, pathKeyIndex);\n          if (pathQuoteStart === -1 || text[pathQuoteStart] !== '\"') {\n            throw new Error('Could not find path string value in generated file object.');\n          }\n          pathInfo = readStrictQuotedString(text, pathQuoteStart);\n\n          const contentKeyIndex = findPropertyKey(text, 'content', pathInfo.endIndex);\n          if (contentKeyIndex === -1) {\n            throw new Error('Could not find content property in generated file object.');\n          }\n          contentValueStart = findValueStart(text, contentKeyIndex);\n          const contentInfo = readLooseJsonValue(text, contentValueStart);\n\n          let objectEnd = contentInfo.endIndex + 1;\n          while (objectEnd < text.length && /\\s/.test(text[objectEnd])) objectEnd += 1;\n          if (text[objectEnd] !== '}') {\n            throw new Error('Generated file object did not end after content field.');\n          }\n\n          files.push({\n            path: pathInfo.value,\n            content: contentInfo.value,\n          });\n\n          cursor = objectEnd + 1;\n        } catch (error) {\n          if (allowPartial && pathInfo && contentValueStart !== -1 && text[contentValueStart] === '\"' && canRecoverTruncatedTextFile(pathInfo.value)) {\n            const recoveredContent = decodeLooseJsonTail(text.slice(contentValueStart + 1));\n            if (recoveredContent.trim()) {\n              files.push({\n                path: pathInfo.value,\n                content: recoveredContent,\n              });\n              return {\n                files,\n                recoveredPartialChunkPayload: true,\n                recoveryReason: 'Recovered truncated text file content for ' + pathInfo.value,\n              };\n            }\n          }\n          if (allowPartial && (files.length || isLikelyIncompletePayloadError(error))) {\n            return {\n              files,\n              recoveredPartialChunkPayload: true,\n              ignoredIncompleteTrailingFile: true,\n              recoveryReason: files.length\n                ? String(error?.message ?? error ?? 'Partial chunk payload recovered.')\n                : 'Ignored incomplete trailing generated file because the model output ended before the file was complete.',\n            };\n          }\n          throw error;\n        }\n      }\n\n      if (allowPartial) {\n        return {\n          files,\n          recoveredPartialChunkPayload: true,\n          ignoredIncompleteTrailingFile: true,\n          recoveryReason: files.length\n            ? 'Chunk payload files array was not closed.'\n            : 'Ignored incomplete trailing generated file because the files array was not closed.',\n        };\n      }\n\n      throw new Error('Chunk payload files array was not closed.');\n    }\n\n    function extractPayload(rawText) {\n      const text = normalizeText(rawText);\n      const candidates = [text];\n      const balancedObject = extractBalancedObject(text);\n      if (balancedObject) {\n        candidates.push(balancedObject);\n      }\n\n      for (const candidate of candidates) {\n        const parsed = parseCandidate(candidate);\n        if (parsed) return parsed;\n      }\n\n      for (const candidate of candidates) {\n        try {\n          const parsed = parseLooseFilesPayload(candidate, false);\n          if (parsed && Array.isArray(parsed.files)) {\n            return parsed;\n          }\n        } catch {}\n      }\n\n      for (const candidate of candidates) {\n        try {\n          const parsed = parseLooseFilesPayload(candidate, true);\n          if (parsed && Array.isArray(parsed.files)) {\n            return parsed;\n          }\n        } catch {}\n      }\n\n      throw new Error('Could not extract a valid frontend chunk JSON payload from model output.');\n    }\n\n    function getNodeItemsSafe(nodeName) {\n      if (typeof $items !== 'function') return [];\n      try {\n        return $items(nodeName) || [];\n      } catch (error) {\n        const message = String(error?.message ?? error ?? '');\n        if (message.includes(\"hasn't been executed\") || message.includes('not executed')) {\n          return [];\n        }\n        throw error;\n      }\n    }\n\n    function normalizeGeneratedContent(filePath, contentValue) {\n      if (typeof contentValue === 'string') {\n        return contentValue;\n      }\n      if (contentValue === null || contentValue === undefined) {\n        return '';\n      }\n      if (typeof contentValue === 'object') {\n        return JSON.stringify(contentValue, null, 2);\n      }\n      return String(contentValue);\n    }\n\n    const buildPromptItems = getNodeItemsSafe('FE - Build Chunk Prompt');\n\n    return $input.all().map((item) => {\n      const upstreamJson = buildPromptItems[0]?.json || {};\n      const json = {\n        ...upstreamJson,\n        ...(item.json || {}),\n      };\n      const payload = extractPayload(json.text);\n      const currentBatchFiles = Array.isArray(json.currentBatchFiles) && json.currentBatchFiles.length\n        ? json.currentBatchFiles\n        : (Array.isArray(json.remainingFiles) ? json.remainingFiles.slice(0, Number(json.batchSize || 15)) : []);\n      const currentBatchPaths = new Set(currentBatchFiles.map((file) => String(file.path || '').trim()).filter(Boolean));\n      const plannedFiles = Array.isArray(json.allPlannedFiles) && json.allPlannedFiles.length\n        ? json.allPlannedFiles\n        : (Array.isArray(json.frontendStructure) ? json.frontendStructure : (Array.isArray(json.backendStructure) ? json.backendStructure : []));\n      const allowedPaths = new Set(plannedFiles.map((file) => String(file.path || '').trim()).filter(Boolean));\n      const generatedOutsideCurrentBatch = [];\n      const ignoredUnplannedGeneratedFiles = [];\n      const ignoredDuplicateGeneratedFiles = [];\n\n      if (!Array.isArray(payload.files)) {\n        throw new Error('Chunk payload must include a files array.');\n      }\n\n      const seen = new Set();\n      const normalizedFiles = [];\n      for (let index = 0; index < payload.files.length; index += 1) {\n        const file = payload.files[index];\n        if (!file || typeof file !== 'object' || Array.isArray(file)) {\n          throw new Error('Generated file entry at index ' + index + ' must be an object.');\n        }\n\n        const filePath = String(file.path || '').trim();\n        const content = normalizeGeneratedContent(filePath, file.content);\n        if (!filePath.startsWith('frontend/')) {\n          throw new Error('Generated invalid file path: ' + (filePath || '<empty>'));\n        }\n        if (!allowedPaths.has(filePath)) {\n          ignoredUnplannedGeneratedFiles.push(filePath);\n          continue;\n        }\n        if (!currentBatchPaths.has(filePath)) {\n          generatedOutsideCurrentBatch.push(filePath);\n        }\n        if (seen.has(filePath)) {\n          ignoredDuplicateGeneratedFiles.push(filePath);\n          continue;\n        }\n\n        seen.add(filePath);\n        normalizedFiles.push({\n          path: filePath,\n          content,\n        });\n      }\n\n      return {\n        json: {\n          ...json,\n          recoveredPartialChunkPayload: payload.recoveredPartialChunkPayload === true,\n          partialChunkRecoveryReason: payload.recoveryReason || '',\n          ignoredIncompleteTrailingFile: payload.ignoredIncompleteTrailingFile === true,\n          generatedFilesThisIteration: normalizedFiles,\n          generatedFileCountThisIteration: normalizedFiles.length,\n          generatedFilesOutsideCurrentBatch: generatedOutsideCurrentBatch,\n          generatedFilesOutsideCurrentBatchCount: generatedOutsideCurrentBatch.length,\n          ignoredUnplannedGeneratedFiles,\n          ignoredUnplannedGeneratedFileCount: ignoredUnplannedGeneratedFiles.length,\n          ignoredDuplicateGeneratedFiles,\n          ignoredDuplicateGeneratedFileCount: ignoredDuplicateGeneratedFiles.length,\n        },\n        binary: item.binary ?? {},\n      };\n    });\n  }\nreturn beCleanChunkResponse();\n"
+      },
+      "id": "8e489d2d-2bfd-4996-9903-9af8abadb8b7",
+      "name": "FE - Clean Chunk Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6064,
+        3248
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function feCleanChunkResponse() {\n    function parseCandidate(raw) {\n      try {\n        const parsed = JSON.parse(raw);\n        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {\n          return parsed;\n        }\n      } catch {}\n      return null;\n    }\n\n    function normalizeText(raw) {\n      let text = String(raw ?? '').trim();\n      if (!text) {\n        throw new Error('Frontend chunk model output is empty.');\n      }\n\n      if (text.startsWith('```')) {\n        const firstNewlineIndex = text.indexOf('\\n');\n        if (firstNewlineIndex !== -1) {\n          const openingFence = text.slice(0, firstNewlineIndex).trim();\n          if (/^\\`\\`\\`(?:json)?$/i.test(openingFence)) {\n            text = text.slice(firstNewlineIndex + 1);\n            const trailingFenceIndex = text.lastIndexOf('\\n\\`\\`\\`');\n            if (trailingFenceIndex !== -1 && text.slice(trailingFenceIndex).trim() === '```') {\n              text = text.slice(0, trailingFenceIndex).trim();\n            } else if (text.endsWith('```')) {\n              text = text.slice(0, -3).trim();\n            } else {\n              text = text.trim();\n            }\n          }\n        }\n      }\n\n      return text;\n    }\n\n    function extractBalancedObject(text) {\n      let depth = 0;\n      let start = -1;\n      let inString = false;\n      let escaped = false;\n\n      for (let index = 0; index < text.length; index += 1) {\n        const char = text[index];\n\n        if (escaped) {\n          escaped = false;\n          continue;\n        }\n\n        if (char === '\\\\') {\n          if (inString) escaped = true;\n          continue;\n        }\n\n        if (char === '\"') {\n          inString = !inString;\n          continue;\n        }\n\n        if (inString) continue;\n\n        if (char === '{') {\n          if (depth === 0) start = index;\n          depth += 1;\n          continue;\n        }\n\n        if (char === '}') {\n          if (depth > 0) {\n            depth -= 1;\n            if (depth === 0 && start !== -1) {\n              return text.slice(start, index + 1);\n            }\n          }\n        }\n      }\n\n      return null;\n    }\n\n    function isQuoteEscaped(text, quoteIndex) {\n      let backslashCount = 0;\n      for (let index = quoteIndex - 1; index >= 0 && text[index] === '\\\\'; index -= 1) {\n        backslashCount += 1;\n      }\n      return backslashCount % 2 === 1;\n    }\n\n    function findPropertyKey(text, key, fromIndex) {\n      const pattern = '\"' + key + '\"';\n      return text.indexOf(pattern, fromIndex);\n    }\n\n    function findValueStart(text, keyIndex) {\n      const colonIndex = text.indexOf(':', keyIndex);\n      if (colonIndex === -1) return -1;\n      for (let index = colonIndex + 1; index < text.length; index += 1) {\n        if (/\\s/.test(text[index])) continue;\n        return index;\n      }\n      return -1;\n    }\n\n    function decodeLooseJsonString(raw) {\n      let output = '';\n\n      for (let index = 0; index < raw.length; index += 1) {\n        const char = raw[index];\n        if (char !== '\\\\') {\n          output += char;\n          continue;\n        }\n\n        const next = raw[index + 1];\n        if (next === undefined) {\n          output += '\\\\';\n          break;\n        }\n\n        if (next === 'n') {\n          output += '\\n';\n          index += 1;\n          continue;\n        }\n        if (next === 'r') {\n          output += '\\r';\n          index += 1;\n          continue;\n        }\n        if (next === 't') {\n          output += '\\t';\n          index += 1;\n          continue;\n        }\n        if (next === 'b') {\n          output += '\\b';\n          index += 1;\n          continue;\n        }\n        if (next === 'f') {\n          output += '\\f';\n          index += 1;\n          continue;\n        }\n        if (next === '\"' || next === '\\\\' || next === '/') {\n          output += next;\n          index += 1;\n          continue;\n        }\n        if (next === 'u' && /^[0-9a-fA-F]{4}$/.test(raw.slice(index + 2, index + 6))) {\n          output += String.fromCharCode(parseInt(raw.slice(index + 2, index + 6), 16));\n          index += 5;\n          continue;\n        }\n\n        output += '\\\\' + next;\n        index += 1;\n      }\n\n      return output;\n    }\n\n    function readStrictQuotedString(text, quoteStart) {\n      for (let index = quoteStart + 1; index < text.length; index += 1) {\n        if (text[index] === '\"' && !isQuoteEscaped(text, index)) {\n          return {\n            value: decodeLooseJsonString(text.slice(quoteStart + 1, index)),\n            endIndex: index,\n          };\n        }\n      }\n      throw new Error('Could not find closing quote for JSON string.');\n    }\n\n    function readStructuredJsonValue(text, valueStart) {\n      const openingChar = text[valueStart];\n      const closingChar = openingChar === '{' ? '}' : ']';\n      const stack = [closingChar];\n      let inString = false;\n      let escaped = false;\n\n      for (let index = valueStart + 1; index < text.length; index += 1) {\n        const char = text[index];\n\n        if (escaped) {\n          escaped = false;\n          continue;\n        }\n\n        if (char === '\\\\') {\n          if (inString) escaped = true;\n          continue;\n        }\n\n        if (char === '\"') {\n          inString = !inString;\n          continue;\n        }\n\n        if (inString) continue;\n\n        if (char === '{') {\n          stack.push('}');\n          continue;\n        }\n        if (char === '[') {\n          stack.push(']');\n          continue;\n        }\n\n        if (char === stack[stack.length - 1]) {\n          stack.pop();\n          if (!stack.length) {\n            const rawValue = text.slice(valueStart, index + 1);\n            return {\n              value: JSON.parse(rawValue),\n              endIndex: index,\n            };\n          }\n        }\n      }\n\n      throw new Error('Could not find the end of generated file content JSON value.');\n    }\n\n    function readPrimitiveJsonValue(text, valueStart) {\n      let endIndex = valueStart;\n      while (endIndex < text.length && !/[\\s,\\}\\]]/.test(text[endIndex])) {\n        endIndex += 1;\n      }\n\n      const rawValue = text.slice(valueStart, endIndex).trim();\n      if (!rawValue) {\n        throw new Error('Generated file content JSON value is empty.');\n      }\n\n      return {\n        value: JSON.parse(rawValue),\n        endIndex: endIndex - 1,\n      };\n    }\n\n    function readLooseJsonValue(text, valueStart) {\n      if (valueStart < 0 || valueStart >= text.length) {\n        throw new Error('Could not find content value in generated file object.');\n      }\n\n      const firstChar = text[valueStart];\n      if (firstChar === '\"') {\n        return readStrictQuotedString(text, valueStart);\n      }\n      if (firstChar === '{' || firstChar === '[') {\n        return readStructuredJsonValue(text, valueStart);\n      }\n\n      return readPrimitiveJsonValue(text, valueStart);\n    }\n\n    function canRecoverTruncatedTextFile(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      return lower.endsWith('.md') || lower.endsWith('.txt');\n    }\n\n    function decodeLooseJsonTail(raw) {\n      let tail = String(raw || '');\n      if (tail.endsWith('```')) {\n        tail = tail.slice(0, -3);\n      }\n      return decodeLooseJsonString(tail).trimEnd();\n    }\n\n    function isLikelyIncompletePayloadError(error) {\n      const message = String(error?.message ?? error ?? '');\n      return (\n        message.includes('Could not find closing quote') ||\n        message.includes('Could not find the end of generated file content JSON value') ||\n        message.includes('did not end after content field') ||\n        message.includes('files array was not closed') ||\n        message.includes('ended before files array closed') ||\n        message.includes('Could not find content value')\n      );\n    }\n\n    function parseLooseFilesPayload(text, allowPartial = false) {\n      const filesKeyIndex = findPropertyKey(text, 'files', 0);\n      if (filesKeyIndex === -1) {\n        throw new Error('Chunk payload does not contain a files property.');\n      }\n\n      const arrayStart = text.indexOf('[', filesKeyIndex);\n      if (arrayStart === -1) {\n        throw new Error('Chunk payload files property does not contain an array.');\n      }\n\n      const files = [];\n      let cursor = arrayStart + 1;\n\n      while (cursor < text.length) {\n        while (cursor < text.length && /[\\s,]/.test(text[cursor])) cursor += 1;\n        if (cursor >= text.length) {\n          if (allowPartial) {\n            return {\n              files,\n              recoveredPartialChunkPayload: true,\n              ignoredIncompleteTrailingFile: true,\n              recoveryReason: files.length\n                ? 'Chunk payload ended before files array closed.'\n                : 'Ignored incomplete trailing generated file because the model output ended before the payload closed.',\n            };\n          }\n          break;\n        }\n        if (text[cursor] === ']') {\n          return { files };\n        }\n        if (text[cursor] !== '{') {\n          cursor += 1;\n          continue;\n        }\n\n        let pathInfo = null;\n        let contentValueStart = -1;\n\n        try {\n          const objectStart = cursor;\n          const pathKeyIndex = findPropertyKey(text, 'path', objectStart);\n          if (pathKeyIndex === -1) {\n            throw new Error('Could not find path property in generated file object.');\n          }\n          const pathQuoteStart = findValueStart(text, pathKeyIndex);\n          if (pathQuoteStart === -1 || text[pathQuoteStart] !== '\"') {\n            throw new Error('Could not find path string value in generated file object.');\n          }\n          pathInfo = readStrictQuotedString(text, pathQuoteStart);\n\n          const contentKeyIndex = findPropertyKey(text, 'content', pathInfo.endIndex);\n          if (contentKeyIndex === -1) {\n            throw new Error('Could not find content property in generated file object.');\n          }\n          contentValueStart = findValueStart(text, contentKeyIndex);\n          const contentInfo = readLooseJsonValue(text, contentValueStart);\n\n          let objectEnd = contentInfo.endIndex + 1;\n          while (objectEnd < text.length && /\\s/.test(text[objectEnd])) objectEnd += 1;\n          if (text[objectEnd] !== '}') {\n            throw new Error('Generated file object did not end after content field.');\n          }\n\n          files.push({\n            path: pathInfo.value,\n            content: contentInfo.value,\n          });\n\n          cursor = objectEnd + 1;\n        } catch (error) {\n          if (allowPartial && pathInfo && contentValueStart !== -1 && text[contentValueStart] === '\"' && canRecoverTruncatedTextFile(pathInfo.value)) {\n            const recoveredContent = decodeLooseJsonTail(text.slice(contentValueStart + 1));\n            if (recoveredContent.trim()) {\n              files.push({\n                path: pathInfo.value,\n                content: recoveredContent,\n              });\n              return {\n                files,\n                recoveredPartialChunkPayload: true,\n                recoveryReason: 'Recovered truncated text file content for ' + pathInfo.value,\n              };\n            }\n          }\n          if (allowPartial && (files.length || isLikelyIncompletePayloadError(error))) {\n            return {\n              files,\n              recoveredPartialChunkPayload: true,\n              ignoredIncompleteTrailingFile: true,\n              recoveryReason: files.length\n                ? String(error?.message ?? error ?? 'Partial chunk payload recovered.')\n                : 'Ignored incomplete trailing generated file because the model output ended before the file was complete.',\n            };\n          }\n          throw error;\n        }\n      }\n\n      if (allowPartial) {\n        return {\n          files,\n          recoveredPartialChunkPayload: true,\n          ignoredIncompleteTrailingFile: true,\n          recoveryReason: files.length\n            ? 'Chunk payload files array was not closed.'\n            : 'Ignored incomplete trailing generated file because the files array was not closed.',\n        };\n      }\n\n      throw new Error('Chunk payload files array was not closed.');\n    }\n\n    function extractPayload(rawText) {\n      const text = normalizeText(rawText);\n      const candidates = [text];\n      const balancedObject = extractBalancedObject(text);\n      if (balancedObject) {\n        candidates.push(balancedObject);\n      }\n\n      for (const candidate of candidates) {\n        const parsed = parseCandidate(candidate);\n        if (parsed) return parsed;\n      }\n\n      for (const candidate of candidates) {\n        try {\n          const parsed = parseLooseFilesPayload(candidate, false);\n          if (parsed && Array.isArray(parsed.files)) {\n            return parsed;\n          }\n        } catch {}\n      }\n\n      for (const candidate of candidates) {\n        try {\n          const parsed = parseLooseFilesPayload(candidate, true);\n          if (parsed && Array.isArray(parsed.files)) {\n            return parsed;\n          }\n        } catch {}\n      }\n\n      throw new Error('Could not extract a valid frontend chunk JSON payload from model output.');\n    }\n\n    function getNodeItemsSafe(nodeName) {\n      if (typeof $items !== 'function') return [];\n      try {\n        return $items(nodeName) || [];\n      } catch (error) {\n        const message = String(error?.message ?? error ?? '');\n        if (message.includes(\"hasn't been executed\") || message.includes('not executed')) {\n          return [];\n        }\n        throw error;\n      }\n    }\n\n    function normalizeGeneratedContent(filePath, contentValue) {\n      if (typeof contentValue === 'string') {\n        return contentValue;\n      }\n      if (contentValue === null || contentValue === undefined) {\n        return '';\n      }\n      if (typeof contentValue === 'object') {\n        return JSON.stringify(contentValue, null, 2);\n      }\n      return String(contentValue);\n    }\n\n    const buildPromptItems = getNodeItemsSafe('FE - Build Refinement Chunk Prompt');\n\n    return $input.all().map((item) => {\n      const upstreamJson = buildPromptItems[0]?.json || {};\n      const json = {\n        ...upstreamJson,\n        ...(item.json || {}),\n      };\n      const payload = extractPayload(json.text);\n      const currentBatchFiles = Array.isArray(json.currentBatchFiles) && json.currentBatchFiles.length\n        ? json.currentBatchFiles\n        : (Array.isArray(json.remainingFiles) ? json.remainingFiles.slice(0, Number(json.batchSize || 15)) : []);\n      const currentBatchPaths = new Set(currentBatchFiles.map((file) => String(file.path || '').trim()).filter(Boolean));\n      const plannedFiles = Array.isArray(json.allPlannedFiles) && json.allPlannedFiles.length\n        ? json.allPlannedFiles\n        : [];\n      const allowedOutputFiles = Array.isArray(json.allowedOutputFiles) && json.allowedOutputFiles.length\n        ? json.allowedOutputFiles\n        : currentBatchFiles;\n      const allowedPaths = new Set(allowedOutputFiles.map((file) => String(file.path || '').trim()).filter(Boolean));\n      const generatedOutsideCurrentBatch = [];\n      const ignoredUnplannedGeneratedFiles = [];\n      const ignoredDuplicateGeneratedFiles = [];\n\n      if (!Array.isArray(payload.files)) {\n        throw new Error('Chunk payload must include a files array.');\n      }\n\n      const seen = new Set();\n      const normalizedFiles = [];\n      for (let index = 0; index < payload.files.length; index += 1) {\n        const file = payload.files[index];\n        if (!file || typeof file !== 'object' || Array.isArray(file)) {\n          throw new Error('Generated file entry at index ' + index + ' must be an object.');\n        }\n\n        const filePath = String(file.path || '').trim();\n        const content = normalizeGeneratedContent(filePath, file.content);\n        if (!filePath.startsWith('frontend/')) {\n          throw new Error('Generated invalid file path: ' + (filePath || '<empty>'));\n        }\n        if (!allowedPaths.has(filePath)) {\n          ignoredUnplannedGeneratedFiles.push(filePath);\n          continue;\n        }\n        if (!currentBatchPaths.has(filePath)) {\n          generatedOutsideCurrentBatch.push(filePath);\n        }\n        if (seen.has(filePath)) {\n          ignoredDuplicateGeneratedFiles.push(filePath);\n          continue;\n        }\n\n        seen.add(filePath);\n        normalizedFiles.push({\n          path: filePath,\n          content,\n        });\n      }\n\n      return {\n        json: {\n          ...json,\n          recoveredPartialChunkPayload: payload.recoveredPartialChunkPayload === true,\n          partialChunkRecoveryReason: payload.recoveryReason || '',\n          ignoredIncompleteTrailingFile: payload.ignoredIncompleteTrailingFile === true,\n          generatedFilesThisIteration: normalizedFiles,\n          generatedFileCountThisIteration: normalizedFiles.length,\n          generatedFilesOutsideCurrentBatch: generatedOutsideCurrentBatch,\n          generatedFilesOutsideCurrentBatchCount: generatedOutsideCurrentBatch.length,\n          ignoredUnplannedGeneratedFiles,\n          ignoredUnplannedGeneratedFileCount: ignoredUnplannedGeneratedFiles.length,\n          ignoredDuplicateGeneratedFiles,\n          ignoredDuplicateGeneratedFileCount: ignoredDuplicateGeneratedFiles.length,\n        },\n        binary: item.binary ?? {},\n      };\n    });\n  }\nreturn feCleanChunkResponse();\n"
+      },
+      "id": "1bcf4e76-04cb-4917-834d-4f2ba8257663",
+      "name": "FE - Clean Refinement Chunk Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7840,
+        2752
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function decodeEscapedText(text) {\n  let value = String(text ?? '');\n  for (let i = 0; i < 2; i += 1) {\n    const trimmed = value.trim();\n    if (!trimmed) return trimmed;\n    if ((trimmed.startsWith('\"') && trimmed.endsWith('\"')) || (trimmed.startsWith(\"'\") && trimmed.endsWith(\"'\"))) {\n      try {\n        const parsed = JSON.parse(trimmed.startsWith(\"'\") ? `\"${trimmed.slice(1, -1).replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"')}\"` : trimmed);\n        if (typeof parsed === 'string') {\n          value = parsed;\n          continue;\n        }\n      } catch {}\n    }\n    if (trimmed.includes('\\\\n') || trimmed.includes('\\\\\"') || trimmed.includes('\\\\t') || trimmed.includes('\\\\r')) {\n      value = trimmed\n        .replace(/\\\\r\\\\n/g, '\\n')\n        .replace(/\\\\n/g, '\\n')\n        .replace(/\\\\r/g, '\\r')\n        .replace(/\\\\t/g, '\\t')\n        .replace(/\\\\\"/g, '\"')\n        .replace(/\\\\\\\\/g, '\\\\');\n      continue;\n    }\n    break;\n  }\n  return value;\n}\n\nfunction normalizeText(raw) {\n  let text = String(raw ?? '').trim();\n  if (!text) {\n    throw new Error('Frontend refinement plan model output is empty.');\n  }\n  text = decodeEscapedText(text).trim();\n  const fenced = text.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);\n  if (fenced) {\n    text = decodeEscapedText(fenced[1]).trim();\n  }\n  return text;\n}\n\nfunction parseJsonCandidates(text) {\n  const normalized = normalizeText(text);\n  const candidates = [normalized];\n  const objectStart = normalized.indexOf('{');\n  const objectEnd = normalized.lastIndexOf('}');\n  if (objectStart >= 0 && objectEnd > objectStart) {\n    candidates.push(normalized.slice(objectStart, objectEnd + 1));\n  }\n  const arrayStart = normalized.indexOf('[');\n  const arrayEnd = normalized.lastIndexOf(']');\n  if (arrayStart >= 0 && arrayEnd > arrayStart) {\n    candidates.push(normalized.slice(arrayStart, arrayEnd + 1));\n  }\n  for (const candidate of candidates) {\n    try {\n      return JSON.parse(candidate);\n    } catch {}\n  }\n  return null;\n}\n\nfunction normalizeAction(value) {\n  const action = String(value ?? '').trim().toLowerCase();\n  if (!action) return '';\n  if (['modify', 'modified', 'update', 'updated', 'change', 'changed', 'edit', 'edited', 'patch', 'replace'].includes(action)) {\n    return 'modify';\n  }\n  if (['create', 'created', 'add', 'added', 'new', 'insert'].includes(action)) {\n    return 'create';\n  }\n  if (['remove', 'removed', 'delete', 'deleted', 'drop'].includes(action)) {\n    return 'remove';\n  }\n  return '';\n}\n\nfunction extractEntriesFromObjectMap(payload) {\n  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return [];\n  const entries = [];\n  for (const [key, value] of Object.entries(payload)) {\n    const path = String(key ?? '').trim();\n    if (!path.startsWith('frontend/')) continue;\n    if (typeof value === 'string') {\n      const action = normalizeAction(value);\n      if (action) entries.push({ path, action });\n      continue;\n    }\n    if (value && typeof value === 'object') {\n      const action = normalizeAction(value.action ?? value.type ?? value.operation ?? value.op);\n      if (action) entries.push({ path, action });\n    }\n  }\n  return entries;\n}\n\nfunction extractRegexEntries(text) {\n  const normalized = normalizeText(text);\n  const results = [];\n  const pattern = /\"path\"\\s*:\\s*\"([^\"]+)\"[\\s,;\\r\\n]*\"action\"\\s*:\\s*\"([^\"]+)\"/gi;\n  for (const match of normalized.matchAll(pattern)) {\n    results.push({ path: match[1], action: match[2] });\n  }\n  return results;\n}\n\nfunction collectRawFiles(payload, originalText) {\n  if (Array.isArray(payload)) return payload;\n  if (Array.isArray(payload?.files)) return payload.files;\n  if (Array.isArray(payload?.changes)) return payload.changes;\n  if (Array.isArray(payload?.items)) return payload.items;\n  if (Array.isArray(payload?.actions)) return payload.actions;\n  const objectMapEntries = extractEntriesFromObjectMap(payload);\n  if (objectMapEntries.length) return objectMapEntries;\n  const regexEntries = extractRegexEntries(originalText);\n  if (regexEntries.length) return regexEntries;\n  return [];\n}\n\nfunction normalizePlan(payload, originalText) {\n  const rawFiles = collectRawFiles(payload, originalText);\n  const seen = new Set();\n  const files = [];\n  for (const entry of rawFiles) {\n    if (!entry || typeof entry !== 'object') continue;\n    const path = String(entry.path ?? entry.file ?? entry.filePath ?? '').trim();\n    const action = normalizeAction(entry.action ?? entry.type ?? entry.operation ?? entry.op);\n    if (!path || !path.startsWith('frontend/')) continue;\n    if (!action) continue;\n    if (seen.has(path)) continue;\n    seen.add(path);\n    files.push({ path, action });\n  }\n  if (!files.length) {\n    throw new Error('Frontend refinement plan did not contain any valid file actions.');\n  }\n  return { files };\n}\n\nconst item = $input.first();\nconst json = item?.json ?? {};\nconst rawText = json.text;\nconst payload = parseJsonCandidates(rawText) ?? rawText;\nconst plan = normalizePlan(payload, rawText);\n\nreturn [{\n  json: {\n    ...json,\n    ...plan,\n    refinementPlanFiles: plan.files,\n    fileCount: plan.files.length,\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    plannedFiles: json.plannedFiles ?? [],\n    firstIterationFiles: json.firstIterationFiles ?? [],\n    currentFiles: json.currentFiles ?? [],\n    previousPlanFiles: json.previousPlanFiles ?? [],\n    frontendStructure: json.frontendStructure ?? json.structurePlan ?? '',\n    frontendStructureObject: json.frontendStructureObject ?? json.structurePlanObject ?? null,\n    structurePlan: json.structurePlan ?? json.frontendStructure ?? '',\n    structurePlanObject: json.structurePlanObject ?? json.frontendStructureObject ?? null,\n  },\n  ...(item?.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "b4926ba7-3fbf-4aa4-9340-f1289d44b16e",
+      "name": "FE - Clean Refinement Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7248,
+        2432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function beCleanStructure() {\n  function parseJsonCandidate(raw) {\n    try {\n      const parsed = JSON.parse(raw);\n      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {\n        return parsed;\n      }\n    } catch {}\n    return null;\n  }\n\n  function normalizeText(raw) {\n    let text = String(raw ?? '').trim();\n    if (!text) {\n      throw new Error('Frontend structure model output is empty.');\n    }\n\n    if (text.startsWith('```')) {\n      const firstNewlineIndex = text.indexOf('\\n');\n      if (firstNewlineIndex !== -1) {\n        const openingFence = text.slice(0, firstNewlineIndex).trim();\n        if (/^```(?:json)?$/i.test(openingFence)) {\n          text = text.slice(firstNewlineIndex + 1);\n\n          const trailingFenceIndex = text.lastIndexOf('\\n```');\n          if (trailingFenceIndex !== -1 && text.slice(trailingFenceIndex).trim() === '```') {\n            text = text.slice(0, trailingFenceIndex).trim();\n          } else if (text.endsWith('```')) {\n            text = text.slice(0, -3).trim();\n          } else {\n            text = text.trim();\n          }\n        }\n      }\n    }\n\n    return text;\n  }\n\n  function extractBalancedObject(text) {\n    let depth = 0;\n    let start = -1;\n    let inString = false;\n    let escaped = false;\n\n    for (let index = 0; index < text.length; index += 1) {\n      const char = text[index];\n\n      if (escaped) {\n        escaped = false;\n        continue;\n      }\n\n      if (char === '\\\\') {\n        if (inString) escaped = true;\n        continue;\n      }\n\n      if (char === '\"') {\n        inString = !inString;\n        continue;\n      }\n\n      if (inString) continue;\n\n      if (char === '{') {\n        if (depth === 0) start = index;\n        depth += 1;\n        continue;\n      }\n\n      if (char === '}') {\n        if (depth > 0) {\n          depth -= 1;\n          if (depth === 0 && start !== -1) {\n            return text.slice(start, index + 1);\n          }\n        }\n      }\n    }\n\n    return null;\n  }\n\n  function extractStructure(rawText) {\n    const text = normalizeText(rawText);\n    const candidates = [text];\n    const balancedObject = extractBalancedObject(text);\n    if (balancedObject) {\n      candidates.push(balancedObject);\n    }\n\n    for (const candidate of candidates) {\n      const parsed = parseJsonCandidate(candidate);\n      if (parsed) return parsed;\n    }\n\n    throw new Error('Could not extract a valid frontend structure JSON document from model output.');\n  }\n\n  function normalizeFileEntry(file, index) {\n    if (typeof file === 'string') {\n      const path = file.trim();\n      if (!path) {\n        throw new Error(`files[${index}] must not be empty.`);\n      }\n      return { path };\n    }\n\n    if (!file || typeof file !== 'object' || Array.isArray(file)) {\n      throw new Error(`files[${index}] must be a string path or an object with path.`);\n    }\n\n    const filePath = String(file.path || '').trim();\n    if (!filePath) {\n      throw new Error(`files[${index}].path is required.`);\n    }\n\n    return { path: filePath };\n  }\n\n  function validateAndNormalizeStructure(payload) {\n    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {\n      throw new Error('Frontend structure must be an object.');\n    }\n    if (!Array.isArray(payload.files)) {\n      throw new Error('Frontend structure must contain a files array.');\n    }\n    if (!payload.files.length) {\n      throw new Error('Frontend structure files array must not be empty.');\n    }\n\n    const seen = new Set();\n    const normalizedFiles = payload.files.map((file, index) => {\n      const normalized = normalizeFileEntry(file, index);\n      const filePath = normalized.path;\n      if (!filePath.startsWith('frontend/')) {\n        throw new Error(`files[${index}].path must start with \"frontend/\".`);\n      }\n      if (seen.has(filePath)) {\n        throw new Error(`Duplicate frontend structure file path: ${filePath}`);\n      }\n      seen.add(filePath);\n      return normalized;\n    });\n\n    return { files: normalizedFiles };\n  }\n\n  const item = $input.first();\n  const structure = validateAndNormalizeStructure(extractStructure(item?.json?.text));\n\n  return [{\n    json: {\n      ...(item?.json ?? {}),\n      frontendStructure: JSON.stringify(structure, null, 2),\n      frontendStructureObject: structure,\n      structureFileCount: structure.files.length,\n    },\n    binary: item?.binary ?? {},\n  }];\n}\nreturn beCleanStructure();"
+      },
+      "id": "0497f6d6-9212-405f-9b3e-22e30d62b8b2",
+      "name": "FE - Clean Structure Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6112,
+        2800
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function feCompactContextArtifacts() {\n  const items = $input.all();\n  if (!items.length) {\n    throw new Error('Frontend context compactor received no input.');\n  }\n\n  async function readBinaryText(itemIndex, propertyName, fallbackFileName) {\n    const item = items[itemIndex];\n    const binary = item.binary?.[propertyName];\n    if (!binary) return null;\n    const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n    return {\n      fileName: binary.fileName || fallbackFileName,\n      text: buffer.toString('utf8'),\n    };\n  }\n\n  function cleanText(value) {\n    return String(value || '').replace(/\\s+/g, ' ').trim();\n  }\n\n  function slugify(value, fallback) {\n    const text = cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');\n    return text || fallback;\n  }\n\n  function normalizeText(text) {\n    return String(text || '').replace(/\\u0000/g, '').replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').trim();\n  }\n\n  function isText(element) {\n    return element && element.type === 'text' && cleanText(element.text);\n  }\n\n  function isRectangleLike(element) {\n    return element && (element.type === 'rectangle' || element.type === 'frame');\n  }\n\n  function within(element, box, margin = 0) {\n    const x = Number(element.x || 0);\n    const y = Number(element.y || 0);\n    return x >= box.x - margin && y >= box.y - margin && x <= box.x + box.width + margin && y <= box.y + box.height + margin;\n  }\n\n  function boxOf(element) {\n    return {\n      x: Number(element.x || 0),\n      y: Number(element.y || 0),\n      width: Number(element.width || 0),\n      height: Number(element.height || 0),\n    };\n  }\n\n  function area(box) {\n    return Math.max(0, box.width) * Math.max(0, box.height);\n  }\n\n  function topColors(elements, key, limit) {\n    const counts = new Map();\n    for (const element of elements) {\n      const value = String(element?.[key] || '').trim();\n      if (!value || value === 'transparent') continue;\n      counts.set(value, (counts.get(value) || 0) + 1);\n    }\n    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit).map(([value]) => value);\n  }\n\n  function textElements(elements) {\n    return elements.filter(isText).map((element) => ({\n      text: cleanText(element.text),\n      x: Number(element.x || 0),\n      y: Number(element.y || 0),\n      fontSize: Number(element.fontSize || 0),\n      width: Number(element.width || 0),\n      height: Number(element.height || 0),\n    }));\n  }\n\n  function pickTitle(texts, box, fallback) {\n    const candidates = texts\n      .filter((text) => text.y <= box.y + Math.max(120, box.height * 0.18))\n      .sort((a, b) => (b.fontSize - a.fontSize) || (a.y - b.y) || (a.x - b.x));\n    return candidates.length ? candidates[0].text : fallback;\n  }\n\n  function uniqueLabels(values, limit) {\n    const seen = new Set();\n    const result = [];\n    for (const value of values) {\n      const normalized = cleanText(value);\n      if (!normalized || seen.has(normalized)) continue;\n      seen.add(normalized);\n      result.push(normalized);\n      if (result.length >= limit) break;\n    }\n    return result;\n  }\n\n  function uniqueObjects(values, limit, keyFn) {\n    const seen = new Set();\n    const result = [];\n    for (const value of values) {\n      const key = keyFn(value);\n      if (!key || seen.has(key)) continue;\n      seen.add(key);\n      result.push(value);\n      if (result.length >= limit) break;\n    }\n    return result;\n  }\n\n  function textsInside(texts, box) {\n    return texts.filter((text) => within(text, box, 4)).sort((a, b) => (a.y - b.y) || (a.x - b.x));\n  }\n\n  function rectsInside(elements, box, predicate) {\n    return elements\n      .filter((element) => isRectangleLike(element) && within(element, box, 4) && predicate(element))\n      .sort((a, b) => (Number(a.y || 0) - Number(b.y || 0)) || (Number(a.x || 0) - Number(b.x || 0)));\n  }\n\n  function nearestLabel(rect, texts) {\n    const rectBox = boxOf(rect);\n    const candidates = texts\n      .filter((text) => text.x >= rectBox.x - 40 && text.x <= rectBox.x + rectBox.width + 20 && text.y >= rectBox.y - 48 && text.y <= rectBox.y + 14)\n      .sort((a, b) => (Math.abs(rectBox.y - a.y) - Math.abs(rectBox.y - b.y)) || (a.x - b.x));\n    return candidates.length ? candidates[0].text : null;\n  }\n\n  function fieldSummary(elements, texts, box) {\n    const result = [];\n    for (const rect of rectsInside(elements, box, (rect) => {\n      const width = Number(rect.width || 0);\n      const height = Number(rect.height || 0);\n      return width >= 120 && width <= 640 && height >= 28 && height <= 96;\n    })) {\n      const label = nearestLabel(rect, texts);\n      if (!label) continue;\n      result.push({ label: cleanText(label), kind: 'field' });\n      if (result.length >= 24) break;\n    }\n    return uniqueObjects(result, 24, (entry) => entry.label);\n  }\n\n  function tableSummary(elements, texts, box) {\n    const result = [];\n    for (const rect of rectsInside(elements, box, (rect) => Number(rect.width || 0) >= 420 && Number(rect.height || 0) >= 160)) {\n      const rectBox = boxOf(rect);\n      const innerTexts = textsInside(texts, rectBox);\n      if (innerTexts.length < 8) continue;\n      const headerTexts = innerTexts.filter((text) => text.y <= rectBox.y + 72).map((text) => text.text);\n      result.push({ kind: 'table', columns: uniqueLabels(headerTexts, 10) });\n      if (result.length >= 6) break;\n    }\n    return result;\n  }\n\n  function summarizeContainer(container, allElements, allTexts, index, kind) {\n    const box = boxOf(container);\n    const texts = textsInside(allTexts, box);\n    const fallbackTitle = `${kind === 'dialog' ? 'Dialog' : 'Screen'} ${index + 1}`;\n    const title = pickTitle(texts, box, fallbackTitle);\n    const navTexts = texts.filter((text) => text.y <= box.y + 110 && text.text !== title).map((text) => text.text);\n    const keyTexts = texts.filter((text) => text.text !== title).slice(0, 30).map((text) => text.text);\n    return {\n      id: slugify(title, `${kind}-${index + 1}`),\n      title,\n      kind,\n      size: { width: box.width, height: box.height },\n      nav: uniqueLabels(navTexts, 12),\n      fields: fieldSummary(allElements, allTexts, box),\n      tables: tableSummary(allElements, allTexts, box),\n      keyTexts: uniqueLabels(keyTexts, 30),\n    };\n  }\n\n  function summarizeDesign(designObject) {\n    const elements = Array.isArray(designObject?.elements) ? designObject.elements : [];\n    const texts = textElements(elements);\n    const rectangles = elements.filter(isRectangleLike);\n\n    const screenCandidates = rectangles\n      .filter((rect) => Number(rect.width || 0) >= 900 && Number(rect.height || 0) >= 600)\n      .sort((a, b) => area(boxOf(b)) - area(boxOf(a)));\n\n    const screens = [];\n    for (const candidate of screenCandidates) {\n      const box = boxOf(candidate);\n      const isNested = screens.some((existing) => {\n        const existingBox = boxOf(existing);\n        return box.x >= existingBox.x && box.y >= existingBox.y && box.x + box.width <= existingBox.x + existingBox.width && box.y + box.height <= existingBox.y + existingBox.height;\n      });\n      if (!isNested) screens.push(candidate);\n      if (screens.length >= 12) break;\n    }\n\n    const screenBoxes = screens.map(boxOf);\n    const dialogCandidates = rectangles.filter((rect) => {\n      const width = Number(rect.width || 0);\n      const height = Number(rect.height || 0);\n      if (width < 280 || width > 1000 || height < 160 || height > 800) return false;\n      const box = boxOf(rect);\n      return !screenBoxes.some((screenBox) => box.x === screenBox.x && box.y === screenBox.y && box.width === screenBox.width && box.height === screenBox.height);\n    }).slice(0, 20);\n\n    const summarizedScreens = screens.length\n      ? screens.map((screen, index) => summarizeContainer(screen, elements, texts, index, 'screen'))\n      : [{\n          id: 'screen-1',\n          title: 'Primary Screen',\n          kind: 'screen',\n          size: { width: 0, height: 0 },\n          nav: [],\n          fields: [],\n          tables: [],\n          keyTexts: uniqueLabels(texts.slice(0, 60).map((text) => text.text), 60),\n        }];\n\n    const summarizedDialogs = dialogCandidates.map((dialog, index) => summarizeContainer(dialog, elements, texts, index, 'dialog'));\n\n    return {\n      meta: {\n        sourceFormat: 'Excalidraw',\n        originalElementCount: elements.length,\n        screenCount: summarizedScreens.length,\n        dialogCount: summarizedDialogs.length,\n      },\n      theme: {\n        topStrokeColors: topColors(elements, 'strokeColor', 8),\n        topFillColors: topColors(elements, 'backgroundColor', 8),\n      },\n      screens: summarizedScreens,\n      dialogs: summarizedDialogs,\n      looseTexts: uniqueLabels(texts.filter((text) => text.text.length >= 3).map((text) => text.text), 80),\n    };\n  }\n\n  function binaryFromText(propertyName, fileName, text, mimeType) {\n    return [\n      propertyName,\n      {\n        data: Buffer.from(String(text || ''), 'utf8').toString('base64'),\n        fileName,\n        mimeType,\n      },\n    ];\n  }\n  function compactRequirementsText(text) {\n    return String(text || '')\n      .replace(/\\\\u0000/g, '')\n      .replace(/\\\\r\\\\n/g, '\\\\n')\n      .replace(/\\\\r/g, '\\\\n')\n      .replace(/[ \\\\t]+/g, ' ')\n      .trim();\n  }\n\n  function compactOpenapiText(text) {\n    const normalized = normalizeText(text);\n    if (!normalized) return '';\n    if (normalized.startsWith('{')) {\n      try {\n        return JSON.stringify(JSON.parse(normalized));\n      } catch {}\n    }\n    return normalized.replace(/[ \\\\t]+$/gm, '').replace(/\\\\n{3,}/g, '\\\\n\\\\n');\n  }\n  let requirements = null;\n  let openapi = null;\n  let design = null;\n  for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {\n    if (!requirements) requirements = await readBinaryText.call(this, itemIndex, 'requirements', 'requirements-compact.txt');\n    if (!openapi) openapi = await readBinaryText.call(this, itemIndex, 'openapiSpec', 'openapi-compact.json');\n    if (!design) design = await readBinaryText.call(this, itemIndex, 'design', 'design.excalidraw.json');\n  }\n\n  if (!requirements) throw new Error('Missing compact requirements binary for frontend context.');\n  if (!openapi) throw new Error('Missing compact openapiSpec binary for frontend context.');\n  if (!design) throw new Error('Missing design binary for frontend context.');\n  const compactedRequirementsText = compactRequirementsText(requirements.text);\n  if (!compactedRequirementsText) throw new Error('Requirements text is empty after frontend compaction.');\n  const compactedOpenapiText = compactOpenapiText(openapi.text);\n  if (!compactedOpenapiText) throw new Error('OpenAPI text is empty after frontend compaction.');\n\n  const designRaw = normalizeText(design.text);\n  if (!designRaw) {\n    throw new Error('Design text is empty, cannot compact frontend design context.');\n  }\n\n  let designObject;\n  try {\n    designObject = JSON.parse(designRaw);\n  } catch (error) {\n    throw new Error('Failed to parse design JSON for frontend context compaction: ' + String(error?.message || error));\n  }\n\n  const compactedDesign = summarizeDesign(designObject);\n  const compactedDesignText = JSON.stringify(compactedDesign);\n\n  return [{\n    json: {\n      designCompactionStats: {\n        sourceBytes: Buffer.byteLength(designRaw, 'utf8'),\n        compactBytes: Buffer.byteLength(compactedDesignText, 'utf8'),\n        screenCount: compactedDesign.meta.screenCount,\n        dialogCount: compactedDesign.meta.dialogCount,\n      },\n    },\n    binary: Object.fromEntries([\n      binaryFromText('requirements', 'requirements-compact.txt', compactedRequirementsText, 'text/plain'),\n      binaryFromText('openapiSpec', 'openapi-compact.json', compactedOpenapiText, 'application/json'),\n      binaryFromText('designSpec', 'design-compact.json', compactedDesignText, 'application/json'),\n    ]),\n  }];\n}\n\nreturn await feCompactContextArtifacts.call(this);\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5312,
+        2800
+      ],
+      "id": "8701f7ab-d3b3-4dd4-8a7a-6128708c178a",
+      "name": "FE - Compact Context Artifacts"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Se3rPyRTvgimNBXz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Se3rPyRTvgimNBXz",
+          "cachedResultName": "Subworkflow - Create Link"
+        },
+        "workflowInputs": {
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "archiveData",
+              "displayName": "archiveData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveMimeType",
+              "displayName": "archiveMimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveFileName",
+              "displayName": "archiveFileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "revisionNumber",
+              "displayName": "revisionNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "response",
+              "displayName": "response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveId",
+              "displayName": "archiveId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveBinaryProperty",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveBinaryProperty",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.frontendZip ? $binary.frontendZip.mimeType : \"application/zip\" }}",
+            "archiveFileName": "={{ $binary.frontendZip ? $binary.frontendZip.fileName : \"frontend.zip\" }}",
+            "response": "={{ $json.response }}",
+            "archiveData": "={{ $binary.frontendZip ? ($binary.frontendZip.data || ($binary.frontendZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+            "archiveId": "={{ $binary.frontendZip ? ($binary.frontendZip.id || \"\") : \"\" }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        6928,
+        3408
+      ],
+      "id": "dcd0d8ad-0cad-406f-b693-fd29f9df8949",
+      "name": "FE - Create Zip Link"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "frontendZip",
+        "outputPrefix": "current_"
+      },
+      "id": "0bf06f39-d9d2-4e8c-8d5b-ff4429543ea0",
+      "name": "FE - Extract Refinement Frontend Zip",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        6576,
+        3008
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ $json.zipBinaryFields }}",
+        "fileName": "frontend.zip",
+        "binaryPropertyOutput": "frontendZip"
+      },
+      "id": "1dc73e14-cf9b-4745-bead-d1443ddd910c",
+      "name": "FE - Frontend Zip",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        6400,
+        3504
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "------------------------------------------------\nROLE\n------------------------------------------------\n\nYou generate frontend code for the current batch only.\n\nYou operate inside a strict frontend generation pipeline.\n\nThis is a strict frontend generation task.\n\n- You must be precise, structured, and architecture-safe.\n- Your output MUST be a complete, runnable frontend project.\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\n\nYou will receive:\n\n- FULL REQUIREMENTS\n- COMPACT OPENAPI JSON\n- COMPACT DESIGN JSON\n- PLAN ? complete list of allowed frontend file paths\n- BATCH ? files that must be generated in this execution\n- MEMORY ? summaries of recently generated frontend files\n\nThese are the only sources of truth.\n\nPriority rules:\n\n- requirements define business behavior\n- design defines layout, visual hierarchy, dialogs, and screen composition\n- OpenAPI is absolute truth for backend integration contracts\n\nIf requirements conflict with design:\n- requirements define behavior\n- design defines layout and visuals\n\nIf OpenAPI conflicts with anything:\n- OpenAPI is absolute truth for API contracts\n\n------------------------------------------------\nBATCH GENERATION RULES\n------------------------------------------------\n\n- Generate ONLY the files listed in BATCH\n- Generate EXACTLY the files listed in BATCH and no other files\n- If another planned file seems useful or necessary but is not in BATCH, do NOT generate it in this execution\n- Never generate files outside BATCH\n- Never reference files or types outside BATCH, MEMORY, or PLAN\n- Assume other files will be generated in other batches\n- Use MEMORY only to maintain consistency across already-generated frontend files\n\n------------------------------------------------\nCORE PRINCIPLE\n------------------------------------------------\n\n- THIS IS A STRICT API-FIRST FRONTEND.\n- Frontend models and services MUST reflect the API exactly.\n\nYou MUST:\n\n- Implement EXACTLY the endpoints defined in OpenAPI\n- Use the exact HTTP methods\n- Use the exact paths\n- Respect request and response schemas\n- Respect pagination structures where present\n- Respect identifier types\n- Never invent endpoints\n- Never rename fields\n- Never modify API contracts\n\n------------------------------------------------\nFRONTEND IMPLEMENTATION RULES\n------------------------------------------------\n\n- Generate frontend code only\n- Do NOT modify backend, infrastructure, or tests\n- Root everything inside frontend/\n- Follow the design summary closely for screens, dialogs, navigation, and major UI structure\n- Follow requirements for business behavior\n- Follow OpenAPI exactly for client-side backend calls, payload fields, status handling, and auth-related contracts\n- Do not invent backend contracts\n- Keep the implementation coherent, accessible, and responsive\n- Prefer reusable components and clear feature structure\n- Keep routing, layouts, and screens aligned with the design summary\n- Keep a clean separation between components, services, models, guards, and interceptors\n- Components must not call HttpClient directly\n- All API calls must go through frontend services\n- Use a configurable API base URL\n- Forms should use robust validation aligned with backend constraints where relevant\n- If a shared design-system or component directory exists in PLAN or MEMORY, reuse it and do not create a parallel component system\n- README commands must be accurate and runnable\n\n------------------------------------------------\nSECURITY RULES\n------------------------------------------------\n\n- Implement login and logout flows when required\n- Use guards for route protection when required\n- Use an interceptor or equivalent client-side mechanism to attach tokens\n- Hide restricted UI elements when requirements and roles justify it\n- Backend remains the final authority for authorization decisions\n\n------------------------------------------------\nERROR HANDLING AND LOADING\n------------------------------------------------\n\n- Handle backend error responses clearly\n- Handle network failures clearly\n- Avoid silent failures\n- Async request flows must not remain permanently stuck in loading state\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nFormat:\n\n{\n  \"files\": [\n    {\n      \"path\": \"frontend/...\",\n      \"content\": \"...\"\n    }\n  ]\n}\n\nRules:\n\n- Do not return markdown outside file content\n- Do not include explanations\n- Do not include comments outside file content\n- Always fill the content field for each generated file\n- If generating .md or .txt files, keep them concise and strictly necessary\n- VERY IMPORTANT: Keep a maxmimum of 8000 tokens per file. One single file CANNOT HAVE MORE THAN 8000 TOKENS\n"
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 0
+        }
+      },
+      "id": "aee2436e-a4d3-4331-be3d-572badb5db62",
+      "name": "FE - Generate Chunk",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        5728,
+        3248
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 10000,
+          "temperature": 0.1
+        }
+      },
+      "id": "78043d8a-ed25-46fa-b046-1ce263206ec5",
+      "name": "FE - Generate Chunk Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        5680,
+        3392
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZTb6SwoWYVTNTucr",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "------------------------------------------------\nROLE\n------------------------------------------------\n\nYou generate refined frontend code for an existing frontend project.\n\nYou operate inside a controlled refinement loop of an automated frontend generation pipeline.\n\nYour task is to update the implementation of specific frontend files according to human feedback.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nRefine the frontend implementation.\n\nYou must update only the files explicitly provided to you.\n\nYour goal is to improve the code so that it satisfies the user feedback while preserving the existing architecture and API contracts.\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\n\nYou will receive:\n\n- CURRENT_IMPLEMENTATION ? content of existing frontend files\n- TARGET_FILES ? list of file paths that must be updated\n- USER_FEEDBACK ? human feedback describing the required changes\n\nThe CURRENT_IMPLEMENTATION represents the current state of the frontend codebase.\n\nTARGET_FILES defines which files you are allowed to modify.\n\n------------------------------------------------\nSTRICT FILE SCOPE\n------------------------------------------------\n\nYou MUST follow these rules strictly:\n\n- Modify ONLY files listed in TARGET_FILES\n- NEVER create new files\n- NEVER delete files\n- NEVER modify files outside TARGET_FILES\n\nIf the feedback suggests changes to other files, you must ignore them.\n\n------------------------------------------------\nARCHITECTURE (MANDATORY)\n------------------------------------------------\n\nThe frontend follows a strict layered MVC architecture.\n\nLayers:\n\ndomain ? entities  \nrepository ? data access  \nservice ? business logic  \nservice.dto ? DTOs  \nservice.mapper ? entity ? DTO mapping  \nweb.rest ? REST controllers  \nconfig ? configuration and security\n\nRules:\n\nControllers\n- Controllers must remain thin\n- Controllers must only orchestrate requests\n\nServices\n- Services contain business logic\n\nRepositories\n- Repositories handle persistence only\n\nDTOs\n- DTOs must be used at API boundaries\n\nEntities\n- Entities must never be exposed directly in controllers\n\n------------------------------------------------\nAPI CONTRACT RULE\n------------------------------------------------\n\nYou must preserve the existing API contract.\n\nNever change:\n\n- endpoint paths\n- HTTP methods\n- request schemas\n- response schemas\n- field names\n- identifier types\n\nControllers must remain compatible with the existing API.\n\n------------------------------------------------\nREFINEMENT RULES\n------------------------------------------------\n\nWhen applying the feedback:\n\n- improve correctness\n- fix architectural violations\n- align with frontend best practices\n- preserve existing behavior unless explicitly requested to change it\n\nAvoid unnecessary refactoring.\n\nOnly change what is required to satisfy the feedback.\n\n------------------------------------------------\nIMPLEMENTATION QUALITY\n------------------------------------------------\n\nThe refined implementation must:\n\n- compile logically\n- respect the layered architecture\n- avoid duplicated logic\n- maintain clear separation of concerns\n- follow typical Spring Boot frontend conventions\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nStructure:\n\n{\n  \"files\": [\n    {\n      \"path\": \"frontend/...\",\n      \"content\": \"complete file content\"\n    }\n  ]\n}\n\nRules:\n\n- Do NOT include explanations\n- Do NOT include comments outside file content\n- Always return the FULL content of each modified file\n- Never return partial file snippets\n- Do not include files that were not modified\n- Do not include duplicate paths\n- Do not output anything outside the JSON object\n\n------------------------------------------------\nTOKEN SAFETY\n------------------------------------------------\n\nKeep each file under 8000 tokens.\n\nIf a file would exceed this limit, keep the implementation concise and avoid unnecessary verbosity."
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 0
+        }
+      },
+      "id": "17cc556e-bb29-4268-9968-163af4980940",
+      "name": "FE - Generate Refinement Chunk",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        7520,
+        2752
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 10000,
+          "temperature": 0.1
+        }
+      },
+      "id": "d79a9f84-5895-43f4-ad7e-d5b10b9a6bff",
+      "name": "FE - Generate Refinement Chunk Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        7424,
+        2912
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZTb6SwoWYVTNTucr",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 4000,
+          "temperature": 0.1
+        }
+      },
+      "id": "bbd1cb3c-f993-4423-a1e8-ea78fb1383d1",
+      "name": "FE - Generate Refinement Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        6912,
+        2624
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZTb6SwoWYVTNTucr",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.patchPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "------------------------------------------------\nROLE\n------------------------------------------------\n\nYou are a Senior Frontend Architect operating inside a refinement loop of an automated frontend generation pipeline.\n\nYour task is to refine an existing frontend project structure based on human feedback.\n\nYou do NOT generate code.\nYou do NOT generate file contents.\n\nYou ONLY produce structural patch instructions.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nAnalyze the existing frontend structure and the user feedback.\n\nYour goal is to produce the minimal set of structural operations required to improve the project structure.\n\nThese operations describe which files must be:\n\n- created\n- modified\n- removed\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\n\nYou will receive:\n\nCURRENT_STRUCTURE ? list of existing frontend file paths\n\nUSER_FEEDBACK ? textual feedback describing problems or requested changes\n\nThe CURRENT_STRUCTURE represents the full set of frontend files currently present in the project.\n\n------------------------------------------------\nBACKEND ARCHITECTURE\n------------------------------------------------\n\nThe frontend follows a strict layered MVC architecture.\n\nLayers:\n\ndomain ? entities  \nrepository ? data access  \nservice ? business logic  \nservice.dto ? DTOs  \nservice.mapper ? entity ? DTO mapping  \nweb.rest ? REST controllers  \nconfig ? security and infrastructure configuration\n\nRules:\n\n- Controllers MUST remain under web.rest\n- Repositories MUST remain under repository\n- DTOs MUST remain under service.dto\n- Mappers MUST remain under service.mapper\n- Entities MUST remain under domain\n\n------------------------------------------------\nREFINEMENT RULES\n------------------------------------------------\n\nYou must follow these rules strictly:\n\n1. Only reference files that belong to the frontend project.\n2. Only propose changes that directly address the user feedback or clear structural issues.\n3. Do NOT invent unnecessary files.\n4. Do NOT duplicate existing paths.\n5. Prefer the minimal set of changes required to address the feedback.\n\n------------------------------------------------\nPATCH OPERATIONS\n------------------------------------------------\n\nYou may use ONLY the following operations:\n\ncreate  \nmodify  \nremove\n\nDefinitions:\n\ncreate  \n? a new file must be added to the project structure.\n\nmodify  \n? an existing file remains in the structure but its implementation must be updated.\n\nremove  \n? an existing file must be removed from the project.\n\nConstraints:\n\n- NEVER mark a file as modify if it does not exist in CURRENT_STRUCTURE\n- NEVER mark a file as remove if it does not exist\n- NEVER mark a file as create if it already exists\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nStructure:\n\n{\n  \"changes\": [\n    {\n      \"path\": \"frontend/.../File.ext\",\n      \"action\": \"create\"\n    },\n    {\n      \"path\": \"frontend/.../File.ext\",\n      \"action\": \"modify\"\n    },\n    {\n      \"path\": \"frontend/.../File.ext\",\n      \"action\": \"remove\"\n    }\n  ]\n}\n\nRules:\n\n- Do NOT include explanations\n- Do NOT include comments\n- Do NOT include additional fields\n- Do NOT output anything outside the JSON object\n- Paths MUST reference files, not directories\n- Paths MUST include filename and extension\n- Do not repeat the same path twice"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "0d17ebec-d3ad-43a6-93a0-722ffc1b4681",
+      "name": "FE - Generate Refinement Structure",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        6928,
+        2432
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior frontend software architect designing the structural skeleton of a frontend project.\n\nThis step defines the authoritative frontend file universe.\nIf a necessary file is missing here, it will never be generated later.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nDesign a complete, runnable frontend module rooted at:\n\nfrontend/\n\nYou are NOT generating file contents yet.\nYou are defining the full file plan for a production-ready frontend application.\n\nThis is a greenfield frontend project.\n\nThe backend already exists.\nThe infrastructure already exists.\nYou MUST NOT modify backend, infrastructure, or tests code.\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\n\nYou will receive:\n\n- full system requirements\n- compact design JSON\n- compact OpenAPI JSON\n\nThese are the only sources of truth.\n\nPriority rules:\n\n- requirements define business behavior\n- design defines layout, visual hierarchy, dialogs, and screen composition\n- OpenAPI is absolute truth for backend integration contracts\n\nIf requirements conflict with design:\n- requirements define behavior\n- design defines layout and visuals\n\nIf OpenAPI conflicts with anything:\n- OpenAPI is absolute truth for API contracts\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nStructure:\n\n{\n  \"files\": [\n    {\"path\": \"frontend/.../SomeFile.ext\"}\n  ]\n}\n\nRules:\n\n- Each item MUST be a final file path, not a directory\n- Every path MUST start with frontend/\n- Do NOT include directory-only entries\n- Do NOT include file contents\n- Do NOT include explanations\n- Do NOT include additional fields\n- Do NOT output anything outside the JSON object\n- NEVER make a duplicate path\n\n------------------------------------------------\nMODULE REQUIREMENTS\n------------------------------------------------\n\nThe frontend module must be complete, coherent, and ready for implementation.\n\nIt must include all files required to later generate:\n\n- app bootstrap\n- routing\n- layouts\n- screens/pages\n- dialogs/modals\n- reusable components\n- feature modules or feature folders\n- API services and data-access helpers\n- typed models\n- authentication UI when required\n- route guards when required\n- HTTP interceptors when required\n- forms and validation helpers\n- styles and theme files when required\n- test scaffolding\n- environment configuration\n- README\n\nYou may add additional frontend-only files if they are necessary for a coherent and runnable frontend.\nDo not add unnecessary files.\n\n------------------------------------------------\nFRONTEND ARCHITECTURE RULES\n------------------------------------------------\n\nThe frontend structure must support:\n\n- modular feature-based organization\n- clear separation between views/components, services, models, guards, and interceptors\n- API communication through services instead of directly from UI components\n- simple and testable state handling\n- forms with validation aligned to backend DTO and API constraints where relevant\n\n------------------------------------------------\nDESIGN-DRIVEN RULES\n------------------------------------------------\n\n- The design summary defines the intended screen landscape and interaction structure\n- The file plan must support every relevant designed screen and dialog\n- Respect layout hierarchy, spacing intent, alignment, visual consistency, and designed flows\n- Do not invent major new screens not implied by the requirements or design\n- Do not redesign the product structure beyond what requirements and design justify\n- Shared UI building blocks are allowed when they simplify the implementation\n- If a design-system directory or shared component layer is needed, include it only once and avoid parallel component systems\n\n------------------------------------------------\nAPI INTEGRATION RULES\n------------------------------------------------\n\n- OpenAPI defines the backend integration contracts\n- The frontend structure must support API services, typed request/response models, auth flows, and state handling needed to call the backend safely\n- Do NOT invent endpoints\n- Do NOT rename fields\n- Do NOT modify API contracts\n- Respect request and response schemas\n- Respect pagination structures where present\n- Respect identifier types\n\n------------------------------------------------\nSECURITY RULES\n------------------------------------------------\n\nThe structure must support client-side 3A concerns when required:\n\n- authentication flow\n- authorization-aware routing and restricted UI visibility\n- secure token attachment through interceptors\n- clear separation between frontend checks and backend authority\n\n------------------------------------------------\nTECHNOLOGY DEFAULTS\n------------------------------------------------\n\nIf the requirements specify a frontend stack, follow it.\nIf not, use:\n\n- Angular\n- TypeScript\n\nThe structure should support:\n\n- Angular services for API communication\n- environment configuration for a configurable API base URL\n- interceptors for JWT token injection\n- guards for route protection\n\n------------------------------------------------\nFINAL RULE\n------------------------------------------------\n\nThe file plan must be sufficient to later generate a complete frontend module inside frontend/.\nOnly include files inside frontend/.\n"
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 0
+        }
+      },
+      "id": "49192dc8-c029-47bd-9590-1e9845b6918a",
+      "name": "FE - Generate Structure",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        5792,
+        2800
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium-latest",
+        "options": {
+          "maxTokens": 22000,
+          "temperature": 0.1
+        }
+      },
+      "id": "89b6d9eb-4680-44bc-a3b3-7f6df260dbe5",
+      "name": "FE - Generate Structure Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        5728,
+        2960
+      ],
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZTb6SwoWYVTNTucr",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function beInitGenerationState() {\n  const item = $input.first();\n  if (!item) {\n    throw new Error('No frontend structure item received.');\n  }\n\n  const json = item.json || {};\n  const structure = json.frontendStructureObject || JSON.parse(String(json.frontendStructure || '{}'));\n  if (!Array.isArray(structure.files) || !structure.files.length) {\n    throw new Error('Frontend structure does not contain any files.');\n  }\n\n  const seen = new Set();\n  const files = structure.files.map((file, index) => {\n    const filePath = typeof file === 'string'\n      ? String(file).trim()\n      : String(file?.path || '').trim();\n    if (!filePath.startsWith('frontend/')) {\n      throw new Error(`Invalid frontend structure path at index ${index}: ${filePath || '<empty>'}`);\n    }\n    if (seen.has(filePath)) {\n      throw new Error(`Duplicate frontend structure path: ${filePath}`);\n    }\n    seen.add(filePath);\n    return { path: filePath };\n  });\n\n  return [{\n    json: {\n      ...json,\n      allPlannedFiles: files,\n      remainingFiles: files,\n      generatedFiles: [],\n      generatedFilePaths: [],\n      lastIterationFiles: [],\n      totalPlannedFiles: files.length,\n      generatedFileCountTotal: 0,\n      remainingFileCount: files.length,\n      batchSize: 15,\n      currentBatchFiles: files.slice(0, 15),\n      currentBatchFileCount: Math.min(files.length, 15),\n      iteration: 1,\n      hasRemainingFiles: 'yes',\n    },\n    binary: item.binary ?? {},\n  }];\n}\n\nreturn beInitGenerationState();"
+      },
+      "id": "a4031637-3622-417d-ba90-d673bd4330b3",
+      "name": "FE - Init Generation State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5872,
+        3040
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function feInitRefinementState() {\n  const item = $input.first();\n  if (!item) throw new Error('No frontend refinement context item received.');\n\n  function normalizeFiles(value) {\n    const files = Array.isArray(value) ? value : [];\n    return files.map((entry) => {\n      if (typeof entry === 'string') return { path: entry.trim() };\n      if (entry && typeof entry === 'object') return { path: String(entry.path ?? '').trim() };\n      return { path: '' };\n    }).filter((entry) => entry.path);\n  }\n\n  function decodeBinaryText(binaryEntry) {\n    try {\n      const raw = String(binaryEntry?.data ?? '');\n      return raw && raw !== 'filesystem-v2' ? Buffer.from(raw, 'base64').toString('utf8') : '';\n    } catch {\n      return '';\n    }\n  }\n\n  async function readBinaryText(binary, propertyName, binaryEntry) {\n    try {\n      if (typeof this?.helpers?.getBinaryDataBuffer === 'function') {\n        const index = Array.isArray($input?.all?.()) ? 0 : 0;\n        const buffer = await this.helpers.getBinaryDataBuffer(index, propertyName);\n        if (buffer) return buffer.toString('utf8');\n      }\n    } catch {}\n    return decodeBinaryText(binaryEntry);\n  }\n\n  function uniquePaths(paths) {\n    const seen = new Set();\n    const output = [];\n    for (const value of paths || []) {\n      const path = String(value?.path ?? value ?? '').trim();\n      if (!path || seen.has(path)) continue;\n      seen.add(path);\n      output.push({ path });\n    }\n    return output;\n  }\n\n  function parseStructure(text) {\n    const raw = String(text ?? '').trim();\n    if (!raw) return null;\n    try {\n      const parsed = JSON.parse(raw);\n      const files = normalizeFiles(parsed?.files);\n      return files.length ? { files } : null;\n    } catch {\n      return null;\n    }\n  }\n\n  function normalizeFrontendPath(rawPath, frontendRoot, rawDirectory) {\n    const normalizedRoot = String(frontendRoot || 'frontend').replace(/\\\\/g, '/').trim().replace(/\\/+$/, '') || 'frontend';\n    const directory = String(rawDirectory ?? '').replace(/\\\\/g, '/').trim().replace(/^\\.\\//, '').replace(/\\/+$/, '');\n    const fileName = String(rawPath ?? '').replace(/\\\\/g, '/').trim().replace(/^\\.\\//, '');\n    const combined = [directory, fileName]\n      .filter(Boolean)\n      .join('/')\n      .replace(/\\/+/g, '/')\n      .replace(/^\\.\\//, '')\n      .replace(/\\/+/g, '/');\n    if (!combined) return '';\n    if (combined === normalizedRoot || combined === normalizedRoot + '.zip') return '';\n    if (combined.startsWith(normalizedRoot + '/')) return combined;\n    return normalizedRoot + '/' + combined.replace(/^\\/+/, '');\n  }\n\n  async function collectCurrentFrontendFiles(binary, frontendRoot) {\n    const byPath = new Map();\n    for (const [propertyName, entry] of Object.entries(binary || {})) {\n      if (propertyName === 'frontendZip' || propertyName === 'frontendStructure') continue;\n      const fileName = String(entry?.fileName ?? '').trim();\n      const normalizedPath = normalizeFrontendPath(fileName, frontendRoot, entry?.directory);\n      const isDecompressedEntry = /^current_/i.test(propertyName) || String(entry?.directory ?? '').replace(/\\\\/g, '/').trim() === frontendRoot;\n      if ((!isDecompressedEntry && !normalizedPath.startsWith(frontendRoot + '/')) || !normalizedPath || normalizedPath.endsWith('.zip')) continue;\n      byPath.set(normalizedPath, { path: normalizedPath, content: await readBinaryText(binary, propertyName, entry) });\n    }\n    return Array.from(byPath.values()).sort((a, b) => a.path.localeCompare(b.path));\n  }\n\n  const json = item.json || {};\n  const binary = item.binary || {};\n  const rawPlanEntries = Array.isArray(json.refinementPlanFiles) ? json.refinementPlanFiles : (Array.isArray(json.files) ? json.files : []);\n  const allowedActions = new Set(['modify', 'create', 'remove']);\n  const seenPlanPaths = new Set();\n  const refinementPlanFiles = [];\n  for (const entry of rawPlanEntries) {\n    if (!entry || typeof entry !== 'object') continue;\n    const path = String(entry.path ?? '').trim();\n    const action = String(entry.action ?? '').trim().toLowerCase();\n    if (!path.startsWith('frontend/') || !allowedActions.has(action) || seenPlanPaths.has(path)) continue;\n    seenPlanPaths.add(path);\n    refinementPlanFiles.push({ path, action });\n  }\n  if (!refinementPlanFiles.length) {\n    throw new Error('Frontend refinement plan did not contain any valid file actions.');\n  }\n\n  const frontendRoot = String(json.frontendRoot ?? 'frontend').trim() || 'frontend';\n  const frontendFiles = await collectCurrentFrontendFiles.call(this, binary, frontendRoot);\n  if (!frontendFiles.length) {\n    throw new Error('Current frontend ZIP could not be unpacked into files for refinement.');\n  }\n  const frontendFileMap = new Map(frontendFiles.map((file) => [file.path, file]));\n  const structureTextCandidates = [\n    String(json.frontendStructure ?? '').trim(),\n    String(json.structurePlan ?? '').trim(),\n    decodeBinaryText(binary.frontendStructure),\n  ].filter(Boolean);\n  const parsedStructure = structureTextCandidates.map(parseStructure).find(Boolean);\n  const currentPlanFiles = uniquePaths(parsedStructure?.files?.length ? parsedStructure.files : frontendFiles.map((file) => ({ path: file.path })));\n\n  const removePaths = new Set(refinementPlanFiles.filter((file) => file.action === 'remove').map((file) => file.path));\n  const workItems = refinementPlanFiles\n    .filter((file) => file.action !== 'remove')\n    .map((file) => ({ path: file.path, action: file.action, currentExists: frontendFileMap.has(file.path) }));\n\n  const currentFrontendFiles = frontendFiles.filter((file) => !removePaths.has(file.path));\n  const currentPlanPaths = currentPlanFiles.filter((file) => !removePaths.has(file.path));\n  for (const workItem of workItems) {\n    if (!currentPlanPaths.some((file) => file.path === workItem.path)) currentPlanPaths.push({ path: workItem.path });\n  }\n\n  const batchSize = Math.max(1, Number(json.refinementBatchSize ?? 4));\n  const currentBatchFiles = workItems.slice(0, batchSize);\n  const frontendStructureObject = { files: currentPlanPaths };\n  const frontendStructure = JSON.stringify(frontendStructureObject);\n\n  return [{\n    json: {\n      ...json,\n      refinementPlanFiles,\n      removeFilePaths: Array.from(removePaths),\n      generatedFiles: currentFrontendFiles,\n      generatedFilePaths: currentFrontendFiles.map((file) => file.path),\n      generatedFileCountTotal: currentFrontendFiles.length,\n      currentPlanFiles: currentPlanPaths,\n      plannedFiles: currentPlanPaths,\n      frontendStructure,\n      frontendStructureObject,\n      remainingFiles: workItems,\n      remainingFileCount: workItems.length,\n      currentBatchFiles,\n      currentBatchFileCount: currentBatchFiles.length,\n      allPlannedFiles: currentPlanPaths,\n      allowedOutputFiles: currentBatchFiles.map((file) => ({ path: file.path })),\n      lastIterationFiles: [],\n      recentImplementationSummaries: [],\n      generatedImplementationIndex: [],\n      batchSize,\n      iteration: 1,\n      hasRemainingFiles: workItems.length > 0 ? 'yes' : 'no',\n    },\n    binary,\n  }];\n}\n\nreturn feInitRefinementState();"
+      },
+      "id": "f4dcaf3c-a48f-47dc-8712-eee251a7c134",
+      "name": "FE - Init Refinement State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6800,
+        3008
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "abe7f77a-46eb-4353-89e7-c81a7f8b109f",
+      "name": "FE - Link and Zip",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        7168,
+        3360
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be-has-remaining-files-condition",
+              "leftValue": "={{ $json.hasRemainingFiles }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "512f566c-9b8e-4235-8bbb-32507bf68001",
+      "name": "FE - More Files?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5920,
+        3488
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "90eaa5a5-4bce-49b7-a058-ba1fd4133311",
+              "leftValue": "={{ $json.hasRemainingFiles }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1da6911-78d2-449d-8baf-4f09bf3a3414",
+      "name": "FE - More Refinement Files?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7600,
+        3008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst fileCount = Math.max(0, Math.trunc(Number(json.fileCount ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Frontend ZIP</a></p>';\nconst output = {\n  json: { ...json, revisionNumber, fileCount, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary && Object.keys(item.binary).length > 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+      },
+      "id": "cdc37a41-3d8b-4fb2-9610-6e757bd7acc3",
+      "name": "FE - Prepare Information",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7392,
+        3360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ $json.zipBinaryFields }}",
+        "fileName": "frontend.zip",
+        "binaryPropertyOutput": "frontendZip"
+      },
+      "id": "b9e51ac0-ed42-4b99-9f36-efd594f896dd",
+      "name": "FE - Refined Frontend Zip",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        8176,
+        3024
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "frontendStructure",
+        "binaryPropertyName": "frontendStructure",
+        "options": {
+          "fileName": "frontend-structure.json"
+        }
+      },
+      "id": "331617b2-a4a6-4be5-8517-7c6da16c5d76",
+      "name": "FE - Refined Structure File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        7824,
+        3152
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "b80fc2d7-65ea-4444-a23e-a67802131b2f",
+      "name": "FE - Refined Zip and Structure",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        8368,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "8250bbd9-00bd-4a0b-a622-c5872a91d3cd",
+      "name": "FE - Refinement Plan and Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        7088,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "6ae175f9-4796-457d-bfb1-02ad624687c0",
+      "name": "FE - Structure and Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5456,
+        3040
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "frontendStructure",
+        "binaryPropertyName": "frontendStructure",
+        "options": {
+          "fileName": "frontend-structure.json"
+        }
+      },
+      "id": "9b6cc653-7594-4ef6-b755-0a86c9ae75a2",
+      "name": "FE - Structure File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        6336,
+        2800
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function beUpdateGenerationState() {\n    function detectLanguage(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      if (lower.endsWith('.java')) return 'java';\n      if (lower.endsWith('.kt')) return 'kotlin';\n      if (lower.endsWith('.py')) return 'python';\n      if (lower.endsWith('.ts')) return 'typescript';\n      if (lower.endsWith('.tsx')) return 'tsx';\n      if (lower.endsWith('.js')) return 'javascript';\n      if (lower.endsWith('.jsx')) return 'jsx';\n      if (lower.endsWith('.cs')) return 'csharp';\n      if (lower.endsWith('.go')) return 'go';\n      if (lower.endsWith('.rb')) return 'ruby';\n      if (lower.endsWith('.php')) return 'php';\n      if (lower.endsWith('.rs')) return 'rust';\n      if (lower.endsWith('.swift')) return 'swift';\n      if (lower.endsWith('.scala')) return 'scala';\n      if (lower.endsWith('.c')) return 'c';\n      if (lower.endsWith('.cpp') || lower.endsWith('.cc') || lower.endsWith('.cxx')) return 'cpp';\n      if (lower.endsWith('.h') || lower.endsWith('.hpp')) return 'cpp-header';\n      return 'other';\n    }\n\n    function isImplementationFile(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      if (!lower.startsWith('frontend/')) return false;\n      if (lower.includes('/src/test/') || lower.includes('/tests/') || lower.includes('/test/')) return false;\n      if (lower.includes('/resources/') || lower.includes('/db/') || lower.includes('/docs/') || lower.includes('/helm/')) return false;\n      if (lower.endsWith('.md') || lower.endsWith('.txt') || lower.endsWith('.yaml') || lower.endsWith('.yml') || lower.endsWith('.xml') || lower.endsWith('.properties') || lower.endsWith('.sql') || lower.endsWith('.json') || lower.endsWith('.csv')) return false;\n      return new Set(['java', 'kotlin', 'python', 'typescript', 'tsx', 'javascript', 'jsx', 'csharp', 'go', 'ruby', 'php', 'rust', 'swift', 'scala', 'c', 'cpp', 'cpp-header']).has(detectLanguage(filePath));\n    }\n\n    function uniqueStrings(values, limit) {\n      const seen = new Set();\n      const output = [];\n      for (const value of values || []) {\n        const normalized = String(value || '').trim();\n        if (!normalized || seen.has(normalized)) continue;\n        seen.add(normalized);\n        output.push(normalized);\n        if (output.length >= limit) break;\n      }\n      return output;\n    }\n\n    function matchAll(text, regex, mapper, limit) {\n      const output = [];\n      let match;\n      while ((match = regex.exec(text)) !== null) {\n        output.push(mapper(match));\n        if (output.length >= limit) break;\n      }\n      regex.lastIndex = 0;\n      return output;\n    }\n\n    function summarizeJava(filePath, content) {\n      const pkg = content.match(/^[ \\t]*package\\s+([A-Za-z0-9_.]+)\\s*;/m)?.[1] || '';\n      const imports = uniqueStrings(matchAll(content, /^[ \\t]*import\\s+([^;]+);/gm, (m) => m[1], 40), 40);\n      const annotations = uniqueStrings(matchAll(content, /^[ \\t]*@([A-Za-z0-9_.]+)/gm, (m) => m[1], 30), 30);\n      const types = matchAll(content, /^[ \\t]*(?:public|protected|private)?\\s*(?:abstract|final|sealed|non-sealed)?\\s*(class|interface|enum|record)\\s+([A-Za-z0-9_]+)/gm, (m) => ({ kind: m[1], name: m[2] }), 20);\n      const methods = matchAll(content, /^[ \\t]*(?:public|protected|private)\\s+(?:static\\s+)?(?:final\\s+)?(?:<[A-Za-z0-9_, ? extends implements]+>\\s+)?([A-Za-z0-9_\\[\\]<>., ?]+)\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm, (m) => ({ name: m[2], returns: m[1].trim(), parameters: String(m[3] || '').trim() }), 40);\n      return { path: filePath, language: 'java', package: pkg, imports, annotations, types, methods };\n    }\n\n    function summarizePython(filePath, content) {\n      const imports = uniqueStrings([\n        ...matchAll(content, /^[ \\t]*import\\s+(.+)$/gm, (m) => m[1], 40),\n        ...matchAll(content, /^[ \\t]*from\\s+(.+)\\s+import\\s+(.+)$/gm, (m) => 'from ' + m[1] + ' import ' + m[2], 40),\n      ], 40);\n      const decorators = uniqueStrings(matchAll(content, /^[ \\t]*@([A-Za-z0-9_.]+)/gm, (m) => m[1], 30), 30);\n      const classes = matchAll(content, /^[ \\t]*class\\s+([A-Za-z0-9_]+)(?:\\(([^\\)]*)\\))?\\s*:/gm, (m) => ({ name: m[1], bases: String(m[2] || '').trim() }), 20);\n      const functions = matchAll(content, /^[ \\t]*def\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)\\s*(?:->\\s*([^:]+))?:/gm, (m) => ({ name: m[1], parameters: String(m[2] || '').trim(), returns: String(m[3] || '').trim() }), 40);\n      return { path: filePath, language: 'python', imports, decorators, classes, functions };\n    }\n\n    function summarizeTsLike(filePath, content, language) {\n      const imports = uniqueStrings(matchAll(content, /^[ \\t]*import\\s+(.+)$/gm, (m) => m[1], 40), 40);\n      const exports = uniqueStrings(matchAll(content, /^[ \\t]*export\\s+(?:default\\s+)?(?:class|interface|enum|type|function|const)\\s+([A-Za-z0-9_]+)/gm, (m) => m[1], 30), 30);\n      const decorators = uniqueStrings(matchAll(content, /^[ \\t]*@([A-Za-z0-9_.]+)/gm, (m) => m[1], 30), 30);\n      const types = matchAll(content, /^[ \\t]*(?:export\\s+)?(?:abstract\\s+)?(class|interface|enum|type)\\s+([A-Za-z0-9_]+)/gm, (m) => ({ kind: m[1], name: m[2] }), 25);\n      const functions = matchAll(content, /^[ \\t]*(?:export\\s+)?(?:async\\s+)?function\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm, (m) => ({ name: m[1], parameters: String(m[2] || '').trim() }), 40);\n      return { path: filePath, language, imports, decorators, exports, types, functions };\n    }\n\n    function summarizeCSharp(filePath, content) {\n      const namespaceName = content.match(/^[ \\t]*namespace\\s+([A-Za-z0-9_.]+)/m)?.[1] || '';\n      const usings = uniqueStrings(matchAll(content, /^[ \\t]*using\\s+([^;]+);/gm, (m) => m[1], 40), 40);\n      const attributes = uniqueStrings(matchAll(content, /^[ \\t]*\\[([A-Za-z0-9_., ()]+)\\]/gm, (m) => m[1], 30), 30);\n      const types = matchAll(content, /^[ \\t]*(?:public|internal|protected|private)?\\s*(?:abstract|sealed|partial)?\\s*(class|interface|enum|record|struct)\\s+([A-Za-z0-9_]+)/gm, (m) => ({ kind: m[1], name: m[2] }), 20);\n      const methods = matchAll(content, /^[ \\t]*(?:public|protected|private|internal)\\s+(?:static\\s+)?(?:async\\s+)?([A-Za-z0-9_<>,.?\\[\\] ]+)\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm, (m) => ({ name: m[2], returns: m[1].trim(), parameters: String(m[3] || '').trim() }), 40);\n      return { path: filePath, language: 'csharp', namespace: namespaceName, usings, attributes, types, methods };\n    }\n\n    function summarizeGo(filePath, content) {\n      const pkg = content.match(/^[ \\t]*package\\s+([A-Za-z0-9_]+)/m)?.[1] || '';\n      const imports = uniqueStrings([\n        ...matchAll(content, /^[ \\t]*import\\s+\"([^\"]+)\"/gm, (m) => m[1], 40),\n        ...matchAll(content, /^[ \\t]*\"([^\"]+)\"$/gm, (m) => m[1], 40),\n      ], 40);\n      const types = matchAll(content, /^[ \\t]*type\\s+([A-Za-z0-9_]+)\\s+(struct|interface)/gm, (m) => ({ name: m[1], kind: m[2] }), 20);\n      const functions = [\n        ...matchAll(content, /^[ \\t]*func\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm, (m) => ({ name: m[1], receiver: '', parameters: String(m[2] || '').trim() }), 40),\n        ...matchAll(content, /^[ \\t]*func\\s*\\(([^\\)]*)\\)\\s*([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm, (m) => ({ name: m[2], receiver: String(m[1] || '').trim(), parameters: String(m[3] || '').trim() }), 40),\n      ].slice(0, 40);\n      return { path: filePath, language: 'go', package: pkg, imports, types, functions };\n    }\n\n    function summarizeGeneric(filePath, content, language) {\n      const imports = uniqueStrings([\n        ...matchAll(content, /^[ \\t]*import\\s+(.+)$/gm, (m) => m[1], 20),\n        ...matchAll(content, /^[ \\t]*using\\s+([^;]+);/gm, (m) => m[1], 20),\n        ...matchAll(content, /^[ \\t]*require\\s+['\"]([^'\"]+)['\"]/gm, (m) => m[1], 20),\n      ], 30);\n      const types = matchAll(content, /^[ \\t]*(?:export\\s+)?(?:public\\s+)?(?:abstract\\s+|final\\s+|sealed\\s+)?(class|interface|enum|record|struct)\\s+([A-Za-z0-9_]+)/gm, (m) => ({ kind: m[1], name: m[2] }), 20);\n      const functions = matchAll(content, /^[ \\t]*(?:export\\s+)?(?:async\\s+)?(?:function|def|fn)\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm, (m) => ({ name: m[1], parameters: String(m[2] || '').trim() }), 40);\n      return { path: filePath, language, imports, types, functions };\n    }\n\n    function summarizeImplementationFile(file) {\n      const filePath = String(file?.path || '').trim();\n      const content = String(file?.content || '');\n      const language = detectLanguage(filePath);\n\n      let summary;\n      if (language === 'java' || language === 'kotlin') {\n        summary = summarizeJava(filePath, content);\n      } else if (language === 'python') {\n        summary = summarizePython(filePath, content);\n      } else if (language === 'typescript' || language === 'tsx' || language === 'javascript' || language === 'jsx') {\n        summary = summarizeTsLike(filePath, content, language);\n      } else if (language === 'csharp') {\n        summary = summarizeCSharp(filePath, content);\n      } else if (language === 'go') {\n        summary = summarizeGo(filePath, content);\n      } else {\n        summary = summarizeGeneric(filePath, content, language);\n      }\n\n      summary.lineCount = content ? content.replace(/\\r\\n/g, '\\n').split('\\n').length : 0;\n      return summary;\n    }\n\n    return $input.all().map((item) => {\n      const json = item.json || {};\n      const remainingFiles = Array.isArray(json.remainingFiles) ? json.remainingFiles : [];\n      const generatedFilesThisIteration = Array.isArray(json.generatedFilesThisIteration) ? json.generatedFilesThisIteration : [];\n      const generatedPaths = new Set(generatedFilesThisIteration.map((file) => String(file.path || '').trim()).filter(Boolean));\n\n      const generatedNoFilesThisIteration = generatedFilesThisIteration.length === 0;\n\n      const nextRemainingFiles = remainingFiles.filter((file) => !generatedPaths.has(String(file.path || '').trim()));\n      const previousGeneratedFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n      const previousGeneratedFilePaths = Array.isArray(json.generatedFilePaths) ? json.generatedFilePaths : [];\n      const batchSize = Math.max(1, Number(json.batchSize || 15));\n\n      const mergedGeneratedFiles = [\n        ...previousGeneratedFiles,\n        ...generatedFilesThisIteration,\n      ];\n      const mergedGeneratedFilePaths = [\n        ...previousGeneratedFilePaths,\n        ...generatedFilesThisIteration.map((file) => file.path),\n      ];\n\n      const generatedImplementationFiles = mergedGeneratedFiles.filter((file) => isImplementationFile(file.path));\n      const generatedImplementationIndex = generatedImplementationFiles.map(summarizeImplementationFile);\n      const generatedNonImplementationPaths = mergedGeneratedFiles\n        .filter((file) => !isImplementationFile(file.path))\n        .map((file) => String(file.path || '').trim())\n        .filter(Boolean);\n      const recentImplementationSummaries = generatedFilesThisIteration\n        .filter((file) => isImplementationFile(file.path))\n        .map(summarizeImplementationFile);\n\n      const nextCurrentBatchFiles = nextRemainingFiles.slice(0, batchSize);\n\n      return {\n        json: {\n          ...json,\n          generatedFiles: mergedGeneratedFiles,\n          generatedFilePaths: mergedGeneratedFilePaths,\n          generatedImplementationIndex,\n          generatedCodeIndex: generatedImplementationIndex,\n          generatedNonImplementationPaths,\n          recentImplementationSummaries,\n          lastIterationFiles: generatedFilesThisIteration,\n          generatedNoFilesThisIteration,\n          generatedFileCountTotal: mergedGeneratedFiles.length,\n          remainingFiles: nextRemainingFiles,\n          remainingFileCount: nextRemainingFiles.length,\n          batchSize,\n          currentBatchFiles: nextCurrentBatchFiles,\n          currentBatchFileCount: nextCurrentBatchFiles.length,\n          hasRemainingFiles: nextRemainingFiles.length > 0 ? 'yes' : 'no',\n          iteration: Number(json.iteration || 1) + (nextRemainingFiles.length > 0 ? 1 : 0),\n        },\n        binary: item.binary ?? {},\n      };\n    });\n  }\nreturn beUpdateGenerationState();"
+      },
+      "id": "82ea8b87-233f-409b-af45-137dc391f7a7",
+      "name": "FE - Update Generation State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5520,
+        3488
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function feUpdateRefinementState() {\n  function normalizeFiles(value) {\n    const files = Array.isArray(value) ? value : [];\n    return files.map((entry) => {\n      if (typeof entry === 'string') return { path: entry.trim() };\n      if (entry && typeof entry === 'object') return { path: String(entry.path ?? '').trim() };\n      return { path: '' };\n    }).filter((entry) => entry.path);\n  }\n  function detectLanguage(filePath) {\n    const lower = String(filePath || '').toLowerCase();\n    if (lower.endsWith('.java')) return 'java';\n    if (lower.endsWith('.kt')) return 'kotlin';\n    if (lower.endsWith('.py')) return 'python';\n    if (lower.endsWith('.ts')) return 'typescript';\n    if (lower.endsWith('.tsx')) return 'tsx';\n    if (lower.endsWith('.js')) return 'javascript';\n    if (lower.endsWith('.jsx')) return 'jsx';\n    if (lower.endsWith('.cs')) return 'csharp';\n    if (lower.endsWith('.go')) return 'go';\n    if (lower.endsWith('.rb')) return 'ruby';\n    if (lower.endsWith('.php')) return 'php';\n    return 'other';\n  }\n  function isImplementationFile(filePath) {\n    const lower = String(filePath || '').toLowerCase();\n    if (!lower.startsWith('frontend/')) return false;\n    if (lower.includes('/src/test/') || lower.includes('/tests/') || lower.includes('/test/')) return false;\n    if (lower.includes('/resources/') || lower.includes('/db/') || lower.includes('/docs/') || lower.includes('/helm/')) return false;\n    if (lower.endsWith('.md') || lower.endsWith('.txt') || lower.endsWith('.yaml') || lower.endsWith('.yml') || lower.endsWith('.xml') || lower.endsWith('.properties') || lower.endsWith('.sql') || lower.endsWith('.json') || lower.endsWith('.csv')) return false;\n    return new Set(['java', 'kotlin', 'python', 'typescript', 'tsx', 'javascript', 'jsx', 'csharp', 'go', 'ruby', 'php']).has(detectLanguage(filePath));\n  }\n  function summarizeFile(file) {\n    const filePath = String(file?.path || '').trim();\n    const content = String(file?.content || '');\n    const language = detectLanguage(filePath);\n    const imports = [];\n    for (const regex of [/^[ \\t]*import\\s+([^;\\n]+)[;\\n]?/gm, /^[ \\t]*using\\s+([^;\\n]+);/gm, /^[ \\t]*from\\s+([^\\n]+)\\s+import\\s+([^\\n]+)/gm]) {\n      let match;\n      while ((match = regex.exec(content)) !== null && imports.length < 20) imports.push(match.slice(1).filter(Boolean).join(' ').trim());\n      regex.lastIndex = 0;\n    }\n    const types = [];\n    let match;\n    const typeRegex = /^[ \\t]*(?:export\\s+)?(?:public\\s+|private\\s+|protected\\s+|internal\\s+)?(?:abstract\\s+|final\\s+|sealed\\s+)?(class|interface|enum|record|type|struct)\\s+([A-Za-z0-9_]+)/gm;\n    while ((match = typeRegex.exec(content)) !== null && types.length < 12) types.push({ kind: match[1], name: match[2] });\n    typeRegex.lastIndex = 0;\n    const functions = [];\n    const fnRegex = /^[ \\t]*(?:export\\s+)?(?:async\\s+)?(?:function|def|func|fn)\\s+([A-Za-z0-9_]+)\\s*\\(([^\\)]*)\\)/gm;\n    while ((match = fnRegex.exec(content)) !== null && functions.length < 20) functions.push({ name: match[1], parameters: String(match[2] || '').trim() });\n    fnRegex.lastIndex = 0;\n    return { path: filePath, language, imports: Array.from(new Set(imports)).slice(0, 20), types, functions, lineCount: content ? content.replace(/\\r\\n/g, '\\n').split('\\n').length : 0 };\n  }\n  return $input.all().map((item) => {\n    const json = item.json || {};\n    const remainingFiles = Array.isArray(json.remainingFiles) ? json.remainingFiles : [];\n    const currentFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const generatedFilesThisIteration = Array.isArray(json.generatedFilesThisIteration) ? json.generatedFilesThisIteration : [];\n    const generatedPaths = new Set(generatedFilesThisIteration.map((file) => String(file.path || '').trim()).filter(Boolean));\n    const currentMap = new Map(currentFiles.map((file) => [String(file.path || '').trim(), { path: String(file.path || '').trim(), content: file.content }]));\n    for (const file of generatedFilesThisIteration) {\n      const path = String(file.path || '').trim();\n      if (!path) continue;\n      currentMap.set(path, { path, content: file.content });\n    }\n    const nextGeneratedFiles = Array.from(currentMap.values()).sort((a, b) => a.path.localeCompare(b.path));\n    const nextRemainingFiles = remainingFiles.filter((file) => !generatedPaths.has(String(file.path || '').trim()));\n    const batchSize = Math.max(1, Number(json.batchSize || 4));\n    const nextCurrentBatchFiles = nextRemainingFiles.slice(0, batchSize);\n    const currentPlanFiles = normalizeFiles(json.currentPlanFiles);\n    for (const file of generatedFilesThisIteration) {\n      const path = String(file.path || '').trim();\n      if (path && !currentPlanFiles.some((entry) => entry.path === path)) currentPlanFiles.push({ path });\n    }\n    const frontendStructureObject = { files: currentPlanFiles };\n    const frontendStructure = JSON.stringify(frontendStructureObject);\n    const generatedImplementationIndex = nextGeneratedFiles.filter((file) => isImplementationFile(file.path)).map(summarizeFile);\n    const recentImplementationSummaries = generatedFilesThisIteration.filter((file) => isImplementationFile(file.path)).map(summarizeFile);\n    return {\n      json: {\n        ...json,\n        generatedFiles: nextGeneratedFiles,\n        generatedFilePaths: nextGeneratedFiles.map((file) => file.path),\n        generatedFileCountTotal: nextGeneratedFiles.length,\n        currentPlanFiles,\n        plannedFiles: currentPlanFiles,\n        frontendStructure,\n        frontendStructureObject,\n        remainingFiles: nextRemainingFiles,\n        remainingFileCount: nextRemainingFiles.length,\n        currentBatchFiles: nextCurrentBatchFiles,\n        currentBatchFileCount: nextCurrentBatchFiles.length,\n        allPlannedFiles: currentPlanFiles,\n        allowedOutputFiles: nextCurrentBatchFiles.map((file) => ({ path: String(file.path || '').trim() })),\n        generatedImplementationIndex,\n        generatedCodeIndex: generatedImplementationIndex,\n        recentImplementationSummaries,\n        lastIterationFiles: generatedFilesThisIteration,\n        generatedNoFilesThisIteration: generatedFilesThisIteration.length === 0,\n        hasRemainingFiles: nextRemainingFiles.length > 0 ? 'yes' : 'no',\n        iteration: Number(json.iteration || 1) + (nextRemainingFiles.length > 0 ? 1 : 0),\n      },\n      binary: item.binary ?? {},\n    };\n  });\n}\n\nreturn feUpdateRefinementState();"
+      },
+      "id": "c024e380-41a2-4fb7-b663-3d719f30ec10",
+      "name": "FE - Update Refinement State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8032,
+        2752
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "730b331b-f999-49aa-9a7d-298464b48f54",
+      "name": "FE - Zip and Structure",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6400,
+        3344
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Frontend Generation Module\n\nTransforms **structured requirements**, the **API specification**, and the **compact design summary** into a **Frontend Directory** using an LLM.\n",
+        "height": 1440,
+        "width": 3712,
+        "color": "#E0F2F1"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4864,
+        2416
+      ],
+      "typeVersion": 1,
+      "id": "f3f3bbf5-94f6-48b7-a504-ea769b8ff365",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-56a62d16-8fea-475c-9d68-d133147c18b3",
+              "leftValue": "={{ $json.reviewMode }}",
+              "rightValue": "refine",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0b2a448e-c452-44f0-960b-5e2234b443ff",
+      "name": "FE - Execute Refinement?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5088,
+        2736
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json['Start Again'];\n  delete json.reviewMode;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) => !String(key).endsWith('_firstIteration')),\n  );\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  return files\n    .map((entry) => {\n      if (typeof entry === 'string') return { path: entry.trim() };\n      if (entry && typeof entry === 'object') return { path: String(entry.path ?? '').trim() };\n      return { path: '' };\n    })\n    .filter((entry) => entry.path);\n}\n\nconst firstNode = getNodeItemSafe('FE - Prepare Information for First Iteration');\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst firstFiles = normalizeFiles(firstJson.files).length\n  ? normalizeFiles(firstJson.files)\n  : normalizeFiles(baseJson.firstIterationFiles);\n\nconst outputJson = {\n  ...baseJson,\n  reviewMode: '',\n  firstIterationFiles: firstFiles,\n  firstIterationFrontendStructure: String(firstJson.frontendStructure ?? baseJson.firstIterationFrontendStructure ?? '').trim(),\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? '').trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? '').trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? '').trim(),\n};\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+      },
+      "id": "0735f641-4900-4bf4-aa4e-d2a9eeb9d67f",
+      "name": "FE - Review Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7680,
+        3360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nfor (const key of [\n  'Approved',\n  'Start Again',\n  'Feedback',\n  'feedback',\n  'Attachments (optional)',\n  'reviewMode',\n  'zipDownloadUrl',\n  'zipDownloadToken',\n  'downloadLinkHtml',\n  'response',\n  'revisionNumber',\n  'fileCount',\n  'files',\n  'backendStructure',\n  'frontendStructure',\n  'infrastructureStructure',\n  'testsStructure',\n  'currentBackendIterationNumber',\n  'currentFrontendIterationNumber',\n  'currentInfrastructureIterationNumber',\n  'currentTestsIterationNumber',\n  'firstIterationReviewZipDownloadUrl',\n  'firstIterationReviewZipDownloadToken',\n  'firstIterationReviewDownloadLinkHtml',\n]) {\n  delete json[key];\n}\n\nconst binary = Object.fromEntries(\n  Object.entries(item.binary ?? {}).filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n);\n\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];"
+      },
+      "id": "66c52444-2c06-453f-9c15-eb6691e30300",
+      "name": "FE - Sanitize Output Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5456,
+        3680
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "6271a36d-d5a5-4284-8f97-b56e7797a373",
+      "name": "FE - Create Link",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        6608,
+        3344
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "79d05ef5-8026-483a-aa17-f1dd3f7ffe84",
+      "name": "FE - Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        4816,
+        2736
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "01c20fac-cad3-4daf-802f-e14e4784b74b",
+      "name": "FE - Start Refinement",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        6560,
+        2720
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "bf9e72bc-ab76-4a6c-8e57-f3e281460cda",
+      "name": "FE - Workflow Output",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        8528,
+        3664
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "FE - Extract Refinement Frontend Zip": {
+      "main": [
+        [
+          {
+            "node": "FE - Init Refinement State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Build Refinement Prompt": {
+      "main": [
+        [
+          {
+            "node": "FE - Generate Refinement Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "FE - Link and Zip",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FE - Generate Chunk Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "FE - Generate Chunk",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Structure File": {
+      "main": [
+        [
+          {
+            "node": "FE - Zip and Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Refined Zip and Structure": {
+      "main": [
+        [
+          {
+            "node": "FE - Create Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - More Files?": {
+      "main": [
+        [
+          {
+            "node": "FE - Build Chunk Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FE - Assemble Frontend Zip Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Refinement Plan and Context": {
+      "main": [
+        [
+          {
+            "node": "FE - Extract Refinement Frontend Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Clean Structure Response": {
+      "main": [
+        [
+          {
+            "node": "FE - Structure File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FE - Structure and Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FE - Generate Refinement Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "FE - Generate Refinement Structure",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Build Chunk Prompt": {
+      "main": [
+        [
+          {
+            "node": "FE - Generate Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Init Refinement State": {
+      "main": [
+        [
+          {
+            "node": "FE - More Refinement Files?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Frontend Zip": {
+      "main": [
+        [
+          {
+            "node": "FE - Zip and Structure",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FE - Assemble Refined Frontend Zip Inputs": {
+      "main": [
+        [
+          {
+            "node": "FE - Refined Frontend Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Compact Context Artifacts": {
+      "main": [
+        [
+          {
+            "node": "FE - Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Refined Structure File": {
+      "main": [
+        [
+          {
+            "node": "FE - Refined Zip and Structure",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FE - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "FE - Review Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Update Generation State": {
+      "main": [
+        [
+          {
+            "node": "FE - More Files?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "FE - Generate Structure",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FE - Structure and Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - More Refinement Files?": {
+      "main": [
+        [
+          {
+            "node": "FE - Build Refinement Chunk Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FE - Assemble Refined Frontend Zip Inputs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FE - Refined Structure File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Generate Refinement Chunk": {
+      "main": [
+        [
+          {
+            "node": "FE - Clean Refinement Chunk Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Clean Refinement Chunk Response": {
+      "main": [
+        [
+          {
+            "node": "FE - Update Refinement State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Init Generation State": {
+      "main": [
+        [
+          {
+            "node": "FE - Build Chunk Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Refined Frontend Zip": {
+      "main": [
+        [
+          {
+            "node": "FE - Refined Zip and Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Update Refinement State": {
+      "main": [
+        [
+          {
+            "node": "FE - More Refinement Files?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Generate Refinement Structure": {
+      "main": [
+        [
+          {
+            "node": "FE - Clean Refinement Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Assemble Frontend Zip Inputs": {
+      "main": [
+        [
+          {
+            "node": "FE - Frontend Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Clean Chunk Response": {
+      "main": [
+        [
+          {
+            "node": "FE - Update Generation State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Clean Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "FE - Refinement Plan and Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Generate Chunk": {
+      "main": [
+        [
+          {
+            "node": "FE - Clean Chunk Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Structure and Context": {
+      "main": [
+        [
+          {
+            "node": "FE - Init Generation State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Generate Structure": {
+      "main": [
+        [
+          {
+            "node": "FE - Clean Structure Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Generate Refinement Chunk Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "FE - Generate Refinement Chunk",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Zip and Structure": {
+      "main": [
+        [
+          {
+            "node": "FE - Create Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Link and Zip": {
+      "main": [
+        [
+          {
+            "node": "FE - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Generate Structure Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "FE - Generate Structure",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Build Refinement Chunk Prompt": {
+      "main": [
+        [
+          {
+            "node": "FE - Generate Refinement Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Review Output": {
+      "main": [
+        [
+          {
+            "node": "FE - Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Execute Refinement?": {
+      "main": [
+        [
+          {
+            "node": "FE - Start Refinement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FE - Compact Context Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Sanitize Output Context": {
+      "main": [
+        [
+          {
+            "node": "FE - Workflow Output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FE - Create Link": {
+      "main": [
+        [
+          {
+            "node": "FE - Link and Zip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FE - Create Zip Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "FE - Execute Refinement?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FE - Sanitize Output Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Start Refinement": {
+      "main": [
+        [
+          {
+            "node": "FE - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FE - Refinement Plan and Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "be0a809e-1115-4fce-9874-4f6ef94f7aa4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "af49a67438f7e7c513a029a95d0dadb7f585243236e86464fcac385b6f1438c3"
+  },
+  "id": "yN8cYN6dA9Ztvi4h",
+  "tags": []
+}
