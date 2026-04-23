@@ -1,0 +1,1075 @@
+{
+    "updatedAt":  "2026-04-20T13:20:12.597Z",
+    "createdAt":  "2026-04-10T13:38:39.812Z",
+    "id":  "YZvrb1LBJwl1HIq4",
+    "name":  "requirements",
+    "description":  null,
+    "active":  false,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "={{ $json.chunkPrompt }}",
+                                         "messages":  {
+                                                          "messageValues":  [
+                                                                                {
+                                                                                    "message":  "You are a strict requirements extraction engine. Extract only what is explicitly present in the provided chunk. Never invent or infer beyond text. Keep output concise and concrete."
+                                                                                }
+                                                                            ]
+                                                      },
+                                         "batching":  {
+                                                          "batchSize":  1,
+                                                          "delayBetweenBatches":  1200
+                                                      }
+                                     },
+                      "id":  "1ee66124-f853-4939-af32-dc4dad8dffe8",
+                      "name":  "REQ - Analyze Chunk",
+                      "type":  "@n8n/n8n-nodes-langchain.chainLlm",
+                      "typeVersion":  1.9,
+                      "position":  [
+                                       544,
+                                       816
+                                   ],
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  3000
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const items = $input.all();\nif (!items.length) {\n  throw new Error(\u0027No chunk analysis outputs found.\u0027);\n}\n\nfunction isNoRelevant(text) {\n  const normalized = String(text || \u0027\u0027)\n    .replace(/\\*/g, \u0027\u0027)\n    .trim()\n    .toUpperCase();\n  return normalized === \u0027NO_RELEVANT_REQUIREMENTS\u0027;\n}\n\nfunction pickCoverage(entries) {\n  for (const entry of entries) {\n    const total = Number(entry?.coverage?.totalChunks ?? 0);\n    if (total \u003e 0) return entry.coverage;\n  }\n  return entries[0]?.coverage ?? {};\n}\n\nconst ordered = items\n  .map((item) =\u003e {\n    const json = item.json ?? {};\n    return {\n      chunkMeta: json.chunkMeta ?? {},\n      analysis: String(json.response ?? json.text ?? \u0027\u0027).trim() || \u0027NO_RELEVANT_REQUIREMENTS\u0027,\n      coverage: json.coverage ?? {},\n      passthrough: json,\n    };\n  })\n  .sort((a, b) =\u003e {\n    const fa = Number(a.chunkMeta.fileOrder ?? 0);\n    const fb = Number(b.chunkMeta.fileOrder ?? 0);\n    if (fa !== fb) return fa - fb;\n    return Number(a.chunkMeta.chunkIndex ?? 0) - Number(b.chunkMeta.chunkIndex ?? 0);\n  });\n\nconst coverage = pickCoverage(ordered);\nconst totalChunksExpected = Number(coverage.totalChunks ?? 0);\nconst totalChunksReceived = ordered.length;\nif (totalChunksExpected \u003e 0 \u0026\u0026 totalChunksReceived \u003c totalChunksExpected) {\n  throw new Error(\u0027Missing chunk analyses: expected \u0027 + totalChunksExpected + \u0027, got \u0027 + totalChunksReceived);\n}\n\nconst relevant = ordered.filter((entry) =\u003e !isNoRelevant(entry.analysis));\nif (relevant.length === 0) {\n  throw new Error(\u0027Chunk analyzer returned NO_RELEVANT_REQUIREMENTS for every chunk.\u0027);\n}\n\nconst corpus = ordered\n  .map((entry) =\u003e {\n    const fileName = entry.chunkMeta.fileName ?? \u0027unknown-file\u0027;\n    const chunkIndex = Number(entry.chunkMeta.chunkIndex ?? 0) + 1;\n    const chunkCount = Number(entry.chunkMeta.chunkCountForFile ?? 0);\n    return [\n      \u0027### \u0027 + fileName + \u0027 [chunk \u0027 + chunkIndex + \u0027/\u0027 + chunkCount + \u0027]\u0027,\n      entry.analysis,\n    ].join(\u0027\\n\u0027);\n  })\n  .join(\u0027\\n\\n\u0027);\n\nconst first = ordered[0]?.passthrough ?? {};\n\nconst userPrompt = [\n  \u0027You now have chunk-by-chunk extracted evidence from all files.\u0027,\n  \u0027Generate the final authoritative requirements document using ALL evidence below.\u0027,\n  \u0027Do not invent facts. Preserve concrete source values exactly. Keep conflicts explicit.\u0027,\n  \u0027\u0027,\n  \u0027Extracted evidence:\u0027,\n  corpus,\n].join(\u0027\\n\u0027);\n\nreturn [{\n  json: {\n    ...first,\n    userPrompt,\n    chunkCoverage: {\n      totalChunksExpected,\n      totalChunksReceived,\n      totalFiles: coverage.totalFiles ?? null,\n      skippedFiles: coverage.skippedFiles ?? [],\n    },\n  },\n}];"
+                                     },
+                      "id":  "fa43e6c1-b538-4989-9cec-0f0339d7c47a",
+                      "name":  "REQ - Build Prompt",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       80,
+                                       1152
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemsSafe(nodeName) {\n  if (typeof $items !== \u0027function\u0027) return [];\n  try {\n    return $items(nodeName) || [];\n  } catch (error) {\n    const message = String(error?.message ?? error ?? \u0027\u0027);\n    if (message.includes(\"hasn\u0027t been executed\") || message.includes(\u0027not executed\u0027)) {\n      return [];\n    }\n    return [];\n  }\n}\n\nconst hvItems = getNodeItemsSafe(\u0027REQ - Human Validation\u0027);\nconst hv1Items = getNodeItemsSafe(\u0027REQ - Human Validation1\u0027);\nconst loopItems = getNodeItemsSafe(\u0027REQ - Loop Decision\u0027);\n\nconst hvJson = hvItems[0]?.json ?? {};\nconst hv1Json = hv1Items[0]?.json ?? {};\nconst loopJson = loopItems[0]?.json ?? {};\n\nconst hvBinary = hvItems[0]?.binary ?? {};\nconst hv1Binary = hv1Items[0]?.binary ?? {};\nconst loopBinary = loopItems[0]?.binary ?? {};\n\nconst mergedJson = { ...hvJson, ...hv1Json, ...loopJson, ...(item.json ?? {}) };\nconst mergedBinary = { ...hvBinary, ...hv1Binary, ...loopBinary, ...(item.binary ?? {}) };\n\nconst requirements = String(mergedJson.requirements ?? \u0027\u0027).trim();\nif (!requirements) {\n  throw new Error(\u0027Requirements Markdown draft is missing for refinement generation.\u0027);\n}\n\nconst reviewerFeedback = [\n  mergedJson.feedback,\n  mergedJson.Feedback,\n  loopJson.feedback,\n  loopJson.Feedback,\n  hv1Json.feedback,\n  hv1Json.Feedback,\n  hvJson.feedback,\n  hvJson.Feedback,\n]\n  .map((value) =\u003e String(value ?? \u0027\u0027).trim())\n  .find((value) =\u003e value.length \u003e 0) || \u0027Reviewer requested changes without additional details.\u0027;\n\nconst revisionNumber = Math.max(0, Math.trunc(Number(mergedJson.revisionNumber ?? 0) || 0)) + 1;\n\nfunction splitLines(text) {\n  return String(text ?? \u0027\u0027).replace(/\\r\\n/g, \u0027\\n\u0027).split(\u0027\\n\u0027);\n}\n\nfunction looksTextLike(binaryEntry, key) {\n  const mime = String(binaryEntry?.mimeType ?? \u0027\u0027).toLowerCase();\n  const extRaw = String(binaryEntry?.fileExtension ?? \u0027\u0027).toLowerCase();\n  const ext = extRaw.startsWith(\u0027.\u0027) ? extRaw.slice(1) : extRaw;\n\n  const textExt = new Set([\n    \u0027txt\u0027, \u0027md\u0027, \u0027markdown\u0027, \u0027json\u0027, \u0027yaml\u0027, \u0027yml\u0027, \u0027csv\u0027, \u0027tsv\u0027, \u0027xml\u0027, \u0027html\u0027, \u0027htm\u0027,\n    \u0027js\u0027, \u0027ts\u0027, \u0027py\u0027, \u0027java\u0027, \u0027c\u0027, \u0027cpp\u0027, \u0027cs\u0027, \u0027sql\u0027, \u0027log\u0027, \u0027ini\u0027, \u0027cfg\u0027,\n  ]);\n\n  if (mime.startsWith(\u0027text/\u0027)) return true;\n  if (mime.includes(\u0027json\u0027) || mime.includes(\u0027xml\u0027) || mime.includes(\u0027yaml\u0027)) return true;\n  if (textExt.has(ext)) return true;\n\n  const keyLower = String(key ?? \u0027\u0027).toLowerCase();\n  if (keyLower.endsWith(\u0027.txt\u0027) || keyLower.endsWith(\u0027.md\u0027) || keyLower.endsWith(\u0027.json\u0027)) return true;\n\n  return false;\n}\n\nfunction decodeText(binaryEntry) {\n  try {\n    const raw = String(binaryEntry?.data ?? \u0027\u0027);\n    if (!raw) return \u0027\u0027;\n    return Buffer.from(raw, \u0027base64\u0027).toString(\u0027utf8\u0027);\n  } catch (error) {\n    return \u0027\u0027;\n  }\n}\n\nconst attachmentEntries = Object.entries(mergedBinary)\n  .filter(([key]) =\u003e /^attachments?(?:_|$)/i.test(String(key)));\n\nconst attachmentSummaries = [];\nconst attachmentTextBlocks = [];\n\nlet totalTextChars = 0;\nconst maxTotalChars = 24000;\nconst maxPerFileChars = 6000;\n\nfor (const [key, bin] of attachmentEntries) {\n  const fileName = String(bin?.fileName ?? key);\n  const mimeType = String(bin?.mimeType ?? \u0027application/octet-stream\u0027);\n  const fileSize = Number(bin?.fileSize ?? 0);\n\n  attachmentSummaries.push({\n    key,\n    fileName,\n    mimeType,\n    fileSize,\n  });\n\n  if (!looksTextLike(bin, key)) continue;\n  if (totalTextChars \u003e= maxTotalChars) continue;\n\n  const text = decodeText(bin).trim();\n  if (!text) continue;\n\n  const remaining = maxTotalChars - totalTextChars;\n  const take = Math.min(maxPerFileChars, remaining);\n  const excerpt = text.slice(0, take);\n\n  attachmentTextBlocks.push(\n    `Attachment: ${fileName} (${mimeType})\\n---\\n${excerpt}`,\n  );\n\n  totalTextChars += excerpt.length;\n}\n\nconst numberedMarkdown = splitLines(requirements)\n  .map((line, index) =\u003e `${index + 1}: ${line}`)\n  .join(\u0027\\n\u0027);\n\nconst attachmentSummaryText = attachmentSummaries.length\n  ? attachmentSummaries\n    .map((a, i) =\u003e `${i + 1}) ${a.fileName} | mime=${a.mimeType} | size=${a.fileSize}`)\n    .join(\u0027\\n\u0027)\n  : \u0027[No attachments provided.]\u0027;\n\nconst attachmentExtractedText = attachmentTextBlocks.length\n  ? attachmentTextBlocks.join(\u0027\\n\\n\u0027)\n  : \u0027[No text could be extracted from attachments automatically.]\u0027;\n\nconst patchPrompt = [\n  \u0027You are refining an existing Requirements Markdown draft based on reviewer input.\u0027,\n  \u0027\u0027,\n  \u0027Update rules:\u0027,\n  \u0027- Apply the reviewer feedback precisely.\u0027,\n  \u0027- Use attachment context when available.\u0027,\n  \u0027- Keep unchanged sections intact.\u0027,\n  \u0027- Preserve requirement IDs and structure unless feedback explicitly asks to change them.\u0027,\n  \u0027- Return ONLY the final requirements markdown text.\u0027,\n  \u0027- Do NOT use markdown code fences.\u0027,\n  \u0027- Do NOT add explanations.\u0027,\n  \u0027\u0027,\n  \u0027Reviewer feedback:\u0027,\n  reviewerFeedback,\n  \u0027\u0027,\n  \u0027Attachment metadata:\u0027,\n  attachmentSummaryText,\n  \u0027\u0027,\n  \u0027Extracted attachment text (partial when available):\u0027,\n  attachmentExtractedText,\n  \u0027\u0027,\n  \u0027Current markdown draft with line numbers:\u0027,\n  numberedMarkdown,\n].join(\u0027\\n\u0027);\n\nreturn [{\n  json: {\n    requirements,\n    reviewerFeedback,\n    revisionNumber,\n    attachmentCount: attachmentSummaries.length,\n    attachmentSummaries,\n    patchPrompt,\n  },\n  ...(mergedBinary \u0026\u0026 Object.keys(mergedBinary).length \u003e 0 ? { binary: mergedBinary } : {}),\n}];\n"
+                                     },
+                      "id":  "077c57d3-00ce-4d38-b6c0-e3a42ff1c808",
+                      "name":  "REQ - Build Refinement Prompt",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       608,
+                                       224
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  "mistral-medium-latest",
+                                         "options":  {
+                                                         "maxTokens":  32768,
+                                                         "temperature":  0.4
+                                                     }
+                                     },
+                      "id":  "61a2f577-35af-4ccb-abbd-56d453d9518d",
+                      "name":  "REQ - Chunk Analyser Model",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+                      "typeVersion":  1,
+                      "position":  [
+                                       464,
+                                       1008
+                                   ],
+                      "credentials":  {
+                                          "mistralCloudApi":  {
+                                                                  "id":  "9qA4lFjMsBaIEbTf",
+                                                                  "name":  "Mistral Cloud account"
+                                                              }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function tryParseJsonObject(text) {\n  const start = text.indexOf(\u0027{\u0027);\n  const end = text.lastIndexOf(\u0027}\u0027);\n  if (start === -1 || end \u003c= start) return null;\n\n  const candidate = text.slice(start, end + 1);\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction decodeQuoted(value) {\n  const trimmed = value.trim();\n  if (!trimmed) return \u0027\u0027;\n\n  if (trimmed.startsWith(\u0027\"\u0027) \u0026\u0026 trimmed.endsWith(\u0027\"\u0027)) {\n    try {\n      return JSON.parse(trimmed);\n    } catch {\n      const inner = trimmed.slice(1, -1);\n      return inner\n        .replace(/\\\\r\\\\n/g, \u0027\\n\u0027)\n        .replace(/\\\\n/g, \u0027\\n\u0027)\n        .replace(/\\\\t/g, \u0027\\t\u0027)\n        .replace(/\\\\\"/g, \u0027\"\u0027)\n        .replace(/\\\\\u0027/g, \"\u0027\")\n        .replace(/\\\\\\\\/g, \u0027\\\\\u0027);\n    }\n  }\n\n  if (trimmed.startsWith(\"\u0027\") \u0026\u0026 trimmed.endsWith(\"\u0027\")) {\n    const inner = trimmed.slice(1, -1);\n    return inner\n      .replace(/\\\\r\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\t/g, \u0027\\t\u0027)\n      .replace(/\\\\\"/g, \u0027\"\u0027)\n      .replace(/\\\\\u0027/g, \"\u0027\")\n      .replace(/\\\\\\\\/g, \u0027\\\\\u0027);\n  }\n\n  return trimmed;\n}\n\nfunction normalizeCandidate(text) {\n  let out = String(text ?? \u0027\u0027).trim();\n  if (!out) return \u0027\u0027;\n\n  const fenced = out.match(/^```(?:markdown|md|txt)?\\s*([\\s\\S]*?)```$/i);\n  if (fenced) out = fenced[1].trim();\n\n  out = out.replace(/^\\s*[\"\u0027]?requirements[\"\u0027]?\\s*:\\s*/i, \u0027\u0027).trim();\n  out = decodeQuoted(out);\n\n  if (!out.includes(\u0027\\n\u0027) \u0026\u0026 /\\\\n|\\\\t|\\\\r/.test(out)) {\n    out = out\n      .replace(/\\\\r\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\t/g, \u0027\\t\u0027)\n      .replace(/\\\\\"/g, \u0027\"\u0027)\n      .replace(/\\\\\u0027/g, \"\u0027\")\n      .replace(/\\\\\\\\/g, \u0027\\\\\u0027);\n  }\n\n  return out.trim();\n}\n\nfunction scoreCandidate(text) {\n  let score = text.length;\n  if (/^#\\s*Technical Requirements/i.test(text)) score += 1000;\n  if (/##\\s*1\\.\\s*Objective/i.test(text)) score += 800;\n  if (/##\\s*2\\.\\s*Technology Stack/i.test(text)) score += 500;\n  if (/##\\s*3\\.\\s*General Architecture/i.test(text)) score += 500;\n  if (/\\n##\\s*/.test(text)) score += 200;\n  return score;\n}\n\nfunction extractRequirements(rawText) {\n  if (typeof rawText !== \u0027string\u0027 || !rawText.trim()) {\n    throw new Error(\u0027Requirements response is empty.\u0027);\n  }\n\n  const raw = rawText.trim();\n  const candidates = [];\n\n  candidates.push(raw);\n\n  const fencedMatch = raw.match(/```(?:markdown|md|txt)?\\s*([\\s\\S]*?)```/i);\n  if (fencedMatch) candidates.push(fencedMatch[1]);\n\n  const parsed = tryParseJsonObject(raw);\n  if (parsed \u0026\u0026 typeof parsed === \u0027object\u0027) {\n    if (typeof parsed.requirements === \u0027string\u0027) candidates.push(parsed.requirements);\n    if (parsed.output \u0026\u0026 typeof parsed.output.requirements === \u0027string\u0027) candidates.push(parsed.output.requirements);\n    if (parsed.data \u0026\u0026 typeof parsed.data.requirements === \u0027string\u0027) candidates.push(parsed.data.requirements);\n  }\n\n  const labelled = raw.match(/(?:^|\\n)\\s*[\"\u0027]?requirements[\"\u0027]?\\s*:\\s*([\\s\\S]*)/i);\n  if (labelled) candidates.push(labelled[1]);\n\n  const normalized = candidates\n    .map(normalizeCandidate)\n    .filter((value) =\u003e value.length \u003e 0);\n\n  if (!normalized.length) {\n    throw new Error(\u0027Could not extract requirements content from model output.\u0027);\n  }\n\n  let best = normalized[0];\n  let bestScore = scoreCandidate(best);\n\n  for (const candidate of normalized.slice(1)) {\n    const score = scoreCandidate(candidate);\n    if (score \u003e bestScore) {\n      best = candidate;\n      bestScore = score;\n    }\n  }\n\n  return best;\n}\n\nconst item = $input.first();\nconst json = item?.json ?? {};\n\nreturn [{\n  json: {\n    response: extractRequirements(json.text),\n    revisionNumber: Number(item.json?.revisionNumber ?? 0) || 0,\n  },\n  binary: item?.binary ?? {},\n}];"
+                                     },
+                      "id":  "d175ed26-30ec-4102-9ad6-9c397ee67f5c",
+                      "name":  "REQ - Clean Refinement Response",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1648,
+                                       240
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function tryParseJsonObject(text) {\n  const start = text.indexOf(\u0027{\u0027);\n  const end = text.lastIndexOf(\u0027}\u0027);\n  if (start === -1 || end \u003c= start) return null;\n\n  const candidate = text.slice(start, end + 1);\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction decodeQuoted(value) {\n  const trimmed = value.trim();\n  if (!trimmed) return \u0027\u0027;\n\n  if (trimmed.startsWith(\u0027\"\u0027) \u0026\u0026 trimmed.endsWith(\u0027\"\u0027)) {\n    try {\n      return JSON.parse(trimmed);\n    } catch {\n      const inner = trimmed.slice(1, -1);\n      return inner\n        .replace(/\\\\r\\\\n/g, \u0027\\n\u0027)\n        .replace(/\\\\n/g, \u0027\\n\u0027)\n        .replace(/\\\\t/g, \u0027\\t\u0027)\n        .replace(/\\\\\"/g, \u0027\"\u0027)\n        .replace(/\\\\\u0027/g, \"\u0027\")\n        .replace(/\\\\\\\\/g, \u0027\\\\\u0027);\n    }\n  }\n\n  if (trimmed.startsWith(\"\u0027\") \u0026\u0026 trimmed.endsWith(\"\u0027\")) {\n    const inner = trimmed.slice(1, -1);\n    return inner\n      .replace(/\\\\r\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\t/g, \u0027\\t\u0027)\n      .replace(/\\\\\"/g, \u0027\"\u0027)\n      .replace(/\\\\\u0027/g, \"\u0027\")\n      .replace(/\\\\\\\\/g, \u0027\\\\\u0027);\n  }\n\n  return trimmed;\n}\n\nfunction normalizeCandidate(text) {\n  let out = String(text ?? \u0027\u0027).trim();\n  if (!out) return \u0027\u0027;\n\n  const fenced = out.match(/^```(?:markdown|md|txt)?\\s*([\\s\\S]*?)```$/i);\n  if (fenced) out = fenced[1].trim();\n\n  out = out.replace(/^\\s*[\"\u0027]?requirements[\"\u0027]?\\s*:\\s*/i, \u0027\u0027).trim();\n  out = decodeQuoted(out);\n\n  if (!out.includes(\u0027\\n\u0027) \u0026\u0026 /\\\\n|\\\\t|\\\\r/.test(out)) {\n    out = out\n      .replace(/\\\\r\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\n/g, \u0027\\n\u0027)\n      .replace(/\\\\t/g, \u0027\\t\u0027)\n      .replace(/\\\\\"/g, \u0027\"\u0027)\n      .replace(/\\\\\u0027/g, \"\u0027\")\n      .replace(/\\\\\\\\/g, \u0027\\\\\u0027);\n  }\n\n  return out.trim();\n}\n\nfunction scoreCandidate(text) {\n  let score = text.length;\n  if (/^#\\s*Technical Requirements/i.test(text)) score += 1000;\n  if (/##\\s*1\\.\\s*Objective/i.test(text)) score += 800;\n  if (/##\\s*2\\.\\s*Technology Stack/i.test(text)) score += 500;\n  if (/##\\s*3\\.\\s*General Architecture/i.test(text)) score += 500;\n  if (/\\n##\\s*/.test(text)) score += 200;\n  return score;\n}\n\nfunction extractRequirements(rawText) {\n  if (typeof rawText !== \u0027string\u0027 || !rawText.trim()) {\n    throw new Error(\u0027Requirements response is empty.\u0027);\n  }\n\n  const raw = rawText.trim();\n  const candidates = [];\n\n  candidates.push(raw);\n\n  const fencedMatch = raw.match(/```(?:markdown|md|txt)?\\s*([\\s\\S]*?)```/i);\n  if (fencedMatch) candidates.push(fencedMatch[1]);\n\n  const parsed = tryParseJsonObject(raw);\n  if (parsed \u0026\u0026 typeof parsed === \u0027object\u0027) {\n    if (typeof parsed.requirements === \u0027string\u0027) candidates.push(parsed.requirements);\n    if (parsed.output \u0026\u0026 typeof parsed.output.requirements === \u0027string\u0027) candidates.push(parsed.output.requirements);\n    if (parsed.data \u0026\u0026 typeof parsed.data.requirements === \u0027string\u0027) candidates.push(parsed.data.requirements);\n  }\n\n  const labelled = raw.match(/(?:^|\\n)\\s*[\"\u0027]?requirements[\"\u0027]?\\s*:\\s*([\\s\\S]*)/i);\n  if (labelled) candidates.push(labelled[1]);\n\n  const normalized = candidates\n    .map(normalizeCandidate)\n    .filter((value) =\u003e value.length \u003e 0);\n\n  if (!normalized.length) {\n    throw new Error(\u0027Could not extract requirements content from model output.\u0027);\n  }\n\n  let best = normalized[0];\n  let bestScore = scoreCandidate(best);\n\n  for (const candidate of normalized.slice(1)) {\n    const score = scoreCandidate(candidate);\n    if (score \u003e bestScore) {\n      best = candidate;\n      bestScore = score;\n    }\n  }\n\n  return best;\n}\n\nconst item = $input.first();\nconst json = item?.json ?? {};\n\nreturn [{\n  json: {\n    response: extractRequirements(json.text),\n    revisionNumber: Number(item.json?.revisionNumber ?? 0) || 0,\n  },\n  binary: item?.binary ?? {},\n}];"
+                                     },
+                      "id":  "b490c12d-0dec-478d-a1f9-5a6656372abe",
+                      "name":  "REQ - Clean Response",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       624,
+                                       1152
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "workflowId":  {
+                                                            "__rl":  true,
+                                                            "value":  "pQM23J0BoE8iVhNc",
+                                                            "mode":  "list",
+                                                            "cachedResultUrl":  "/workflow/pQM23J0BoE8iVhNc",
+                                                            "cachedResultName":  "zip link"
+                                                        },
+                                         "workflowInputs":  {
+                                                                "mappingMode":  "defineBelow",
+                                                                "value":  {
+                                                                              "revisionNumber":  "={{ $json.revisionNumber }}",
+                                                                              "archiveMimeType":  "={{ $binary.reviewZip.mimeType }}",
+                                                                              "archiveFileName":  "={{ $binary.reviewZip.fileName }}",
+                                                                              "response":  "={{ $json.response }}",
+                                                                              "archiveData":  "={{ $binary.reviewZip ? ($binary.reviewZip.data || ($binary.reviewZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+                                                                              "archiveId":  "={{ $binary.reviewZip ? ($binary.reviewZip.id || \"\") : \"\" }}"
+                                                                          },
+                                                                "matchingColumns":  [
+
+                                                                                    ],
+                                                                "schema":  [
+                                                                               {
+                                                                                   "id":  "archiveData",
+                                                                                   "displayName":  "archiveData",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "string",
+                                                                                   "removed":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveMimeType",
+                                                                                   "displayName":  "archiveMimeType",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "string",
+                                                                                   "removed":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveFileName",
+                                                                                   "displayName":  "archiveFileName",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "string",
+                                                                                   "removed":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "openapiYaml",
+                                                                                   "displayName":  "openapiYaml",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "string",
+                                                                                   "removed":  true
+                                                                               },
+                                                                               {
+                                                                                   "id":  "revisionNumber",
+                                                                                   "displayName":  "revisionNumber",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "number",
+                                                                                   "removed":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "response",
+                                                                                   "displayName":  "response",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "string",
+                                                                                   "removed":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveId",
+                                                                                   "displayName":  "archiveId",
+                                                                                   "required":  false,
+                                                                                   "defaultMatch":  false,
+                                                                                   "display":  true,
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "type":  "string",
+                                                                                   "removed":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveBinaryProperty",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "archiveBinaryProperty",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               }
+                                                                           ],
+                                                                "attemptToConvertTypes":  false,
+                                                                "convertFieldsToString":  true
+                                                            },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.executeWorkflow",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       1536,
+                                       912
+                                   ],
+                      "id":  "40a1ad6e-c898-497d-999b-828825328f43",
+                      "name":  "REQ - Create Zip Link"
+                  },
+                  {
+                      "parameters":  {
+                                         "binaryPropertyName":  "requirementsZip"
+                                     },
+                      "type":  "n8n-nodes-base.compression",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       80,
+                                       560
+                                   ],
+                      "id":  "a9aa3529-3d24-4a11-a824-231d1ee11f56",
+                      "name":  "REQ - Decompress Zip"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "\nconst KNOWN_TEXT_EXTENSIONS = new Set([\n  \u0027txt\u0027, \u0027text\u0027, \u0027md\u0027, \u0027markdown\u0027, \u0027rst\u0027, \u0027adoc\u0027, \u0027asciidoc\u0027, \u0027tex\u0027,\n  \u0027json\u0027, \u0027jsonl\u0027, \u0027json5\u0027, \u0027yaml\u0027, \u0027yml\u0027, \u0027toml\u0027, \u0027ini\u0027, \u0027cfg\u0027, \u0027conf\u0027, \u0027env\u0027, \u0027properties\u0027,\n  \u0027xml\u0027, \u0027csv\u0027, \u0027tsv\u0027, \u0027psv\u0027, \u0027ssv\u0027,\n  \u0027html\u0027, \u0027htm\u0027, \u0027xhtml\u0027, \u0027svg\u0027,\n  \u0027js\u0027, \u0027mjs\u0027, \u0027cjs\u0027, \u0027jsx\u0027, \u0027ts\u0027, \u0027tsx\u0027, \u0027vue\u0027, \u0027svelte\u0027,\n  \u0027py\u0027, \u0027pyi\u0027, \u0027java\u0027, \u0027kt\u0027, \u0027kts\u0027, \u0027scala\u0027, \u0027groovy\u0027,\n  \u0027c\u0027, \u0027h\u0027, \u0027cpp\u0027, \u0027cc\u0027, \u0027cxx\u0027, \u0027hpp\u0027, \u0027hh\u0027, \u0027hxx\u0027,\n  \u0027cs\u0027, \u0027go\u0027, \u0027rs\u0027, \u0027rb\u0027, \u0027php\u0027, \u0027swift\u0027, \u0027m\u0027, \u0027mm\u0027, \u0027dart\u0027, \u0027lua\u0027, \u0027r\u0027, \u0027jl\u0027, \u0027pl\u0027, \u0027pm\u0027,\n  \u0027sh\u0027, \u0027bash\u0027, \u0027zsh\u0027, \u0027fish\u0027, \u0027ps1\u0027, \u0027bat\u0027, \u0027cmd\u0027, \u0027awk\u0027, \u0027sed\u0027,\n  \u0027sql\u0027, \u0027graphql\u0027, \u0027gql\u0027, \u0027proto\u0027,\n  \u0027log\u0027, \u0027out\u0027, \u0027err\u0027,\n  \u0027gitignore\u0027, \u0027gitattributes\u0027, \u0027npmrc\u0027, \u0027yarnrc\u0027, \u0027editorconfig\u0027, \u0027dockerignore\u0027,\n  \u0027ipynb\u0027\n]);\n\n// Route almost all text-like files to OCR as requested, plus PDF/Word docs.\nconst OCR_EXTENSIONS = new Set([\n  ...KNOWN_TEXT_EXTENSIONS,\n  \u0027pdf\u0027, \u0027doc\u0027, \u0027docx\u0027, \u0027rtf\u0027\n]);\n\nconst KNOWN_TEXT_FILENAMES = new Set([\n  \u0027dockerfile\u0027,\n  \u0027makefile\u0027,\n  \u0027jenkinsfile\u0027,\n  \u0027procfile\u0027,\n  \u0027vagrantfile\u0027,\n  \u0027gemfile\u0027,\n  \u0027rakefile\u0027,\n  \u0027license\u0027,\n  \u0027copying\u0027,\n  \u0027changelog\u0027,\n  \u0027readme\u0027,\n  \u0027.env\u0027,\n  \u0027.env.local\u0027,\n  \u0027.env.development\u0027,\n  \u0027.env.test\u0027,\n  \u0027.env.production\u0027,\n  \u0027.gitignore\u0027,\n  \u0027.gitattributes\u0027,\n  \u0027.npmrc\u0027,\n  \u0027.yarnrc\u0027,\n  \u0027.editorconfig\u0027\n]);\n\nconst WORD_DOC_MIME_MARKERS = [\n  \u0027msword\u0027,\n  \u0027officedocument.wordprocessingml.document\u0027,\n  \u0027application/rtf\u0027,\n  \u0027text/rtf\u0027\n];\n\nconst TEXT_MIME_MARKERS = [\n  \u0027json\u0027, \u0027xml\u0027, \u0027yaml\u0027, \u0027toml\u0027, \u0027csv\u0027,\n  \u0027javascript\u0027, \u0027typescript\u0027, \u0027ecmascript\u0027,\n  \u0027sql\u0027, \u0027graphql\u0027,\n  \u0027x-sh\u0027, \u0027shellscript\u0027, \u0027powershell\u0027,\n  \u0027markdown\u0027, \u0027plain\u0027,\n  \u0027x-python\u0027, \u0027x-php\u0027, \u0027x-java\u0027, \u0027x-c\u0027, \u0027x-c++\u0027,\n  \u0027x-ruby\u0027, \u0027x-go\u0027, \u0027x-rust\u0027, \u0027x-lua\u0027,\n  \u0027x-httpd-php\u0027\n];\n\nfunction getExtension(fileName) {\n  const lower = String(fileName || \u0027\u0027).toLowerCase();\n  const idx = lower.lastIndexOf(\u0027.\u0027);\n  return idx \u003e= 0 ? lower.slice(idx + 1) : \u0027\u0027;\n}\n\nfunction parseFileSize(raw, meta) {\n  if (typeof meta?.bytes === \u0027number\u0027 \u0026\u0026 Number.isFinite(meta.bytes) \u0026\u0026 meta.bytes \u003e 0) return meta.bytes;\n  if (typeof raw === \u0027number\u0027 \u0026\u0026 Number.isFinite(raw) \u0026\u0026 raw \u003e 0) return raw;\n\n  const txt = String(raw || \u0027\u0027).trim().toLowerCase();\n  if (txt) {\n    const numeric = Number.parseFloat(txt.replace(\u0027,\u0027, \u0027.\u0027));\n    if (Number.isFinite(numeric) \u0026\u0026 numeric \u003e 0) {\n      if (txt.endsWith(\u0027kb\u0027)) return Math.round(numeric * 1024);\n      if (txt.endsWith(\u0027mb\u0027)) return Math.round(numeric * 1024 * 1024);\n      if (txt.endsWith(\u0027gb\u0027)) return Math.round(numeric * 1024 * 1024 * 1024);\n      return Math.round(numeric);\n    }\n  }\n\n  if (typeof meta?.data === \u0027string\u0027 \u0026\u0026 meta.data \u0026\u0026 meta.data !== \u0027filesystem-v2\u0027) {\n    try {\n      return Buffer.from(meta.data, \u0027base64\u0027).length;\n    } catch (error) {\n      return 0;\n    }\n  }\n\n  return 0;\n}\n\nfunction looksLikeTextMime(mimeType) {\n  if (!mimeType) return false;\n  if (mimeType.startsWith(\u0027text/\u0027)) return true;\n  return TEXT_MIME_MARKERS.some((marker) =\u003e mimeType.includes(marker));\n}\n\nfunction isPdfMime(mimeType) {\n  return mimeType.includes(\u0027pdf\u0027);\n}\n\nfunction isLikelyTextBuffer(buffer) {\n  if (!buffer || buffer.length === 0) return false;\n\n  const sample = buffer.subarray(0, Math.min(buffer.length, 8192));\n\n  if (sample.length \u003e= 4) {\n    const bomUtf8 = sample[0] === 0xef \u0026\u0026 sample[1] === 0xbb \u0026\u0026 sample[2] === 0xbf;\n    const bomUtf16Le = sample[0] === 0xff \u0026\u0026 sample[1] === 0xfe;\n    const bomUtf16Be = sample[0] === 0xfe \u0026\u0026 sample[1] === 0xff;\n    if (bomUtf8 || bomUtf16Le || bomUtf16Be) return true;\n  }\n\n  let printable = 0;\n  let zeroBytes = 0;\n\n  for (const byte of sample) {\n    if (byte === 0) {\n      zeroBytes += 1;\n      continue;\n    }\n    if (byte === 9 || byte === 10 || byte === 13) {\n      printable += 1;\n      continue;\n    }\n    if (byte \u003e= 32 \u0026\u0026 byte \u003c= 126) {\n      printable += 1;\n      continue;\n    }\n    if (byte \u003e= 160) {\n      printable += 1;\n    }\n  }\n\n  if (zeroBytes \u003e sample.length * 0.3) return false;\n  return printable / sample.length \u003e= 0.85;\n}\n\nasync function getLoadedBinary(item, itemIndex) {\n  if (typeof getBinaryDataAsync === \u0027function\u0027) {\n    const copy = { ...item, index: item?.index ?? itemIndex };\n    try {\n      return (await getBinaryDataAsync(copy)) || item.binary || {};\n    } catch (error) {\n      return item.binary || {};\n    }\n  }\n  return item.binary || {};\n}\n\nconst firstJson = $input.first()?.json ?? {};\nconst items = $input.all();\n\nconst out = [];\nconst skipped = [];\nconst unsupported = [];\n\nfor (let itemIndex = 0; itemIndex \u003c items.length; itemIndex++) {\n  const item = items[itemIndex];\n  const loadedBinary = await getLoadedBinary(item, itemIndex);\n\n  for (const [propertyName, metaValue] of Object.entries(loadedBinary)) {\n    const meta = metaValue ?? {};\n    const fileName = String(meta.fileName || propertyName);\n    const lowerName = fileName.toLowerCase();\n    const mimeType = String(meta.mimeType || \u0027\u0027).toLowerCase();\n    const extension = getExtension(fileName);\n    const fileSize = parseFileSize(meta.fileSize, meta);\n\n    if (!fileName || fileName.endsWith(\u0027/\u0027) || fileSize \u003c= 0) {\n      skipped.push({ fileName, propertyName, reason: \u0027directory_or_empty_entry\u0027 });\n      continue;\n    }\n\n    if (lowerName === \u0027desktop.ini\u0027 || lowerName === \u0027.ds_store\u0027 || lowerName.startsWith(\u0027__macosx/\u0027)) {\n      skipped.push({ fileName, propertyName, reason: \u0027system_file\u0027 });\n      continue;\n    }\n\n    let buffer = Buffer.alloc(0);\n    if (typeof meta.data === \u0027string\u0027 \u0026\u0026 meta.data \u0026\u0026 meta.data !== \u0027filesystem-v2\u0027) {\n      try {\n        buffer = Buffer.from(meta.data, \u0027base64\u0027);\n      } catch (error) {\n        buffer = Buffer.alloc(0);\n      }\n    }\n\n    const isOcrByExtension = OCR_EXTENSIONS.has(extension);\n    const isOcrByMime = isPdfMime(mimeType) || WORD_DOC_MIME_MARKERS.some((marker) =\u003e mimeType.includes(marker));\n\n    const isKnownText = KNOWN_TEXT_EXTENSIONS.has(extension)\n      || KNOWN_TEXT_FILENAMES.has(lowerName)\n      || looksLikeTextMime(mimeType);\n\n    const isSniffedText = buffer.length \u003e 0 ? isLikelyTextBuffer(buffer) : false;\n\n    if (!isOcrByExtension \u0026\u0026 !isOcrByMime \u0026\u0026 !isKnownText \u0026\u0026 !isSniffedText) {\n      unsupported.push({ fileName, propertyName, mimeType, extension, reason: \u0027unsupported_non_text_file\u0027 });\n      continue;\n    }\n\n    const shouldGoToOcr = isOcrByExtension || isOcrByMime || isKnownText || isSniffedText;\n\n    out.push({\n      json: {\n        ...firstJson,\n        fileName,\n        propertyName,\n        mimeType,\n        extension,\n        sourceKind: shouldGoToOcr ? \u0027ocr\u0027 : \u0027text\u0027,\n        skippedFromZip: skipped,\n      },\n      binary: {\n        data: meta,\n      },\n    });\n  }\n}\n\nif (unsupported.length \u003e 0) {\n  throw new Error(\n    [\n      \u0027ZIP contains unsupported files in the REQ path. Keep OCR/text-based files only.\u0027,\n      JSON.stringify(unsupported, null, 2),\n    ].join(\u0027\\n\u0027),\n  );\n}\n\nif (out.length === 0) {\n  throw new Error(\u0027No supported OCR/text files found in ZIP after filtering empty/system entries.\u0027);\n}\n\nreturn out;\n"
+                                     },
+                      "id":  "c98b9081-9421-4bd6-b927-af35d42be6b6",
+                      "name":  "REQ - Expand Zip for OCR",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       272,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "toText",
+                                         "sourceProperty":  "response",
+                                         "binaryPropertyName":  "requirements",
+                                         "options":  {
+                                                         "fileName":  "requirements.md"
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.convertToFile",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       1120,
+                                       1152
+                                   ],
+                      "id":  "ca3b451d-1df1-4749-8aba-16a65456ccd9",
+                      "name":  "REQ - File to Review"
+                  },
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "={{ $json.patchPrompt }}",
+                                         "messages":  {
+                                                          "messageValues":  [
+                                                                                {
+                                                                                    "message":  "You are a Senior Software Engineer operating inside an automated software engineering pipeline.\n\nTHIS IS A STRICT REFINEMENT ITERATION TASK.\n\nYou are refining an existing artefact — NOT creating from scratch.\n\n------------------------------------------------\nGOAL\n------------------------------------------------\n\nProduce one improved, internally consistent next-iteration requirements specification.\n\nThe refinement MUST:\n\n- fix identified issues\n- preserve valid content\n- maintain stable contracts\n- improve clarity, consistency, and completeness\n\n------------------------------------------------\nMODULE TARGET\n------------------------------------------------\n\nModule: requirements\n\nThis artefact is the authoritative source for all downstream modules.\n\n------------------------------------------------\nINPUTS (AUTHORITATIVE)\n------------------------------------------------\n\nYou will receive:\n\n- current requirements document\n- review feedback / validation issues\n\nTreat both as authoritative.\n\n------------------------------------------------\nREFINEMENT RULES (MANDATORY)\n------------------------------------------------\n\n1) Preserve valid content  \n- Do NOT remove correct requirements\n\n2) Resolve root causes  \n- Fix underlying issues, not symptoms\n\n3) Maintain consistency  \n- Keep terminology uniform\n\n4) Keep structure stable  \n- Do NOT reorganise unnecessarily\n\n5) Minimal assumptions  \n- Only introduce when required  \n- Mark as [ASSUMPTION: ...]\n\n------------------------------------------------\nREQUIREMENTS QUALITY RULES\n------------------------------------------------\n\nEnsure all requirements are:\n\n- atomic\n- testable\n- unambiguous\n- consistent\n\nEnsure identifiers remain stable.\n\nDo NOT renumber existing requirements unless necessary.\n\n------------------------------------------------\nUI DESIGN REFINEMENT (CONDITIONAL)\n------------------------------------------------\n\nOnly refine the final UI design section IF the feedback explicitly refers to UI.\n\nIf UI is part of the feedback:\n\n- Update the UI design to remain consistent with the requirements\n- Apply the feedback to improve or correct the UI design\n- If there is a conflict between requirements and feedback, you MUST prioritize the feedback\n\n------------------------------------------------\nUI MINIMALISM RULE (MANDATORY DURING REFINEMENT)\n------------------------------------------------\n\nWhen modifying UI:\n\n- Reduce unnecessary complexity where possible\n- Avoid excessive number of Screens\n- Merge UI elements when appropriate\n- Ensure UI remains minimal and focused on core requirements\n\n------------------------------------------------\nUI TYPE DEFINITIONS (MANDATORY)\n------------------------------------------------\n\nScreen:\n- A main page with multiple responsibilities\n- Contains multiple actions and sections\n\nModal:\n- A focused interaction for a specific action (create/edit/configure)\n\nDialog:\n- A simple list or selection interface\n- Must remain lightweight and limited in scope\n\n------------------------------------------------\nCLASSIFICATION CORRECTION RULE\n------------------------------------------------\n\nDuring refinement:\n\n- Fix incorrect classification of UI elements\n- Convert Screens into Modals or Dialogs when they are too granular\n- Ensure UI types follow definitions strictly\n\n------------------------------------------------\nPRESERVATION RULE\n------------------------------------------------\n\nIf UI is NOT mentioned in the feedback:\n\n- Preserve the UI section exactly as-is\n- Do NOT modify it\n\n------------------------------------------------\nQUALITY GATE (MANDATORY)\n------------------------------------------------\n\nBefore output verify:\n\n- all issues from feedback are resolved\n- no new inconsistencies introduced\n- requirements and UI design remain aligned\n- document is complete and coherent\n\nIf any check fails, correct it before producing final output.\n\n------------------------------------------------\nOUTPUT CONTRACT (STRICT)\n------------------------------------------------\n\nReturn ONLY the updated Markdown requirements document.\n\n- No explanations\n- No comments\n- No metadata\n- No text outside the document"
+                                                                                }
+                                                                            ]
+                                                      },
+                                         "batching":  {
+
+                                                      }
+                                     },
+                      "id":  "f62fe64e-8a17-4c69-94af-6340d9952d09",
+                      "name":  "REQ - Generate Refinement Response",
+                      "type":  "@n8n/n8n-nodes-langchain.chainLlm",
+                      "typeVersion":  1.9,
+                      "position":  [
+                                       864,
+                                       288
+                                   ],
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  5000
+                  },
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "={{ $json.userPrompt }}",
+                                         "messages":  {
+                                                          "messageValues":  [
+                                                                                {
+                                                                                    "message":  "You are a Senior Software Requirements Engineer operating inside an automated software engineering pipeline.\n\nYour responsibility is to transform raw project context into a precise, structured, and implementation-ready requirements specification.\n\nThis document is the authoritative source of truth for all downstream modules, including design, UI generation, API definition, backend, frontend, infrastructure, and testing.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nGenerate a complete, internally consistent software requirements specification in Markdown.\n\nThe document must describe:\n\n- what the system MUST do\n- the rules it MUST follow\n- the constraints under which it MUST operate\n\nYou are defining system behaviour — NOT technical implementation.\n\n------------------------------------------------\nINPUT HANDLING\n------------------------------------------------\n\nYou may receive one or more artefacts such as:\n\n- business context\n- project description\n- user stories\n- domain rules\n- process descriptions\n- constraints (legal, organisational, technical)\n\nPriority:\n\n1. Explicit input content\n2. Prompt rules\n3. Minimal conservative assumptions\n\nIf a necessary detail is missing:\n\n- introduce a minimal assumption\n- mark it inline as:\n\n[ASSUMPTION: description]\n\n------------------------------------------------\nOUTPUT CONTRACT (STRICT)\n------------------------------------------------\n\nReturn ONLY the final Markdown document.\n\nRules:\n\n- No text before the first heading\n- No text after the final section\n- No code fences\n- No JSON\n- No explanations\n\nThe output must read as a professional requirements specification.\n\n------------------------------------------------\nWRITING RULES\n------------------------------------------------\n\nUse normative language:\n\nMUST / MUST NOT / SHOULD / MAY\n\nAll requirements must be:\n\n- atomic\n- testable\n- unambiguous\n- consistent\n\nEach requirement MUST have a unique identifier:\n\nREQ-001  \nDATA-001  \nSEC-001  \nTST-001  \n\nAvoid duplication and contradictions.\n\nUse consistent terminology across the document.\n\n------------------------------------------------\nDOCUMENT STRUCTURE\n------------------------------------------------\n\nOrganise the document logically.\n\nDo NOT follow a rigid template.\n\nHowever, ensure the document sufficiently covers (when relevant):\n\n- system scope and purpose\n- user roles and permissions\n- functional behaviour\n- workflows and states\n- business rules\n- data entities and relationships\n- constraints\n- integrations\n- security\n- performance expectations\n- testability\n\n------------------------------------------------\nFUNCTIONAL REQUIREMENTS\n------------------------------------------------\n\nDescribe system behaviour clearly.\n\nWhen relevant include:\n\n- preconditions\n- triggers\n- system response\n- resulting state\n- failure scenarios\n\n------------------------------------------------\nDATA AND STATE\n------------------------------------------------\n\nDescribe:\n\n- domain entities\n- attributes\n- relationships\n- lifecycle states\n\nFocus on conceptual clarity.\n\n------------------------------------------------\nCONSTRAINTS\n------------------------------------------------\n\nOnly include constraints present in the input.\n\nDo NOT invent technical constraints.\n\n------------------------------------------------\nTESTABILITY\n------------------------------------------------\n\nRequirements MUST be verifiable.\n\nInclude acceptance criteria where appropriate.\n\n------------------------------------------------\nUI DESIGN INTENT (MANDATORY FINAL SECTION)\n------------------------------------------------\n\nAt the END of the document, you MUST include a section describing the intended UI design.\n\nThis section MUST describe:\n\n- all Screens\n- all Modals\n- all Dialogs\n\n------------------------------------------------\nUI MINIMALISM RULE (CRITICAL)\n------------------------------------------------\n\nThe UI design MUST be minimal and focused.\n\n- Only include UI elements that are strictly necessary to satisfy the requirements\n- Do NOT create a large number of screens\n- Do NOT create one screen per action\n- Prefer grouping related actions into the same Screen\n- Avoid over-fragmentation of the UI\n\nA smaller, well-structured UI is ALWAYS preferred over a large fragmented one.\n\n------------------------------------------------\nUI TYPE DEFINITIONS (MANDATORY)\n------------------------------------------------\n\nScreen:\n- A main page with multiple responsibilities\n- Contains multiple actions and sections\n- Represents a navigation destination\n- Example: \"Member Management\", \"Dashboard\"\n\nModal:\n- Used for a specific and focused action\n- Usually triggered from a Screen\n- Typically used for:\n  - create\n  - edit\n  - configure\n- Example: \"Create Member\", \"Edit Profile\"\n\nDialog:\n- Used for simple list or selection views\n- Lightweight and focused\n- Typically used for:\n  - selecting items\n  - displaying simple lists\n- MUST NOT contain complex workflows\n\n------------------------------------------------\nCLASSIFICATION RULES (CRITICAL)\n------------------------------------------------\n\n- Every UI element MUST be correctly classified\n- DO NOT misuse Screens for simple actions\n- DO NOT convert all elements into Screens\n\nStrong guidelines:\n\n- If it contains multiple sections and actions ? Screen\n- If it is a single focused action ? Modal\n- If it is a simple list or selection ? Dialog\n\n------------------------------------------------\nUI DESIGN DESCRIPTION\n------------------------------------------------\n\nFor each element:\n\n- name\n- purpose\n- main responsibilities\n- key UI elements (forms, tables, actions, navigation elements)\n- interactions with other UI elements\n\nRules:\n\n- Cover ALL user flows\n- Do NOT invent features outside requirements\n- Ensure consistency with functional requirements\n- Use clear, descriptive names\n- Avoid duplication\n\nThis section MUST be detailed enough to guide downstream UI generation.\n\n------------------------------------------------\nCONSISTENCY CHECK (SILENT)\n------------------------------------------------\n\nBefore output:\n\n- no contradictions\n- no duplicate requirements\n- terminology consistent\n- UI design aligns with requirements\n- flows are complete and coherent\n\nReturn ONLY the Markdown document."
+                                                                                }
+                                                                            ]
+                                                      },
+                                         "batching":  {
+                                                          "batchSize":  1,
+                                                          "delayBetweenBatches":  1500
+                                                      }
+                                     },
+                      "id":  "2784fd5e-9dda-42ed-9ecc-93dab2255e93",
+                      "name":  "REQ - Generate Response",
+                      "type":  "@n8n/n8n-nodes-langchain.chainLlm",
+                      "typeVersion":  1.9,
+                      "position":  [
+                                       272,
+                                       1152
+                                   ],
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  3000
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first();\nconst json = item?.json ?? {};\nconst markdown = String(json.response ?? \u0027\u0027).replace(/\\r\\n/g, \u0027\\n\u0027);\n\nif (!markdown.trim()) {\n  throw new Error(\u0027Requirements Markdown is missing, cannot generate PDF.\u0027);\n}\n\nconst PAGE_WIDTH = 595;\nconst PAGE_HEIGHT = 842;\nconst MARGIN_X = 48;\nconst MARGIN_Y = 52;\nconst CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);\nconst LINE_GAP = 4;\nconst TABLE_FONT_SIZE = 11;\nconst TABLE_LINE_HEIGHT = 14;\nconst TABLE_CELL_PADDING_X = 5;\nconst TABLE_CELL_PADDING_Y = 4;\n\nconst WIN_ANSI_MAP = {\n  \u0027\\u20AC\u0027: 0x80,\n  \u0027\\u201A\u0027: 0x82,\n  \u0027\\u0192\u0027: 0x83,\n  \u0027\\u201E\u0027: 0x84,\n  \u0027\\u2026\u0027: 0x85,\n  \u0027\\u2020\u0027: 0x86,\n  \u0027\\u2021\u0027: 0x87,\n  \u0027\\u02C6\u0027: 0x88,\n  \u0027\\u2030\u0027: 0x89,\n  \u0027\\u0160\u0027: 0x8A,\n  \u0027\\u2039\u0027: 0x8B,\n  \u0027\\u0152\u0027: 0x8C,\n  \u0027\\u017D\u0027: 0x8E,\n  \u0027\\u2018\u0027: 0x91,\n  \u0027\\u2019\u0027: 0x92,\n  \u0027\\u201C\u0027: 0x93,\n  \u0027\\u201D\u0027: 0x94,\n  \u0027\\u2022\u0027: 0x95,\n  \u0027\\u2013\u0027: 0x96,\n  \u0027\\u2014\u0027: 0x97,\n  \u0027\\u02DC\u0027: 0x98,\n  \u0027\\u2122\u0027: 0x99,\n  \u0027\\u0161\u0027: 0x9A,\n  \u0027\\u203A\u0027: 0x9B,\n  \u0027\\u0153\u0027: 0x9C,\n  \u0027\\u017E\u0027: 0x9E,\n  \u0027\\u0178\u0027: 0x9F,\n};\n\nfunction stripInlineMarkdown(value) {\n  return String(value ?? \u0027\u0027)\n    .replace(/`([^`]+)`/g, \u0027$1\u0027)\n    .replace(/\\*\\*([^*]+)\\*\\*/g, \u0027$1\u0027)\n    .replace(/__([^_]+)__/g, \u0027$1\u0027)\n    .replace(/\\*([^*]+)\\*/g, \u0027$1\u0027)\n    .replace(/_([^_]+)_/g, \u0027$1\u0027)\n    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, \u0027$1 ($2)\u0027);\n}\n\nfunction normalizeText(value) {\n  return String(value ?? \u0027\u0027)\n    .normalize(\u0027NFC\u0027)\n    .replace(/\\u0000/g, \u0027\u0027)\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, \u0027\u0027)\n    .replace(/\\t/g, \u0027    \u0027);\n}\n\nfunction collapseSpaces(value) {\n  return String(value ?? \u0027\u0027).replace(/\\s+/g, \u0027 \u0027).trim();\n}\n\nfunction estimateMaxChars(fontSize, indent) {\n  const usable = Math.max(60, CONTENT_WIDTH - indent);\n  const avgCharWidth = Math.max(4.6, fontSize * 0.5);\n  return Math.max(18, Math.floor(usable / avgCharWidth));\n}\n\nfunction wrapText(text, maxChars) {\n  const clean = collapseSpaces(text);\n  const limit = Math.max(4, Math.floor(maxChars || 0));\n  if (!clean) return [\u0027\u0027];\n\n  const lines = [];\n  let remaining = clean;\n\n  while (remaining.length \u003e limit) {\n    let breakAt = remaining.lastIndexOf(\u0027 \u0027, limit);\n    if (breakAt \u003c Math.floor(limit * 0.5)) {\n      breakAt = limit;\n    }\n\n    const segment = remaining.slice(0, breakAt).trim();\n    if (segment) {\n      lines.push(segment);\n      remaining = remaining.slice(breakAt).trimStart();\n    } else {\n      lines.push(remaining.slice(0, limit));\n      remaining = remaining.slice(limit);\n    }\n  }\n\n  if (remaining) lines.push(remaining);\n  return lines.length ? lines : [\u0027\u0027];\n}\n\nfunction toWinAnsiString(value) {\n  const input = String(value ?? \u0027\u0027).normalize(\u0027NFC\u0027);\n  let out = \u0027\u0027;\n\n  for (const char of input) {\n    const code = char.codePointAt(0);\n\n    if (code \u003c= 0xff) {\n      out += String.fromCharCode(code);\n      continue;\n    }\n\n    if (WIN_ANSI_MAP[char] !== undefined) {\n      out += String.fromCharCode(WIN_ANSI_MAP[char]);\n      continue;\n    }\n\n    if (char === \u0027?\u0027) {\n      out += \u0027-\u003e\u0027;\n      continue;\n    }\n\n    const noDiacritics = char.normalize(\u0027NFKD\u0027).replace(/[\\u0300-\\u036f]/g, \u0027\u0027);\n    if (noDiacritics \u0026\u0026 noDiacritics.codePointAt(0) \u003c= 0xff) {\n      out += String.fromCharCode(noDiacritics.codePointAt(0));\n    }\n  }\n\n  return out;\n}\n\nfunction escapePdfLiteral(value) {\n  return String(value ?? \u0027\u0027)\n    .replace(/\\\\/g, \u0027\\\\\\\\\u0027)\n    .replace(/\\(/g, \u0027\\\\(\u0027)\n    .replace(/\\)/g, \u0027\\\\)\u0027);\n}\n\nfunction isTableSeparator(line) {\n  const inner = String(line ?? \u0027\u0027).trim().replace(/^\\|/, \u0027\u0027).replace(/\\|$/, \u0027\u0027);\n  if (!inner) return false;\n  const cells = inner.split(\u0027|\u0027).map((c) =\u003e c.trim());\n  return cells.length \u003e 0 \u0026\u0026 cells.every((cell) =\u003e /^:?-{3,}:?$/.test(cell));\n}\n\nfunction parseTableLine(line) {\n  const inner = String(line ?? \u0027\u0027).trim().replace(/^\\|/, \u0027\u0027).replace(/\\|$/, \u0027\u0027);\n  return inner.split(\u0027|\u0027).map((cell) =\u003e collapseSpaces(stripInlineMarkdown(cell)));\n}\n\nfunction buildTableLayout(tableRows, columnCount) {\n  const safeRows = tableRows.map((row) =\u003e Array.from({ length: columnCount }, (_, i) =\u003e collapseSpaces(row[i] ?? \u0027\u0027)));\n\n  const maxCharsByCol = Array.from({ length: columnCount }, () =\u003e 8);\n  for (const row of safeRows) {\n    for (let i = 0; i \u003c columnCount; i += 1) {\n      maxCharsByCol[i] = Math.max(maxCharsByCol[i], Math.min(48, row[i].length || 1));\n    }\n  }\n\n  let widths = maxCharsByCol.map((chars) =\u003e Math.max(50, chars * 5.1 + (TABLE_CELL_PADDING_X * 2)));\n  const total = widths.reduce((acc, v) =\u003e acc + v, 0);\n\n  if (total \u003e CONTENT_WIDTH) {\n    const scale = CONTENT_WIDTH / total;\n    widths = widths.map((w) =\u003e Math.max(44, w * scale));\n    const scaledTotal = widths.reduce((acc, v) =\u003e acc + v, 0);\n    if (scaledTotal \u003e CONTENT_WIDTH) {\n      widths[widths.length - 1] -= (scaledTotal - CONTENT_WIDTH);\n    }\n  }\n\n  const rowLayouts = safeRows.map((row, rowIndex) =\u003e {\n    const cellLines = row.map((cell, col) =\u003e {\n      const maxChars = Math.max(3, Math.floor((widths[col] - (TABLE_CELL_PADDING_X * 2)) / 5.8) - 1);\n      return wrapText(cell, maxChars);\n    });\n\n    const maxLineCount = Math.max(...cellLines.map((c) =\u003e c.length));\n    return {\n      font: rowIndex === 0 ? \u0027F2\u0027 : \u0027F1\u0027,\n      fontSize: TABLE_FONT_SIZE,\n      cellLines,\n      height: (maxLineCount * TABLE_LINE_HEIGHT) + (TABLE_CELL_PADDING_Y * 2),\n    };\n  });\n\n  return { widths, rowLayouts };\n}\n\nfunction buildLayout(mdText) {\n  const rows = [];\n  const lines = normalizeText(mdText).split(\u0027\\n\u0027);\n\n  const firstMeaningful = lines\n    .map((line) =\u003e collapseSpaces(stripInlineMarkdown(line)))\n    .find((line) =\u003e !!line) ?? \u0027Requirements Specification\u0027;\n\n  const firstHeading = firstMeaningful.match(/^(#{1,6})\\s+(.+)$/);\n  const title = firstHeading\n    ? collapseSpaces(firstHeading[2])\n    : collapseSpaces(firstMeaningful.replace(/^\\*\\*(.*)\\*\\*$/, \u0027$1\u0027));\n\n  rows.push({ text: title, font: \u0027F2\u0027, fontSize: 24, lineHeight: 30, indent: 0, extraAfter: 2 });\n  rows.push({ text: \u0027Requirements Specification Document\u0027, font: \u0027F1\u0027, fontSize: 12, lineHeight: 16, indent: 0, extraAfter: 8 });\n  rows.push({ type: \u0027rule\u0027 });\n  rows.push({ type: \u0027spacer\u0027, amount: 8 });\n\n  let titleConsumed = false;\n\n  for (let idx = 0; idx \u003c lines.length; idx += 1) {\n    const rawLine = lines[idx];\n    const line = String(rawLine ?? \u0027\u0027).replace(/\\s+$/g, \u0027\u0027);\n    const trimmed = line.trim();\n    const cleanTrimmed = collapseSpaces(stripInlineMarkdown(trimmed.replace(/^#{1,6}\\s+/, \u0027\u0027).replace(/^\\*\\*(.*)\\*\\*$/, \u0027$1\u0027)));\n\n    if (!titleConsumed \u0026\u0026 cleanTrimmed \u0026\u0026 cleanTrimmed === title) {\n      titleConsumed = true;\n      continue;\n    }\n\n    if (!trimmed) {\n      rows.push({ type: \u0027spacer\u0027, amount: 6 });\n      continue;\n    }\n\n    if (trimmed.startsWith(\u0027|\u0027)) {\n      const tableLines = [trimmed];\n      let probe = idx + 1;\n      while (probe \u003c lines.length) {\n        const candidate = String(lines[probe] ?? \u0027\u0027).trim();\n        if (!candidate.startsWith(\u0027|\u0027)) break;\n        tableLines.push(candidate);\n        probe += 1;\n      }\n\n      if (tableLines.length \u003e= 2 \u0026\u0026 isTableSeparator(tableLines[1])) {\n        const parsed = tableLines\n          .filter((lineValue, lineIndex) =\u003e !(lineIndex === 1 \u0026\u0026 isTableSeparator(lineValue)))\n          .map(parseTableLine);\n\n        const columnCount = parsed.reduce((acc, row) =\u003e Math.max(acc, row.length), 0);\n        if (parsed.length \u003e 0 \u0026\u0026 columnCount \u003e 0) {\n          rows.push({ type: \u0027table\u0027, rows: parsed, columnCount });\n          rows.push({ type: \u0027spacer\u0027, amount: 8 });\n          idx = probe - 1;\n          continue;\n        }\n      }\n    }\n\n    if (/^---+$/.test(trimmed) || /^___+$/.test(trimmed) || /^\\*\\*\\*+$/.test(trimmed)) {\n      rows.push({ type: \u0027rule\u0027 });\n      rows.push({ type: \u0027spacer\u0027, amount: 8 });\n      continue;\n    }\n\n    const heading = trimmed.match(/^(#{1,6})\\s+(.*)$/);\n    if (heading) {\n      const level = Math.min(6, heading[1].length);\n      const sizeMap = { 1: 20, 2: 16, 3: 14, 4: 12, 5: 11, 6: 10 };\n      rows.push({\n        text: collapseSpaces(stripInlineMarkdown(heading[2])),\n        font: \u0027F2\u0027,\n        fontSize: sizeMap[level],\n        lineHeight: sizeMap[level] + 4,\n        indent: 0,\n        extraBefore: level \u003c= 2 ? 8 : 4,\n        extraAfter: level \u003c= 2 ? 4 : 2,\n      });\n      continue;\n    }\n\n    const bullet = trimmed.match(/^[-*+]\\s+(.*)$/);\n    if (bullet) {\n      rows.push({ text: collapseSpaces(stripInlineMarkdown(bullet[1])), font: \u0027F1\u0027, fontSize: 12, lineHeight: 17, indent: 18, bullet: \u0027- \u0027 });\n      continue;\n    }\n\n    const ordered = trimmed.match(/^(\\d+[.)])\\s+(.*)$/);\n    if (ordered) {\n      rows.push({ text: collapseSpaces(stripInlineMarkdown(ordered[2])), font: \u0027F1\u0027, fontSize: 12, lineHeight: 17, indent: 22, bullet: ordered[1] + \u0027 \u0027 });\n      continue;\n    }\n\n    rows.push({ text: collapseSpaces(stripInlineMarkdown(trimmed)), font: \u0027F1\u0027, fontSize: 12, lineHeight: 17, indent: 0 });\n  }\n\n  return rows;\n}\n\nfunction paginate(rows) {\n  const pages = [];\n  let currentPage = [];\n  let y = PAGE_HEIGHT - MARGIN_Y;\n\n  function pushPage() {\n    pages.push(currentPage);\n    currentPage = [];\n    y = PAGE_HEIGHT - MARGIN_Y;\n  }\n\n  for (const row of rows) {\n    if (row.type === \u0027spacer\u0027) {\n      y -= row.amount;\n      if (y \u003c MARGIN_Y) pushPage();\n      continue;\n    }\n\n    if (row.type === \u0027rule\u0027) {\n      y -= 8;\n      if (y \u003c MARGIN_Y) pushPage();\n      currentPage.push({ type: \u0027line\u0027, x1: MARGIN_X, y1: y, x2: PAGE_WIDTH - MARGIN_X, y2: y, width: 0.2 });\n      y -= 12;\n      if (y \u003c MARGIN_Y) pushPage();\n      continue;\n    }\n\n    if (row.type === \u0027table\u0027) {\n      const table = buildTableLayout(row.rows, row.columnCount);\n      const xBreaks = [MARGIN_X];\n      for (const w of table.widths) xBreaks.push(xBreaks[xBreaks.length - 1] + w);\n\n      for (let r = 0; r \u003c table.rowLayouts.length; r += 1) {\n        const rowLayout = table.rowLayouts[r];\n        const rowHeight = rowLayout.height;\n\n        if ((y - rowHeight) \u003c MARGIN_Y) pushPage();\n\n        const top = y;\n        const bottom = y - rowHeight;\n\n        currentPage.push({ type: \u0027line\u0027, x1: xBreaks[0], y1: top, x2: xBreaks[xBreaks.length - 1], y2: top, width: 0.6 });\n        currentPage.push({ type: \u0027line\u0027, x1: xBreaks[0], y1: bottom, x2: xBreaks[xBreaks.length - 1], y2: bottom, width: 0.6 });\n\n        for (let c = 0; c \u003c xBreaks.length; c += 1) {\n          currentPage.push({ type: \u0027line\u0027, x1: xBreaks[c], y1: top, x2: xBreaks[c], y2: bottom, width: 0.4 });\n        }\n\n        for (let c = 0; c \u003c rowLayout.cellLines.length; c += 1) {\n          const linesInCell = rowLayout.cellLines[c];\n          let textY = top - TABLE_CELL_PADDING_Y - TABLE_FONT_SIZE;\n          for (const segment of linesInCell) {\n            currentPage.push({\n              type: \u0027text\u0027,\n              text: segment,\n              font: rowLayout.font,\n              fontSize: rowLayout.fontSize,\n              x: xBreaks[c] + TABLE_CELL_PADDING_X,\n              y: textY,\n            });\n            textY -= TABLE_LINE_HEIGHT;\n          }\n        }\n\n        y = bottom - 4;\n        if (y \u003c MARGIN_Y) pushPage();\n      }\n      continue;\n    }\n\n    y -= row.extraBefore ?? 0;\n    if (y \u003c MARGIN_Y) pushPage();\n\n    const prefix = row.bullet ?? \u0027\u0027;\n    const bodyMaxChars = estimateMaxChars(row.fontSize, row.indent);\n    const wrapped = wrapText(row.text, Math.max(12, bodyMaxChars - prefix.length));\n\n    for (let i = 0; i \u003c wrapped.length; i += 1) {\n      const text = (i === 0 ? prefix : \u0027 \u0027.repeat(prefix.length)) + wrapped[i];\n      currentPage.push({ type: \u0027text\u0027, text, font: row.font, fontSize: row.fontSize, x: MARGIN_X + row.indent, y });\n      y -= row.lineHeight;\n      if (y \u003c MARGIN_Y) pushPage();\n    }\n\n    y -= (row.extraAfter ?? LINE_GAP);\n    if (y \u003c MARGIN_Y) pushPage();\n  }\n\n  if (currentPage.length === 0) {\n    currentPage.push({ type: \u0027text\u0027, text: \u0027(empty document)\u0027, font: \u0027F1\u0027, fontSize: 11, x: MARGIN_X, y: PAGE_HEIGHT - MARGIN_Y });\n  }\n\n  pages.push(currentPage);\n  return pages;\n}\n\nfunction pageToStream(pageRows) {\n  const lines = [];\n\n  for (const row of pageRows) {\n    if (row.type === \u0027line\u0027) {\n      lines.push((row.width ?? 0.2).toFixed(2) + \u0027 w\u0027);\n      lines.push(row.x1.toFixed(2) + \u0027 \u0027 + row.y1.toFixed(2) + \u0027 m\u0027);\n      lines.push(row.x2.toFixed(2) + \u0027 \u0027 + row.y2.toFixed(2) + \u0027 l\u0027);\n      lines.push(\u0027S\u0027);\n      continue;\n    }\n\n    const safe = escapePdfLiteral(toWinAnsiString(row.text || \u0027\u0027));\n    lines.push(\u0027BT\u0027);\n    lines.push(\u0027/\u0027 + row.font + \u0027 \u0027 + row.fontSize + \u0027 Tf\u0027);\n    lines.push(\u00271 0 0 1 \u0027 + row.x.toFixed(2) + \u0027 \u0027 + row.y.toFixed(2) + \u0027 Tm\u0027);\n    lines.push(\u0027(\u0027 + safe + \u0027) Tj\u0027);\n    lines.push(\u0027ET\u0027);\n  }\n\n  return lines.join(\u0027\\n\u0027);\n}\n\nfunction buildPdfDocument(pageStreams) {\n  const objects = [];\n  const pageStart = 5;\n  const contentStart = pageStart + pageStreams.length;\n  const pageRefs = pageStreams.map((_, i) =\u003e (pageStart + i) + \u0027 0 R\u0027).join(\u0027 \u0027);\n\n  objects[1] = \u0027\u003c\u003c /Type /Catalog /Pages 2 0 R \u003e\u003e\u0027;\n  objects[2] = \u0027\u003c\u003c /Type /Pages /Kids [\u0027 + pageRefs + \u0027] /Count \u0027 + pageStreams.length + \u0027 \u003e\u003e\u0027;\n  objects[3] = \u0027\u003c\u003c /Type /Font /Subtype /Type1 /BaseFont /Times-Roman /Encoding /WinAnsiEncoding \u003e\u003e\u0027;\n  objects[4] = \u0027\u003c\u003c /Type /Font /Subtype /Type1 /BaseFont /Times-Bold /Encoding /WinAnsiEncoding \u003e\u003e\u0027;\n\n  for (let i = 0; i \u003c pageStreams.length; i += 1) {\n    const pageObj = pageStart + i;\n    const contentObj = contentStart + i;\n    objects[pageObj] = [\n      \u0027\u003c\u003c /Type /Page\u0027,\n      \u0027/Parent 2 0 R\u0027,\n      \u0027/MediaBox [0 0 \u0027 + PAGE_WIDTH + \u0027 \u0027 + PAGE_HEIGHT + \u0027]\u0027,\n      \u0027/Resources \u003c\u003c /Font \u003c\u003c /F1 3 0 R /F2 4 0 R \u003e\u003e \u003e\u003e\u0027,\n      \u0027/Contents \u0027 + contentObj + \u0027 0 R\u0027,\n      \u0027\u003e\u003e\u0027,\n    ].join(\u0027 \u0027);\n\n    const stream = pageStreams[i];\n    const len = Buffer.byteLength(stream, \u0027latin1\u0027);\n    objects[contentObj] = \u0027\u003c\u003c /Length \u0027 + len + \u0027 \u003e\u003e\\nstream\\n\u0027 + stream + \u0027\\nendstream\u0027;\n  }\n\n  const maxObject = objects.length - 1;\n  let pdf = \u0027%PDF-1.4\\n\u0027;\n  const offsets = [0];\n\n  for (let i = 1; i \u003c= maxObject; i += 1) {\n    offsets[i] = Buffer.byteLength(pdf, \u0027latin1\u0027);\n    pdf += i + \u0027 0 obj\\n\u0027 + objects[i] + \u0027\\nendobj\\n\u0027;\n  }\n\n  const xrefOffset = Buffer.byteLength(pdf, \u0027latin1\u0027);\n  pdf += \u0027xref\\n0 \u0027 + (maxObject + 1) + \u0027\\n\u0027;\n  pdf += \u00270000000000 65535 f \\n\u0027;\n\n  for (let i = 1; i \u003c= maxObject; i += 1) {\n    const offset = String(offsets[i]).padStart(10, \u00270\u0027);\n    pdf += offset + \u0027 00000 n \\n\u0027;\n  }\n\n  pdf += \u0027trailer\\n\u003c\u003c /Size \u0027 + (maxObject + 1) + \u0027 /Root 1 0 R \u003e\u003e\\n\u0027;\n  pdf += \u0027startxref\\n\u0027 + xrefOffset + \u0027\\n%%EOF\u0027;\n  return Buffer.from(pdf, \u0027latin1\u0027);\n}\n\nconst rows = buildLayout(markdown);\nconst pages = paginate(rows);\nconst streams = pages.map(pageToStream);\nconst pdfBuffer = buildPdfDocument(streams);\n\nreturn [{\n  json: { ...json },\n  binary: {\n    ...(item.binary ?? {}),\n    requirementsPdf: {\n      data: pdfBuffer.toString(\u0027base64\u0027),\n      mimeType: \u0027application/pdf\u0027,\n      fileName: \u0027requirements.pdf\u0027,\n      fileExtension: \u0027pdf\u0027,\n    },\n  },\n}];\n\n"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1120,
+                                       896
+                                   ],
+                      "id":  "daa48b1f-9c1b-436e-9d73-5e1e5f33fe0c",
+                      "name":  "REQ - Markdown to PDF"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       1584,
+                                       1136
+                                   ],
+                      "id":  "4f07ac08-5633-4ba2-83da-dddfcaaf578e",
+                      "name":  "REQ - Md and Pdf"
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  "mistral-medium-latest",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "a589f3e4-d8b1-475a-bf56-c502c523f8f4",
+                      "name":  "REQ - Model",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+                      "typeVersion":  1,
+                      "position":  [
+                                       208,
+                                       1360
+                                   ],
+                      "credentials":  {
+                                          "mistralCloudApi":  {
+                                                                  "id":  "9qA4lFjMsBaIEbTf",
+                                                                  "name":  "Mistral Cloud account"
+                                                              }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "882f0b48-089a-449b-8586-399848a51182",
+                      "name":  "REQ - OCR Extract Text",
+                      "type":  "n8n-nodes-base.mistralAi",
+                      "typeVersion":  1,
+                      "position":  [
+                                       896,
+                                       544
+                                   ],
+                      "retryOnFail":  true,
+                      "maxTries":  5,
+                      "waitBetweenTries":  5000,
+                      "credentials":  {
+                                          "mistralCloudApi":  {
+                                                                  "id":  "9qA4lFjMsBaIEbTf",
+                                                                  "name":  "Mistral Cloud account"
+                                                              }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "\nconst CHUNK_MAX_CHARS = 7000;\nconst CHUNK_OVERLAP_CHARS = 500;\n\nfunction normalizeText(text) {\n  let value = String(text || \u0027\u0027);\n  value = value.split(\u0027\\u0000\u0027).join(\u0027\u0027);\n  value = value.replace(/\\r\\n/g, \u0027\\n\u0027);\n  value = value.replace(/\\r/g, \u0027\\n\u0027);\n  value = value.replace(/[ \\t]+/g, \u0027 \u0027);\n  value = value.replace(/\\n{3,}/g, \u0027\\n\\n\u0027);\n  return value\n    .split(\u0027\\n\u0027)\n    .map((line) =\u003e line.trimEnd())\n    .join(\u0027\\n\u0027)\n    .trim();\n}\n\nfunction chunkTextFullCoverage(text, maxChars, overlapChars) {\n  const chunks = [];\n  if (!text) return chunks;\n\n  let start = 0;\n  const len = text.length;\n\n  while (start \u003c len) {\n    let end = Math.min(start + maxChars, len);\n\n    if (end \u003c len) {\n      let breakAt = text.lastIndexOf(\u0027\\n\\n\u0027, end);\n      if (breakAt \u003c= start + Math.floor(maxChars * 0.55)) breakAt = text.lastIndexOf(\u0027\\n\u0027, end);\n      if (breakAt \u003c= start + Math.floor(maxChars * 0.45)) breakAt = end;\n      end = breakAt;\n    }\n\n    if (end \u003c= start) end = Math.min(start + maxChars, len);\n\n    const chunk = text.slice(start, end).trim();\n    if (chunk) chunks.push({ start, end, text: chunk });\n\n    if (end \u003e= len) break;\n\n    start = Math.max(start + 1, end - overlapChars);\n    while (start \u003c len \u0026\u0026 /\\s/.test(text[start])) start++;\n  }\n\n  return chunks;\n}\n\nfunction getPairedIndices(item, fallbackIndex) {\n  if (!item || item.pairedItem == null) return [fallbackIndex];\n  if (Array.isArray(item.pairedItem)) {\n    return item.pairedItem\n      .map((entry) =\u003e Number(entry?.item))\n      .filter((index) =\u003e Number.isInteger(index) \u0026\u0026 index \u003e= 0);\n  }\n\n  const single = Number(item.pairedItem?.item);\n  if (Number.isInteger(single) \u0026\u0026 single \u003e= 0) return [single];\n  return [fallbackIndex];\n}\n\nfunction extractOcrContent(payload) {\n  if (!payload || typeof payload !== \u0027object\u0027) return \u0027\u0027;\n\n  const pages = Array.isArray(payload.pages) ? payload.pages : [];\n  if (pages.length \u003e 0) {\n    const joinedPages = pages\n      .map((page) =\u003e {\n        if (!page || typeof page !== \u0027object\u0027) return \u0027\u0027;\n        if (typeof page.markdown === \u0027string\u0027) return page.markdown;\n        if (typeof page.text === \u0027string\u0027) return page.text;\n        if (typeof page.content === \u0027string\u0027) return page.content;\n        return \u0027\u0027;\n      })\n      .filter((value) =\u003e value \u0026\u0026 value.trim() !== \u0027\u0027)\n      .join(\u0027\\n\\n\u0027);\n\n    if (joinedPages.trim() !== \u0027\u0027) return joinedPages;\n  }\n\n  const directCandidates = [\u0027markdown\u0027, \u0027text\u0027, \u0027content\u0027, \u0027extractedText\u0027];\n  for (const key of directCandidates) {\n    if (typeof payload[key] === \u0027string\u0027 \u0026\u0026 payload[key].trim() !== \u0027\u0027) {\n      return payload[key];\n    }\n  }\n\n  return \u0027\u0027;\n}\n\nfunction decodeUtf16Be(buffer) {\n  const out = Buffer.alloc(buffer.length);\n  for (let i = 0; i \u003c buffer.length - 1; i += 2) {\n    out[i] = buffer[i + 1];\n    out[i + 1] = buffer[i];\n  }\n  if (buffer.length % 2 === 1) out[buffer.length - 1] = buffer[buffer.length - 1];\n  return out.toString(\u0027utf16le\u0027);\n}\n\nfunction looksLikeUtf16Le(buffer) {\n  const sample = buffer.subarray(0, Math.min(buffer.length, 2000));\n  let zeroOdd = 0;\n  let pairs = 0;\n  for (let i = 1; i \u003c sample.length; i += 2) {\n    pairs += 1;\n    if (sample[i] === 0) zeroOdd += 1;\n  }\n  return pairs \u003e 0 \u0026\u0026 zeroOdd / pairs \u003e= 0.35;\n}\n\nfunction looksLikeUtf16Be(buffer) {\n  const sample = buffer.subarray(0, Math.min(buffer.length, 2000));\n  let zeroEven = 0;\n  let pairs = 0;\n  for (let i = 0; i \u003c sample.length; i += 2) {\n    pairs += 1;\n    if (sample[i] === 0) zeroEven += 1;\n  }\n  return pairs \u003e 0 \u0026\u0026 zeroEven / pairs \u003e= 0.35;\n}\n\nfunction decodeTextBuffer(buffer) {\n  if (!buffer || buffer.length === 0) return \u0027\u0027;\n\n  if (buffer.length \u003e= 3 \u0026\u0026 buffer[0] === 0xef \u0026\u0026 buffer[1] === 0xbb \u0026\u0026 buffer[2] === 0xbf) {\n    return buffer.subarray(3).toString(\u0027utf8\u0027);\n  }\n\n  if (buffer.length \u003e= 2 \u0026\u0026 buffer[0] === 0xff \u0026\u0026 buffer[1] === 0xfe) {\n    return buffer.subarray(2).toString(\u0027utf16le\u0027);\n  }\n\n  if (buffer.length \u003e= 2 \u0026\u0026 buffer[0] === 0xfe \u0026\u0026 buffer[1] === 0xff) {\n    return decodeUtf16Be(buffer.subarray(2));\n  }\n\n  if (looksLikeUtf16Le(buffer)) return buffer.toString(\u0027utf16le\u0027);\n  if (looksLikeUtf16Be(buffer)) return decodeUtf16Be(buffer);\n\n  return buffer.toString(\u0027utf8\u0027);\n}\n\nconst getBinaryDataBufferHelper = this?.helpers?.getBinaryDataBuffer?.bind(this.helpers);\n\nasync function getBinaryContentFromItem(itemLike, itemIndex, preferredKey) {\n  if (!itemLike?.binary || typeof itemLike.binary !== \u0027object\u0027) {\n    return { buffer: Buffer.alloc(0), entry: null, key: null };\n  }\n\n  const key = preferredKey \u0026\u0026 itemLike.binary[preferredKey]\n    ? preferredKey\n    : itemLike.binary.data\n      ? \u0027data\u0027\n      : Object.keys(itemLike.binary)[0] ?? null;\n\n  if (!key) return { buffer: Buffer.alloc(0), entry: null, key: null };\n\n  const entry = itemLike.binary[key] ?? null;\n\n  if (typeof getBinaryDataBufferHelper === \u0027function\u0027) {\n    try {\n      const buffer = await getBinaryDataBufferHelper(itemIndex, key);\n      if (buffer?.length) return { buffer, entry, key };\n    } catch (error) {\n    }\n  }\n\n  if (entry?.data \u0026\u0026 entry.data !== \u0027filesystem-v2\u0027) {\n    try {\n      return { buffer: Buffer.from(String(entry.data), \u0027base64\u0027), entry, key };\n    } catch (error) {\n    }\n  }\n\n  return { buffer: Buffer.alloc(0), entry, key };\n}\n\nconst firstJson = $input.first()?.json ?? {};\nconst items = $input.all();\nconst sourceItems = typeof $items === \u0027function\u0027\n  ? ($items(\u0027REQ - Expand Zip for OCR\u0027) || [])\n  : [];\n\nconst extractedFiles = [];\nconst unreadableFiles = [];\nconst skippedFiles = [];\nconst skippedSeen = new Set();\n\nfor (let index = 0; index \u003c items.length; index++) {\n  const item = items[index];\n  const json = item.json ?? {};\n\n  const pairCandidates = getPairedIndices(item, index);\n  const sourcePairIndex = pairCandidates[0] ?? index;\n  const sourceItem = pairCandidates\n    .map((pairIndex) =\u003e sourceItems[pairIndex])\n    .find((entry) =\u003e entry \u0026\u0026 typeof entry === \u0027object\u0027) ?? null;\n\n  const sourceJson = sourceItem?.json ?? {};\n  const mergedJson = { ...sourceJson, ...json };\n\n  if (Array.isArray(sourceJson.skippedFromZip)) {\n    for (const skipped of sourceJson.skippedFromZip) {\n      const key = JSON.stringify(skipped);\n      if (!skippedSeen.has(key)) {\n        skippedSeen.add(key);\n        skippedFiles.push(skipped);\n      }\n    }\n  }\n\n  const fileName = String(mergedJson.fileName || (\u0027file_\u0027 + (index + 1)));\n  const propertyName = String(mergedJson.propertyName || \u0027data\u0027);\n  const sourceKind = String(mergedJson.sourceKind || \u0027\u0027).toLowerCase();\n\n  let content = \u0027\u0027;\n  let mimeType = String(mergedJson.mimeType || \u0027application/octet-stream\u0027);\n  let extension = String(mergedJson.extension || \u0027\u0027);\n  let extractionMethod = String(mergedJson.extractionMethod || \u0027\u0027);\n\n  if (sourceKind === \u0027text\u0027) {\n    const { buffer, entry } = sourceItem\n      ? await getBinaryContentFromItem(sourceItem, sourcePairIndex, propertyName)\n      : { buffer: Buffer.alloc(0), entry: null };\n\n    if (buffer.length \u003e 0) {\n      try {\n        content = normalizeText(decodeTextBuffer(buffer));\n        extractionMethod = extractionMethod || \u0027direct_text_decode\u0027;\n        mimeType = String(entry?.mimeType || mimeType || \u0027text/plain\u0027);\n        extension = String(entry?.fileExtension || extension || \u0027txt\u0027);\n      } catch (error) {\n      }\n    }\n\n    if (!content) {\n      content = normalizeText(extractOcrContent(mergedJson));\n      if (content) {\n        extractionMethod = extractionMethod || \u0027text_field_fallback\u0027;\n      }\n    }\n  } else {\n    content = normalizeText(extractOcrContent(mergedJson));\n    if (!content) {\n      const skipInfo = {\n        fileName,\n        propertyName,\n        reason: \u0027non_text_passthrough_no_extractable_text\u0027,\n      };\n      const key = JSON.stringify(skipInfo);\n      if (!skippedSeen.has(key)) {\n        skippedSeen.add(key);\n        skippedFiles.push(skipInfo);\n      }\n      continue;\n    }\n    extractionMethod = extractionMethod || \u0027passthrough_text\u0027;\n  }\n\n  if (!content) {\n    unreadableFiles.push({\n      fileName,\n      propertyName,\n      reason: \u0027no_text_in_response\u0027,\n    });\n    continue;\n  }\n\n  extractedFiles.push({\n    fileName,\n    propertyName,\n    mimeType,\n    extension,\n    extractionMethod,\n    content,\n  });\n}\n\nif (unreadableFiles.length \u003e 0) {\n  const fileList = unreadableFiles.map((entry) =\u003e entry.fileName).join(\u0027, \u0027);\n  throw new Error(\n    [\n      \u0027No readable text extracted for: \u0027 + fileList,\n      JSON.stringify(unreadableFiles, null, 2),\n    ].join(\u0027\\n\u0027),\n  );\n}\n\nif (extractedFiles.length === 0) {\n  throw new Error(\u0027No readable text extracted from supported files.\u0027);\n}\n\nconst chunkItems = [];\nconst coverage = {\n  totalFiles: extractedFiles.length,\n  skippedFiles,\n  unreadableFiles,\n  totalChunks: 0,\n  chunkMaxChars: CHUNK_MAX_CHARS,\n  chunkOverlapChars: CHUNK_OVERLAP_CHARS,\n};\n\nextractedFiles.forEach((file, fileOrder) =\u003e {\n  const chunks = chunkTextFullCoverage(file.content, CHUNK_MAX_CHARS, CHUNK_OVERLAP_CHARS);\n  if (chunks.length === 0) {\n    throw new Error(\u0027No chunks generated for file: \u0027 + file.fileName);\n  }\n\n  coverage.totalChunks += chunks.length;\n\n  chunks.forEach((chunk, chunkIndex) =\u003e {\n    const chunkPrompt = [\n      \u0027You are extracting requirements evidence from one chunk of source documents.\u0027,\n      \u0027Return concise but complete extracted requirements from this chunk only.\u0027,\n      \u0027Do not invent facts. If uncertain, state UNKNOWN.\u0027,\n      \u0027\u0027,\n      \u0027File: \u0027 + file.fileName,\n      \u0027Chunk: \u0027 + (chunkIndex + 1) + \u0027/\u0027 + chunks.length,\n      \u0027\u0027,\n      \u0027Output format:\u0027,\n      \u0027- Bullet list with concrete obligations, constraints, dates, thresholds, penalties, deliverables, role rules, acceptance criteria, and technical constraints present in this chunk.\u0027,\n      \u0027- Preserve exact values when present.\u0027,\n      \u0027- If chunk has no useful requirements text, return exactly: NO_RELEVANT_REQUIREMENTS\u0027,\n      \u0027\u0027,\n      \u0027Chunk content:\u0027,\n      chunk.text,\n    ].join(\u0027\\n\u0027);\n\n    chunkItems.push({\n      json: {\n        ...firstJson,\n        chunkPrompt,\n        chunkMeta: {\n          fileName: file.fileName,\n          fileOrder,\n          chunkIndex,\n          chunkCountForFile: chunks.length,\n          startOffset: chunk.start,\n          endOffset: chunk.end,\n          extractionMethod: file.extractionMethod,\n        },\n        coverage,\n      },\n    });\n  });\n});\n\nif (chunkItems.length === 0) {\n  throw new Error(\u0027No chunk prompts generated from extracted content.\u0027);\n}\n\nreturn chunkItems;\n"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       320,
+                                       816
+                                   ],
+                      "id":  "dbf6081b-7435-4ad2-b488-78766c1367bf",
+                      "name":  "REQ - Parse Information"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first();\nconst json = item?.json ?? {};\nconst requirements = String(json.response ?? \u0027\u0027).trim();\nif (!requirements) throw new Error(\u0027Requirements draft is missing.\u0027);\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? \u0027\u0027).trim();\nif (!zipDownloadUrl) throw new Error(\u0027Review ZIP download URL is missing.\u0027);\nconst zipDownloadToken = String(json.zipDownloadToken ?? \u0027\u0027).trim();\nif (!zipDownloadToken) throw new Error(\u0027Review ZIP download token is missing.\u0027);\nconst downloadLinkHtml = \u0027\u003cp\u003e\u003ca href=\"\u0027 + zipDownloadUrl + \u0027\" download target=\"_blank\" rel=\"noopener noreferrer\"\u003eDownload current Requirements ZIP (Markdown + PDF)\u003c/a\u003e\u003c/p\u003e\u0027;\nconst output = {\n  json: { requirements, revisionNumber, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary \u0026\u0026 Object.keys(item.binary).length \u003e 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1952,
+                                       800
+                                   ],
+                      "id":  "77338f62-e7fb-46dd-ab4a-0da5facd04e2",
+                      "name":  "REQ - Prepare Information"
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  "mistral-medium-latest",
+                                         "options":  {
+                                                         "maxTokens":  32768,
+                                                         "temperature":  0.1
+                                                     }
+                                     },
+                      "id":  "c4012edf-aadd-48ab-a068-dc3e3e5f9d37",
+                      "name":  "REQ - Refinement Model",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+                      "typeVersion":  1,
+                      "position":  [
+                                       720,
+                                       416
+                                   ],
+                      "credentials":  {
+                                          "mistralCloudApi":  {
+                                                                  "id":  "9qA4lFjMsBaIEbTf",
+                                                                  "name":  "Mistral Cloud account"
+                                                              }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       1216,
+                                       240
+                                   ],
+                      "id":  "3906a215-69fb-4c0c-be29-0f2dc83d67d3",
+                      "name":  "REQ - Response and Revision Number"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "compress",
+                                         "binaryPropertyName":  "requirements,requirementsPdf",
+                                         "fileName":  "req.zip",
+                                         "binaryPropertyOutput":  "reviewZip"
+                                     },
+                      "type":  "n8n-nodes-base.compression",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       1328,
+                                       784
+                                   ],
+                      "id":  "1e723b2d-f004-4a44-aa4c-880101ec0184",
+                      "name":  "REQ - Zip to Review"
+                  },
+                  {
+                      "parameters":  {
+                                         "content":  "## Requirements Generation Module\n\nTransforms the **user instructions** into a **structured requirements document**.",
+                                         "height":  1504,
+                                         "width":  2176,
+                                         "color":  "#DBEAFE"
+                                     },
+                      "type":  "n8n-nodes-base.stickyNote",
+                      "position":  [
+                                       0,
+                                       0
+                                   ],
+                      "typeVersion":  1,
+                      "id":  "463856a1-fb83-470f-8c26-81c1694a7aac",
+                      "name":  "Sticky Note2"
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "cond-b13b448a-55bd-47c2-b556-8c20f9c207cf",
+                                                                                   "leftValue":  "={{ $json.reviewMode }}",
+                                                                                   "rightValue":  "refine",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "53bb43f6-a6b6-425e-9d9d-bc7161032d64",
+                      "name":  "REQ - Execute Refinement?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       224,
+                                       240
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== \u0027function\u0027) return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json[\u0027Start Again\u0027];\n  delete json.reviewMode;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) =\u003e !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) =\u003e !String(key).endsWith(\u0027_firstIteration\u0027)),\n  );\n}\n\nfunction firstNonEmpty(values) {\n  for (const value of values) {\n    if (typeof value === \u0027string\u0027 \u0026\u0026 value.trim()) return value.trim();\n  }\n  return \u0027\u0027;\n}\n\nfunction makeTextBinary(text, fileName, mimeType) {\n  const value = String(text ?? \u0027\u0027).trim();\n  if (!value) return null;\n  return {\n    data: Buffer.from(value, \u0027utf8\u0027).toString(\u0027base64\u0027),\n    fileName,\n    mimeType,\n  };\n}\n\nconst firstNode = getNodeItemSafe(\u0027REQ - Prepare Information for First Iteration\u0027);\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\nconst currentValue = firstNonEmpty([currentJson.requirements, currentJson.response]);\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst currentArtifact = makeTextBinary(currentValue, \u0027requirements.md\u0027, \u0027text/markdown\u0027);\nif (currentArtifact) cleanCurrentBinary[\u0027requirements\u0027] = currentArtifact;\n\nconst firstValue = firstNonEmpty([firstJson.requirements, baseJson.firstIterationRequirements, currentValue]);\nconst firstArtifact = makeTextBinary(firstValue, \u0027requirements.md\u0027, \u0027text/markdown\u0027);\nconst inheritedFirst = rawBinary[\u0027requirements_firstIteration\u0027];\nif (firstArtifact || inheritedFirst) cleanCurrentBinary[\u0027requirements_firstIteration\u0027] = firstArtifact || inheritedFirst;\n\nconst outputJson = {\n  ...baseJson,\n  reviewMode: \u0027\u0027,\n  requirements: currentValue,\n    firstIterationRequirements: firstValue,\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? \u0027\u0027).trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? \u0027\u0027).trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? \u0027\u0027).trim(),\n};\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1920,
+                                       192
+                                   ],
+                      "id":  "1b07f103-b086-4233-a3f9-c16e575edd3c",
+                      "name":  "REQ - Review Output"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nfor (const key of [\u0027Approved\u0027, \u0027Start Again\u0027, \u0027Feedback\u0027, \u0027feedback\u0027, \u0027Attachments (optional)\u0027, \u0027reviewMode\u0027]) {\n  delete json[key];\n}\nconst binary = Object.fromEntries(\n  Object.entries(item.binary ?? {}).filter(([key]) =\u003e !/^attachments?(?:_|$)/i.test(String(key)))\n);\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];"
+                                     },
+                      "id":  "5d958810-8853-40d6-af93-9d33e46e3a66",
+                      "name":  "REQ - Sanitize Output Context",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1456,
+                                       128
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "inputSource":  "passthrough"
+                                     },
+                      "id":  "d2fff4c4-5862-4b07-a6d3-75a94a9205c5",
+                      "name":  "REQ - Start",
+                      "type":  "n8n-nodes-base.executeWorkflowTrigger",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       -48,
+                                       128
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "cond-1c1e5fba-5550-4b4d-a635-7b73ba7b2c77",
+                                                                                   "leftValue":  "={{ $json.sourceKind }}",
+                                                                                   "rightValue":  "ocr",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "e62aca41-268d-4743-8cc1-ab40e1a24972",
+                      "name":  "REQ - Is Text File?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       448,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "18afbf26-13d8-41a3-bd9a-9b551ef1d8ff",
+                      "name":  "REQ - Combine Extracted Text",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       96,
+                                       816
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "\nconst MIME_BY_EXTENSION = {\n  pdf: \u0027application/pdf\u0027,\n  doc: \u0027application/msword\u0027,\n  docx: \u0027application/vnd.openxmlformats-officedocument.wordprocessingml.document\u0027,\n  rtf: \u0027application/rtf\u0027,\n};\n\nconst TEXT_AS_PLAIN_EXTENSIONS = new Set([\n  \u0027txt\u0027, \u0027text\u0027, \u0027md\u0027, \u0027markdown\u0027, \u0027rst\u0027, \u0027adoc\u0027, \u0027asciidoc\u0027, \u0027tex\u0027,\n  \u0027json\u0027, \u0027jsonl\u0027, \u0027json5\u0027, \u0027yaml\u0027, \u0027yml\u0027, \u0027toml\u0027, \u0027ini\u0027, \u0027cfg\u0027, \u0027conf\u0027, \u0027env\u0027, \u0027properties\u0027,\n  \u0027xml\u0027, \u0027csv\u0027, \u0027tsv\u0027, \u0027psv\u0027, \u0027ssv\u0027,\n  \u0027html\u0027, \u0027htm\u0027, \u0027xhtml\u0027, \u0027svg\u0027,\n  \u0027js\u0027, \u0027mjs\u0027, \u0027cjs\u0027, \u0027jsx\u0027, \u0027ts\u0027, \u0027tsx\u0027, \u0027vue\u0027, \u0027svelte\u0027,\n  \u0027py\u0027, \u0027pyi\u0027, \u0027java\u0027, \u0027kt\u0027, \u0027kts\u0027, \u0027scala\u0027, \u0027groovy\u0027,\n  \u0027c\u0027, \u0027h\u0027, \u0027cpp\u0027, \u0027cc\u0027, \u0027cxx\u0027, \u0027hpp\u0027, \u0027hh\u0027, \u0027hxx\u0027,\n  \u0027cs\u0027, \u0027go\u0027, \u0027rs\u0027, \u0027rb\u0027, \u0027php\u0027, \u0027swift\u0027, \u0027m\u0027, \u0027mm\u0027, \u0027dart\u0027, \u0027lua\u0027, \u0027r\u0027, \u0027jl\u0027, \u0027pl\u0027, \u0027pm\u0027,\n  \u0027sh\u0027, \u0027bash\u0027, \u0027zsh\u0027, \u0027fish\u0027, \u0027ps1\u0027, \u0027bat\u0027, \u0027cmd\u0027, \u0027awk\u0027, \u0027sed\u0027,\n  \u0027sql\u0027, \u0027graphql\u0027, \u0027gql\u0027, \u0027proto\u0027,\n  \u0027log\u0027, \u0027out\u0027, \u0027err\u0027,\n  \u0027gitignore\u0027, \u0027gitattributes\u0027, \u0027npmrc\u0027, \u0027yarnrc\u0027, \u0027editorconfig\u0027, \u0027dockerignore\u0027,\n  \u0027ipynb\u0027\n]);\n\nconst TEXT_FILENAME_HINTS = new Set([\n  \u0027dockerfile\u0027, \u0027makefile\u0027, \u0027jenkinsfile\u0027, \u0027procfile\u0027, \u0027vagrantfile\u0027, \u0027gemfile\u0027, \u0027rakefile\u0027,\n  \u0027.env\u0027, \u0027.env.local\u0027, \u0027.env.development\u0027, \u0027.env.test\u0027, \u0027.env.production\u0027,\n  \u0027.gitignore\u0027, \u0027.gitattributes\u0027, \u0027.npmrc\u0027, \u0027.yarnrc\u0027, \u0027.editorconfig\u0027\n]);\n\nfunction resolveMimeType(itemJson, entry) {\n  const ext = String(itemJson?.extension || entry?.fileExtension || \u0027\u0027).toLowerCase();\n  const fileName = String(itemJson?.fileName || entry?.fileName || \u0027\u0027).toLowerCase();\n  const incoming = String(entry?.mimeType || \u0027\u0027).toLowerCase();\n\n  if (MIME_BY_EXTENSION[ext]) return MIME_BY_EXTENSION[ext];\n  if (TEXT_AS_PLAIN_EXTENSIONS.has(ext)) return \u0027text/plain\u0027;\n  if (TEXT_FILENAME_HINTS.has(fileName)) return \u0027text/plain\u0027;\n\n  if (incoming.startsWith(\u0027text/\u0027)) return \u0027text/plain\u0027;\n  if (\n    incoming.includes(\u0027json\u0027)\n    || incoming.includes(\u0027xml\u0027)\n    || incoming.includes(\u0027yaml\u0027)\n    || incoming.includes(\u0027toml\u0027)\n    || incoming.includes(\u0027csv\u0027)\n    || incoming.includes(\u0027javascript\u0027)\n    || incoming.includes(\u0027typescript\u0027)\n    || incoming.includes(\u0027sql\u0027)\n    || incoming.includes(\u0027markdown\u0027)\n  ) {\n    return \u0027text/plain\u0027;\n  }\n\n  return String(entry?.mimeType || \u0027application/octet-stream\u0027);\n}\n\nconst items = $input.all();\nconst out = [];\nconst getBinaryDataBufferHelper = this?.helpers?.getBinaryDataBuffer?.bind(this.helpers);\n\nfor (let index = 0; index \u003c items.length; index++) {\n  const item = items[index];\n  const entry = item.binary?.data ?? Object.values(item.binary ?? {})[0] ?? null;\n  let buffer = Buffer.alloc(0);\n\n  if (typeof getBinaryDataBufferHelper === \u0027function\u0027) {\n    try {\n      buffer = (await getBinaryDataBufferHelper(index, \u0027data\u0027)) || Buffer.alloc(0);\n    } catch (error) {\n      buffer = Buffer.alloc(0);\n    }\n  }\n\n  if ((!buffer || buffer.length === 0) \u0026\u0026 entry?.data \u0026\u0026 entry.data !== \u0027filesystem-v2\u0027) {\n    try {\n      buffer = Buffer.from(String(entry.data), \u0027base64\u0027);\n    } catch (error) {\n      buffer = Buffer.alloc(0);\n    }\n  }\n\n  if (!buffer || buffer.length === 0) {\n    throw new Error(\u0027Missing binary payload for OCR preparation: \u0027 + String(item.json?.fileName || (\u0027item_\u0027 + index)));\n  }\n\n  const resolvedMimeType = resolveMimeType(item.json ?? {}, entry ?? {});\n\n  out.push({\n    json: { ...(item.json ?? {}), extractionMethod: \u0027mistral_ocr\u0027 },\n    binary: {\n      data: {\n        ...(entry ?? {}),\n        mimeType: resolvedMimeType,\n        data: buffer.toString(\u0027base64\u0027),\n      },\n    },\n    pairedItem: item.pairedItem ?? { item: index },\n  });\n}\n\nreturn out;\n"
+                                     },
+                      "id":  "c0fd69f4-cf90-4fcb-99c5-5c6d5f1ec0d2",
+                      "name":  "REQ - Prepare OCR Binary",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       688,
+                                       544
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       1712,
+                                       800
+                                   ],
+                      "id":  "da734da0-857d-4a36-b64e-67420123798a",
+                      "name":  "REQ - Zip and Link"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "9cf90438-0555-410d-adb0-b669cf369d04",
+                      "name":  "REQ - Workflow Output",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       2128,
+                                       144
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "REQ - Parse Information":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "REQ - Analyze Chunk",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "REQ - Model":  {
+                                            "ai_languageModel":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "REQ - Generate Response",
+                                                                             "type":  "ai_languageModel",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                        },
+                        "REQ - Markdown to PDF":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "REQ - Md and Pdf",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "REQ - OCR Extract Text":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "REQ - Combine Extracted Text",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "REQ - Md and Pdf":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "REQ - Zip to Review",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "REQ - File to Review":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "REQ - Md and Pdf",
+                                                                          "type":  "main",
+                                                                          "index":  1
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "REQ - Create Zip Link":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "REQ - Zip and Link",
+                                                                           "type":  "main",
+                                                                           "index":  1
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "REQ - Zip to Review":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "REQ - Create Zip Link",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     },
+                                                                     {
+                                                                         "node":  "REQ - Zip and Link",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "REQ - Analyze Chunk":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "REQ - Build Prompt",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "REQ - Expand Zip for OCR":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "REQ - Is Text File?",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "REQ - Decompress Zip":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "REQ - Expand Zip for OCR",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "REQ - Response and Revision Number":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "REQ - Clean Refinement Response",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                        "REQ - Generate Response":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "REQ - Clean Response",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "REQ - Chunk Analyser Model":  {
+                                                           "ai_languageModel":  [
+                                                                                    [
+                                                                                        {
+                                                                                            "node":  "REQ - Analyze Chunk",
+                                                                                            "type":  "ai_languageModel",
+                                                                                            "index":  0
+                                                                                        }
+                                                                                    ]
+                                                                                ]
+                                                       },
+                        "REQ - Clean Refinement Response":  {
+                                                                "main":  [
+                                                                             [
+                                                                                 {
+                                                                                     "node":  "REQ - Markdown to PDF",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 },
+                                                                                 {
+                                                                                     "node":  "REQ - File to Review",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 }
+                                                                             ]
+                                                                         ]
+                                                            },
+                        "REQ - Refinement Model":  {
+                                                       "ai_languageModel":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "REQ - Generate Refinement Response",
+                                                                                        "type":  "ai_languageModel",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                   },
+                        "REQ - Build Prompt":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "REQ - Generate Response",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "REQ - Build Refinement Prompt":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "REQ - Generate Refinement Response",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               },
+                                                                               {
+                                                                                   "node":  "REQ - Response and Revision Number",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "REQ - Generate Refinement Response":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "REQ - Response and Revision Number",
+                                                                                        "type":  "main",
+                                                                                        "index":  1
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                        "REQ - Clean Response":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "REQ - Markdown to PDF",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      },
+                                                                      {
+                                                                          "node":  "REQ - File to Review",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "REQ - Review Output":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "REQ - Workflow Output",
+                                                                         "type":  "main",
+                                                                         "index":  1
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "REQ - Execute Refinement?":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "REQ - Build Refinement Prompt",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ],
+                                                                       [
+                                                                           {
+                                                                               "node":  "REQ - Decompress Zip",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "REQ - Prepare Information":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "REQ - Review Output",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "REQ - Sanitize Output Context":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "REQ - Workflow Output",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "REQ - Start":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "REQ - Execute Refinement?",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             },
+                                                             {
+                                                                 "node":  "REQ - Sanitize Output Context",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "REQ - Is Text File?":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "REQ - Prepare OCR Binary",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ],
+                                                                 [
+                                                                     {
+                                                                         "node":  "REQ - Combine Extracted Text",
+                                                                         "type":  "main",
+                                                                         "index":  1
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "REQ - Combine Extracted Text":  {
+                                                             "main":  [
+                                                                          [
+                                                                              {
+                                                                                  "node":  "REQ - Parse Information",
+                                                                                  "type":  "main",
+                                                                                  "index":  0
+                                                                              }
+                                                                          ]
+                                                                      ]
+                                                         },
+                        "REQ - Prepare OCR Binary":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "REQ - OCR Extract Text",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "REQ - Zip and Link":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "REQ - Prepare Information",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  {
+                 "templateCredsSetupCompleted":  true
+             },
+    "pinData":  {
+
+                },
+    "versionId":  "35549943-2119-4a11-9cf8-52f3d3991be7",
+    "activeVersionId":  null,
+    "versionCounter":  14,
+    "triggerCount":  0,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-04-10T13:38:39.816Z",
+                       "createdAt":  "2026-04-10T13:38:39.816Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "YZvrb1LBJwl1HIq4",
+                       "projectId":  "QcpgOQcXnvTTBDCu",
+                       "project":  {
+                                       "updatedAt":  "2026-02-28T20:05:48.391Z",
+                                       "createdAt":  "2026-02-28T20:05:24.898Z",
+                                       "id":  "QcpgOQcXnvTTBDCu",
+                                       "name":  "Gustavo Henriques \u003cgusta.santos.henriques@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "874e8826-31b6-4abc-8eb0-c01ae9472bd2"
+                                   }
+                   }
+               ],
+    "tags":  [
+
+             ],
+    "activeVersion":  null
+}

@@ -1,0 +1,385 @@
+{
+    "updatedAt":  "2026-04-10T13:42:36.470Z",
+    "createdAt":  "2026-04-10T13:39:06.001Z",
+    "id":  "pQM23J0BoE8iVhNc",
+    "name":  "zip link",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "workflowInputs":  {
+                                                                "values":  [
+                                                                               {
+                                                                                   "name":  "archiveMimeType"
+                                                                               },
+                                                                               {
+                                                                                   "name":  "archiveFileName"
+                                                                               },
+                                                                               {
+                                                                                   "name":  "archiveData"
+                                                                               },
+                                                                               {
+                                                                                   "name":  "archiveId"
+                                                                               },
+                                                                               {
+                                                                                   "name":  "archiveBinaryProperty"
+                                                                               },
+                                                                               {
+                                                                                   "name":  "revisionNumber",
+                                                                                   "type":  "number"
+                                                                               },
+                                                                               {
+                                                                                   "name":  "response"
+                                                                               }
+                                                                           ]
+                                                            }
+                                     },
+                      "id":  "9859b519-6bb5-45c4-bf88-4c61b9866f48",
+                      "name":  "Execute Workflow Trigger",
+                      "type":  "n8n-nodes-base.executeWorkflowTrigger",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       0,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first();\nconst json = item?.json ?? {};\nconst binary = item?.binary ?? {};\n\nconst preferredKey = String(json.archiveBinaryProperty ?? \u0027\u0027).trim();\nconst archive = (\n  (preferredKey \u0026\u0026 binary[preferredKey]) ? binary[preferredKey] :\n  binary.reviewZip ??\n  binary.archive ??\n  binary.backendZip ??\n  binary.frontendZip ??\n  binary.infrastructureZip ??\n  binary.testsZip ??\n  null\n);\n\nconst staticData = $getWorkflowStaticData(\u0027global\u0027);\nif (!staticData.reviewZips) staticData.reviewZips = {};\n\nconst now = Date.now();\nfor (const [key, value] of Object.entries(staticData.reviewZips)) {\n  if (!value || typeof value !== \u0027object\u0027 || !value.createdAt || now - value.createdAt \u003e 24 * 60 * 60 * 1000) {\n    delete staticData.reviewZips[key];\n  }\n}\n\nconst archiveData = String(\n  json.archiveData ??\n  archive?.data ??\n  ((json.archiveId ?? archive?.id) ? \u0027filesystem-v2\u0027 : \u0027\u0027)\n).trim();\nconst archiveId = String(json.archiveId ?? archive?.id ?? \u0027\u0027).trim();\nconst archiveMimeType = String(json.archiveMimeType ?? archive?.mimeType ?? \u0027application/zip\u0027).trim() || \u0027application/zip\u0027;\nconst archiveFileName = String(json.archiveFileName ?? archive?.fileName ?? \u0027artifact.zip\u0027).trim() || \u0027artifact.zip\u0027;\n\nif (!archiveData) throw new Error(\u0027archiveData is required\u0027);\nif (archiveData === \u0027filesystem-v2\u0027 \u0026\u0026 !archiveId) {\n  throw new Error(\u0027archiveId is required for filesystem-backed binary data\u0027);\n}\n\nconst extensionMatch = archiveFileName.match(/\\.([A-Za-z0-9]+)$/);\nconst fileExtension = extensionMatch ? extensionMatch[1].toLowerCase() : \u0027zip\u0027;\n\nconst token = \u0027api_draft_\u0027 + now + \u0027_\u0027 + Math.random().toString(36).slice(2, 10);\nconst storedArchive = {\n  data: archiveData,\n  id: archiveId,\n  mimeType: archiveMimeType,\n  fileName: archiveFileName,\n  fileExtension,\n  createdAt: now,\n  token,\n};\n\nstaticData.reviewZips[token] = storedArchive;\nstaticData.latestReviewZipToken = token;\n\nreturn [{\n  json: {\n    response: String(json.response ?? \u0027\u0027),\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    zipDownloadToken: token,\n    zipDownloadUrl: \u0027/webhook/review-download-file?token=\u0027 + encodeURIComponent(token),\n  }\n}];"
+                                     },
+                      "id":  "a78a1af7-9f34-4634-b893-f240448e79c5",
+                      "name":  "Store Review ZIP",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       240,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "path":  "review-download-file",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "115c6d05-8880-48c8-9403-cb49a2b314a3",
+                      "name":  "Review Download Webhook",
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       0,
+                                       320
+                                   ],
+                      "webhookId":  "52f70931-79e1-47de-9db7-07a757f42bbc"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first()?.json ?? {};\nconst token = String(item.query?.token ?? \u0027\u0027).trim();\nconst staticData = $getWorkflowStaticData(\u0027global\u0027);\nconst reviewZips = staticData.reviewZips || {};\nlet resolvedToken = token || String(staticData.latestReviewZipToken ?? \u0027\u0027).trim();\nlet stored = resolvedToken ? reviewZips[resolvedToken] : null;\n\nif (!stored) {\n  for (const [candidateToken, candidate] of Object.entries(reviewZips)) {\n    if (!candidate || typeof candidate !== \u0027object\u0027 || !candidate.data) continue;\n    if (!stored || Number(candidate.createdAt ?? 0) \u003e Number(stored.createdAt ?? 0)) {\n      stored = candidate;\n      resolvedToken = candidateToken;\n    }\n  }\n}\n\nif (!stored?.data) throw new Error(\u0027Review ZIP not found or expired\u0027);\n\nconst archive = {\n  data: stored.data,\n  mimeType: stored.mimeType || \u0027application/zip\u0027,\n  fileName: stored.fileName,\n  fileExtension: stored.fileExtension || \u0027zip\u0027,\n};\nif (stored.id) archive.id = stored.id;\n\nreturn [{ json: { token: resolvedToken || stored.token || \u0027\u0027 }, binary: { archive } }];"
+                                     },
+                      "id":  "993fe2a6-7146-4bda-8b37-3ff1645602b2",
+                      "name":  "Load Review ZIP",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       240,
+                                       320
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "binary",
+                                         "responseDataSource":  "set",
+                                         "inputFieldName":  "archive",
+                                         "options":  {
+                                                         "responseHeaders":  {
+                                                                                 "entries":  [
+                                                                                                 {
+                                                                                                     "name":  "Content-Type",
+                                                                                                     "value":  "application/zip"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "name":  "Content-Disposition",
+                                                                                                     "value":  "={{ \u0027attachment; filename=\u0027 + ($binary.archive.fileName) }}"
+                                                                                                 }
+                                                                                             ]
+                                                                             }
+                                                     }
+                                     },
+                      "id":  "bf1b697a-75d2-4d21-a2bc-ab52e18c2137",
+                      "name":  "Respond With Review ZIP",
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       480,
+                                       320
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Execute Workflow Trigger":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "Store Review ZIP",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "Review Download Webhook":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Load Review ZIP",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "Load Review ZIP":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Respond With Review ZIP",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "staticData":  {
+                       "global":  {
+                                      "reviewZips":  {
+                                                         "api_draft_1776896309373_tog1ykdf":  {
+                                                                                                  "data":  "filesystem-v2",
+                                                                                                  "id":  "filesystem-v2:workflows/EeuRQNgUPn92Ex77/executions/1289/binary_data/91a70077-0a17-4e86-9491-699cc98f7759",
+                                                                                                  "mimeType":  "application/zip",
+                                                                                                  "fileName":  "api.zip",
+                                                                                                  "fileExtension":  "zip",
+                                                                                                  "createdAt":  1776896309373,
+                                                                                                  "token":  "api_draft_1776896309373_tog1ykdf"
+                                                                                              },
+                                                         "api_draft_1776940189512_itdzlydj":  {
+                                                                                                  "data":  "filesystem-v2",
+                                                                                                  "id":  "filesystem-v2:workflows/F1rwZMAaUyr0aYq5/executions/1292/binary_data/b5d67b12-3583-4830-9b47-5bc160fef4e9",
+                                                                                                  "mimeType":  "application/zip",
+                                                                                                  "fileName":  "req.zip",
+                                                                                                  "fileExtension":  "zip",
+                                                                                                  "createdAt":  1776940189512,
+                                                                                                  "token":  "api_draft_1776940189512_itdzlydj"
+                                                                                              }
+                                                     },
+                                      "latestReviewZipToken":  "api_draft_1776940189512_itdzlydj"
+                                  }
+                   },
+    "meta":  null,
+    "pinData":  {
+
+                },
+    "versionId":  "fe84b805-daff-4f21-a8f5-14299b4b675c",
+    "activeVersionId":  "fe84b805-daff-4f21-a8f5-14299b4b675c",
+    "versionCounter":  75,
+    "triggerCount":  1,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-04-10T13:39:06.009Z",
+                       "createdAt":  "2026-04-10T13:39:06.009Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "pQM23J0BoE8iVhNc",
+                       "projectId":  "QcpgOQcXnvTTBDCu",
+                       "project":  {
+                                       "updatedAt":  "2026-02-28T20:05:48.391Z",
+                                       "createdAt":  "2026-02-28T20:05:24.898Z",
+                                       "id":  "QcpgOQcXnvTTBDCu",
+                                       "name":  "Gustavo Henriques \u003cgusta.santos.henriques@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "874e8826-31b6-4abc-8eb0-c01ae9472bd2"
+                                   }
+                   }
+               ],
+    "tags":  [
+
+             ],
+    "activeVersion":  {
+                          "updatedAt":  "2026-04-10T16:51:21.000Z",
+                          "createdAt":  "2026-04-10T13:39:06.014Z",
+                          "versionId":  "fe84b805-daff-4f21-a8f5-14299b4b675c",
+                          "workflowId":  "pQM23J0BoE8iVhNc",
+                          "nodes":  [
+                                        {
+                                            "parameters":  {
+                                                               "workflowInputs":  {
+                                                                                      "values":  [
+                                                                                                     {
+                                                                                                         "name":  "archiveMimeType"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "archiveFileName"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "archiveData"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "archiveId"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "archiveBinaryProperty"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "revisionNumber",
+                                                                                                         "type":  "number"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "response"
+                                                                                                     }
+                                                                                                 ]
+                                                                                  }
+                                                           },
+                                            "id":  "9859b519-6bb5-45c4-bf88-4c61b9866f48",
+                                            "name":  "Execute Workflow Trigger",
+                                            "type":  "n8n-nodes-base.executeWorkflowTrigger",
+                                            "typeVersion":  1.1,
+                                            "position":  [
+                                                             0,
+                                                             0
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "const item = $input.first();\nconst json = item?.json ?? {};\nconst binary = item?.binary ?? {};\n\nconst preferredKey = String(json.archiveBinaryProperty ?? \u0027\u0027).trim();\nconst archive = (\n  (preferredKey \u0026\u0026 binary[preferredKey]) ? binary[preferredKey] :\n  binary.reviewZip ??\n  binary.archive ??\n  binary.backendZip ??\n  binary.frontendZip ??\n  binary.infrastructureZip ??\n  binary.testsZip ??\n  null\n);\n\nconst staticData = $getWorkflowStaticData(\u0027global\u0027);\nif (!staticData.reviewZips) staticData.reviewZips = {};\n\nconst now = Date.now();\nfor (const [key, value] of Object.entries(staticData.reviewZips)) {\n  if (!value || typeof value !== \u0027object\u0027 || !value.createdAt || now - value.createdAt \u003e 24 * 60 * 60 * 1000) {\n    delete staticData.reviewZips[key];\n  }\n}\n\nconst archiveData = String(\n  json.archiveData ??\n  archive?.data ??\n  ((json.archiveId ?? archive?.id) ? \u0027filesystem-v2\u0027 : \u0027\u0027)\n).trim();\nconst archiveId = String(json.archiveId ?? archive?.id ?? \u0027\u0027).trim();\nconst archiveMimeType = String(json.archiveMimeType ?? archive?.mimeType ?? \u0027application/zip\u0027).trim() || \u0027application/zip\u0027;\nconst archiveFileName = String(json.archiveFileName ?? archive?.fileName ?? \u0027artifact.zip\u0027).trim() || \u0027artifact.zip\u0027;\n\nif (!archiveData) throw new Error(\u0027archiveData is required\u0027);\nif (archiveData === \u0027filesystem-v2\u0027 \u0026\u0026 !archiveId) {\n  throw new Error(\u0027archiveId is required for filesystem-backed binary data\u0027);\n}\n\nconst extensionMatch = archiveFileName.match(/\\.([A-Za-z0-9]+)$/);\nconst fileExtension = extensionMatch ? extensionMatch[1].toLowerCase() : \u0027zip\u0027;\n\nconst token = \u0027api_draft_\u0027 + now + \u0027_\u0027 + Math.random().toString(36).slice(2, 10);\nconst storedArchive = {\n  data: archiveData,\n  id: archiveId,\n  mimeType: archiveMimeType,\n  fileName: archiveFileName,\n  fileExtension,\n  createdAt: now,\n  token,\n};\n\nstaticData.reviewZips[token] = storedArchive;\nstaticData.latestReviewZipToken = token;\n\nreturn [{\n  json: {\n    response: String(json.response ?? \u0027\u0027),\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    zipDownloadToken: token,\n    zipDownloadUrl: \u0027/webhook/review-download-file?token=\u0027 + encodeURIComponent(token),\n  }\n}];"
+                                                           },
+                                            "id":  "a78a1af7-9f34-4634-b893-f240448e79c5",
+                                            "name":  "Store Review ZIP",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             240,
+                                                             0
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "path":  "review-download-file",
+                                                               "responseMode":  "responseNode",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "id":  "115c6d05-8880-48c8-9403-cb49a2b314a3",
+                                            "name":  "Review Download Webhook",
+                                            "type":  "n8n-nodes-base.webhook",
+                                            "typeVersion":  2.1,
+                                            "position":  [
+                                                             0,
+                                                             320
+                                                         ],
+                                            "webhookId":  "52f70931-79e1-47de-9db7-07a757f42bbc"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "const item = $input.first()?.json ?? {};\nconst token = String(item.query?.token ?? \u0027\u0027).trim();\nconst staticData = $getWorkflowStaticData(\u0027global\u0027);\nconst reviewZips = staticData.reviewZips || {};\nlet resolvedToken = token || String(staticData.latestReviewZipToken ?? \u0027\u0027).trim();\nlet stored = resolvedToken ? reviewZips[resolvedToken] : null;\n\nif (!stored) {\n  for (const [candidateToken, candidate] of Object.entries(reviewZips)) {\n    if (!candidate || typeof candidate !== \u0027object\u0027 || !candidate.data) continue;\n    if (!stored || Number(candidate.createdAt ?? 0) \u003e Number(stored.createdAt ?? 0)) {\n      stored = candidate;\n      resolvedToken = candidateToken;\n    }\n  }\n}\n\nif (!stored?.data) throw new Error(\u0027Review ZIP not found or expired\u0027);\n\nconst archive = {\n  data: stored.data,\n  mimeType: stored.mimeType || \u0027application/zip\u0027,\n  fileName: stored.fileName,\n  fileExtension: stored.fileExtension || \u0027zip\u0027,\n};\nif (stored.id) archive.id = stored.id;\n\nreturn [{ json: { token: resolvedToken || stored.token || \u0027\u0027 }, binary: { archive } }];"
+                                                           },
+                                            "id":  "993fe2a6-7146-4bda-8b37-3ff1645602b2",
+                                            "name":  "Load Review ZIP",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             240,
+                                                             320
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "respondWith":  "binary",
+                                                               "responseDataSource":  "set",
+                                                               "inputFieldName":  "archive",
+                                                               "options":  {
+                                                                               "responseHeaders":  {
+                                                                                                       "entries":  [
+                                                                                                                       {
+                                                                                                                           "name":  "Content-Type",
+                                                                                                                           "value":  "application/zip"
+                                                                                                                       },
+                                                                                                                       {
+                                                                                                                           "name":  "Content-Disposition",
+                                                                                                                           "value":  "={{ \u0027attachment; filename=\u0027 + ($binary.archive.fileName) }}"
+                                                                                                                       }
+                                                                                                                   ]
+                                                                                                   }
+                                                                           }
+                                                           },
+                                            "id":  "bf1b697a-75d2-4d21-a2bc-ab52e18c2137",
+                                            "name":  "Respond With Review ZIP",
+                                            "type":  "n8n-nodes-base.respondToWebhook",
+                                            "typeVersion":  1.5,
+                                            "position":  [
+                                                             480,
+                                                             320
+                                                         ]
+                                        }
+                                    ],
+                          "connections":  {
+                                              "Execute Workflow Trigger":  {
+                                                                               "main":  [
+                                                                                            [
+                                                                                                {
+                                                                                                    "node":  "Store Review ZIP",
+                                                                                                    "type":  "main",
+                                                                                                    "index":  0
+                                                                                                }
+                                                                                            ]
+                                                                                        ]
+                                                                           },
+                                              "Review Download Webhook":  {
+                                                                              "main":  [
+                                                                                           [
+                                                                                               {
+                                                                                                   "node":  "Load Review ZIP",
+                                                                                                   "type":  "main",
+                                                                                                   "index":  0
+                                                                                               }
+                                                                                           ]
+                                                                                       ]
+                                                                          },
+                                              "Load Review ZIP":  {
+                                                                      "main":  [
+                                                                                   [
+                                                                                       {
+                                                                                           "node":  "Respond With Review ZIP",
+                                                                                           "type":  "main",
+                                                                                           "index":  0
+                                                                                       }
+                                                                                   ]
+                                                                               ]
+                                                                  }
+                                          },
+                          "authors":  "Gustavo Henriques",
+                          "name":  "Version fe84b805",
+                          "description":  "",
+                          "autosaved":  true,
+                          "workflowPublishHistory":  [
+                                                         {
+                                                             "createdAt":  "2026-04-10T16:51:21.609Z",
+                                                             "id":  1,
+                                                             "workflowId":  "pQM23J0BoE8iVhNc",
+                                                             "versionId":  "fe84b805-daff-4f21-a8f5-14299b4b675c",
+                                                             "event":  "activated",
+                                                             "userId":  "874e8826-31b6-4abc-8eb0-c01ae9472bd2"
+                                                         }
+                                                     ]
+                      }
+}

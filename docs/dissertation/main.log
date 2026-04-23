@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  19 FEB 2026 11:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.11.2)  22 APR 2026 15:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**c:/tese/ai-codegen-thesis/docs/dissertation/main.tex
-(c:/tese/ai-codegen-thesis/docs/dissertation/main.tex
+**./main.tex
+(main.tex
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
 (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\report.cls
@@ -23,23 +23,35 @@ File: size11.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
 \abovecaptionskip=\skip49
 \belowcaptionskip=\skip50
 \bibindent=\dimen148
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty
 Package: inputenc 2024/02/08 v1.3d Input encoding file
 \inpenc@prehook=\toks17
 \inpenc@posthook=\toks18
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
-Package: babel 2025/10/22 v25.14 The multilingual framework for LuaLaTeX, pdfLaTeX and XeLaTeX
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+Package: babel 2025/10/22 v25.14 The multilingual framework for LuaLaTeX, pdfLa
+TeX and XeLaTeX
 \babel@savecnt=\count284
-LaTeX Encoding Info:    Redeclaring text command \ij (encoding OT1) on input line 2050.
-LaTeX Encoding Info:    Redeclaring text command \IJ (encoding OT1) on input line 2052.
-LaTeX Encoding Info:    Redeclaring text command \ij (encoding T1) on input line 2054.
-LaTeX Encoding Info:    Redeclaring text command \IJ (encoding T1) on input line 2055.
-LaTeX Encoding Info:    Ignoring declaration for text command \ij (encoding ?) on input line 2056.
-LaTeX Encoding Info:    Ignoring declaration for text command \IJ (encoding ?) on input line 2058.
-LaTeX Encoding Info:    Ignoring declaration for text command \SS (encoding ?) on input line 2083.
+LaTeX Encoding Info:    Redeclaring text command \ij (encoding OT1) on input li
+ne 2050.
+LaTeX Encoding Info:    Redeclaring text command \IJ (encoding OT1) on input li
+ne 2052.
+LaTeX Encoding Info:    Redeclaring text command \ij (encoding T1) on input lin
+e 2054.
+LaTeX Encoding Info:    Redeclaring text command \IJ (encoding T1) on input lin
+e 2055.
+LaTeX Encoding Info:    Ignoring declaration for text command \ij (encoding ?) 
+on input line 2056.
+LaTeX Encoding Info:    Ignoring declaration for text command \IJ (encoding ?) 
+on input line 2058.
+LaTeX Encoding Info:    Ignoring declaration for text command \SS (encoding ?) 
+on input line 2083.
 \U@D=\dimen149
 \l@unhyphenated=\language79
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.def)
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.de
+f)
 \bbl@readstream=\read2
 \bbl@dirlevel=\count285
 
@@ -52,17 +64,26 @@ Package babel Warning: Configuration files are deprecated, as
 * Local config file bblopts.cfg used
 *
 (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg
-File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of babel
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/pt\babel-portuguese.tex) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/en\babel-english.tex)
+File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
+ babel
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/pt\b
+abel-portuguese.tex)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/en\b
+abel-english.tex)
 Package babel Info: Importing font and identification data for portuguese
 (babel)             from babel-pt.ini. Reported on input line 4295.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/babel-portuges\portuguese.ldf
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/babel-portuges\port
+uguese.ldf
 Language: portuges 2021/07/09 v1.2t Portuguese support from the babel system
 Package babel Info: Making " an active character on input line 143.
 )
 Package babel Info: Importing font and identification data for english
 (babel)             from babel-en.ini. Reported on input line 4295.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/babel-english\english.ldf
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/babel-english\engli
+sh.ldf
 Language: english 2017/06/06 v3.3r English support from the babel system
 Package babel Info: Hyphen rules for 'canadian' set to \l@english
 (babel)             (\language0). Reported on input line 102.
@@ -70,11 +91,15 @@ Package babel Info: Hyphen rules for 'australian' set to \l@ukenglish
 (babel)             (\language73). Reported on input line 105.
 Package babel Info: Hyphen rules for 'newzealand' set to \l@ukenglish
 (babel)             (\language73). Reported on input line 108.
-)) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\times.sty
+))
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\times.sty
 Package: times 2020/03/25 PSNFSS-v9.3 (SPQR) 
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/blindtext\blindtext.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/blindtext\blindtext
+.sty
 Package: blindtext 2012/01/06 V2.0 blindtext-Package
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/tools\xspace.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/tools\xspace.sty
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
 )
 \c@blindtext=\count286
@@ -95,25 +120,36 @@ Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
 \c@blind@randommax=\count301
 \c@blind@pangramcount=\count302
 \c@blind@pangrammax=\count303
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.s
+ty
 Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \KV@toks@=\toks19
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.s
+ty
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
 Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.cfg
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphi
+cs.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 106.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex
+.def
 File: pdftex.def 2025/09/29 v1.2d Graphics/color driver for pdftex
 ))
 \Gin@req@height=\dimen150
 \Gin@req@width=\dimen151
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\makeidx.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\makeidx.sty
 Package: makeidx 2021/10/04 v1.0m Standard LaTeX package
 )
 \@indexfile=\write3
@@ -121,21 +157,33 @@ Package: makeidx 2021/10/04 v1.0m Standard LaTeX package
 
 
 Writing index file main.idx
-(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/base\glossaries.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/base\glo
+ssaries.sty
 Package: glossaries 2025/11/09 v4.9 (NLCT)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\ifthen.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/base\ifthen.sty
 Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/xkeyval\xkeyval.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/xkeyval\xkeyval.sty
 Package: xkeyval 2022/06/16 v2.9 package option processing (HA)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/xkeyval\xkeyval.tex (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/xkeyval\xkvutils.tex
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/xkeyval\xkeyval.t
+ex
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/xkeyval\xkvutils.
+tex
 \XKV@toks=\toks20
 \XKV@tempa@toks=\toks21
 )
 \XKV@depth=\count304
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
-)) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/mfirstuc\mfirstuc.sty
+))
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/mfirstuc\mfirstuc.s
+ty
 Package: mfirstuc 2025/04/03 v2.09 (NLCT)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox.s
+ty
 Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
 \etb@tempcnta=\count305
 )
@@ -143,36 +191,58 @@ Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
 \@glsmrest=\toks23
 ) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/xfor\xfor.sty
 Package: xfor 2009/02/05 v1.05 (NLCT)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty
+) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.st
+y
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks24
 \ex@=\dimen152
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/tracklang\tracklang.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/tracklang\tracklang
+.sty
 Package: tracklang 2025/03/11 v1.6.6 (NLCT) Track Languages
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/tracklang\tracklang.tex)
-Package tracklang Info: Tracking dialect `portuguese' (language `portuges') on input line 264.
-Package tracklang Info: Tracking dialect `english' (language `english') on input line 264.
-Package tracklang Info: Tracking dialect `english' (language `english') on input line 264.
-Package tracklang Info: Tracking dialect `portuguese' (language `portuges') on input line 264.
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/translator\translator.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/tracklang\trackla
+ng.tex)
+Package tracklang Info: Tracking dialect `portuguese' (language `portuges') on 
+input line 264.
+Package tracklang Info: Tracking dialect `english' (language `english') on inpu
+t line 264.
+Package tracklang Info: Tracking dialect `english' (language `english') on inpu
+t line 264.
+Package tracklang Info: Tracking dialect `portuguese' (language `portuges') on 
+input line 264.
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/translator\translat
+or.sty
 Package: translator 2021-05-31 v1.12d Easy translation of strings in LaTeX
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries-portuges\glossaries-portuges.ldf
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries-portuges
+\glossaries-portuges.ldf
 File: glossaries-portuges.ldf 2014/11/23 v1.0
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries-portuges\glossaries-portuges-utf8.ldf)) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries-english\glossaries-english.ldf
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries-portuges
+\glossaries-portuges-utf8.ldf))
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries-english\
+glossaries-english.ldf
 File: glossaries-english.ldf 2014/11/23 v1.0
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/datatool\datatool-base.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/datatool\datatool-b
+ase.sty
 Package: datatool-base 2025/12/04 v3.4.3 (NLCT)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
 Package: amsmath 2025/06/16 v2.17y AMS math features
 \@mathmargin=\skip51
-
 For additional information on amsmath, use the `?' option.
+
 (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
 Package: amstext 2024/11/17 v2.01 AMS text
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 \pmbraise@=\dimen153
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty
+) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.st
+y
 Package: amsopn 2022/04/08 v2.04 operator names
 )
 \inf@bad=\count306
@@ -231,7 +301,9 @@ LaTeX Info: Redefining \] on input line 2950.
 \l__datatool_tmp_datatype_int=\count323
 \l__datatool_tmpa_dim=\dimen161
 \l__datatool_tmpb_dim=\dimen162
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/datatool\datatool-l3fp.def
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/datatool\datatool-l
+3fp.def
 File: datatool-l3fp.def 2025/12/04 v3.4.3 (NLCT)
 )
 \@dtl@toks=\toks29
@@ -239,7 +311,9 @@ File: datatool-l3fp.def 2025/12/04 v3.4.3 (NLCT)
 \dtl@tmplength=\skip54
 \l__datatool_measure_box=\box55
 \dtl@sortresult=\count325
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/datatool\datatool-utf8.ldf
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/datatool\datatool-u
+tf8.ldf
 File: datatool-utf8.ldf 2025/12/04 v3.4.3 (NLCT)
 )
 \@dtl@datatype=\count326
@@ -259,10 +333,12 @@ File: datatool-utf8.ldf 2025/12/04 v3.4.3 (NLCT)
 \@dtl@foreach@level=\count340
 
 
-Package tracklang Warning: No `datatool' support for dialect `portuguese'  on input line 9924.
+Package tracklang Warning: No `datatool' support for dialect `portuguese'  on i
+nput line 9924.
 
 
-Package tracklang Warning: No `datatool' support for dialect `english'  on input line 9924.
+Package tracklang Warning: No `datatool' support for dialect `english'  on inpu
+t line 9924.
 
 \dtl@codeA=\count341
 \dtl@codeB=\count342
@@ -276,14 +352,21 @@ Package tracklang Warning: No `datatool' support for dialect `english'  on input
 \glslabeltok=\toks32
 \glsshorttok=\toks33
 \glslongtok=\toks34
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\glossary-hypernav.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\g
+lossary-hypernav.sty
 Package: glossary-hypernav 2025/11/09 v4.9 (NLCT)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\glossary-list.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\g
+lossary-list.sty
 Package: glossary-list 2025/11/09 v4.9 (NLCT)
 \glslistdottedwidth=\skip56
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\glossary-long.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\g
+lossary-long.sty
 Package: glossary-long 2025/11/09 v4.9 (NLCT)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/tools\longtable.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/tools\longtable.sty
 Package: longtable 2024-12-18 v4.23 Multi-page Table package (DPC)
 \LTleft=\skip57
 \LTright=\skip58
@@ -304,9 +387,13 @@ Package: longtable 2024-12-18 v4.23 Multi-page Table package (DPC)
 )
 \glsdescwidth=\skip61
 \glspagelistwidth=\skip62
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\glossary-super.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\g
+lossary-super.sty
 Package: glossary-super 2025/11/09 v4.9 (NLCT)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/supertabular\supertabular.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/supertabular\supert
+abular.sty
 Package: supertabular 2025/06/26 v4.2d the supertabular environment
 \c@tracingst=\count349
 \ST@wd=\dimen166
@@ -323,7 +410,9 @@ Package: supertabular 2025/06/26 v4.2d the supertabular environment
 \ST@toadd=\dimen174
 \ST@dimen=\dimen175
 \ST@pbox=\box61
-)) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\glossary-tree.sty
+))
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/glossaries/styles\g
+lossary-tree.sty
 Package: glossary-tree 2025/11/09 v4.9 (NLCT)
 \l__glossaries_tree_max_known_level_int=\count350
 \l__glossaries_tree_offset_dim=\dimen176
@@ -347,53 +436,85 @@ Package glossaries Info: Writing glossary file main.glo on input line 64.
 \openout6 = `main.acn'.
 
 Package glossaries Info: Writing glossary file main.acn on input line 64.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.s
+ty
 Package: hyperref 2025-07-12 v7.01o Hypertext links for LaTeX
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
 Package: iftex 2024/12/12 v1.0g TeX engine tests
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys
+.sty
 Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvdefinekeys.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvde
+finekeys.sty
 Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfescape.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfesca
+pe.sty
 Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.s
+ty
 Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftexcmds.sty
-Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infwarerr.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftex
+cmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infware
+rr.sty
 Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
 )
 Package pdftexcmds Info: \pdf@primitive is available.
 Package pdftexcmds Info: \pdf@ifprimitive is available.
 Package pdftexcmds Info: \pdfdraftmode found.
-)) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.sty
+))
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.sty
 Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.st
+y
 Package: nameref 2025-06-21 v2.57 Cross-referencing by name of section
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount.s
+ty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\gettitlestring.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\ge
+ttitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions
+.sty
 Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
 ))
 \c@section@level=\count352
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/stringenc\stringenc.sty
-Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO)
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/stringenc\stringe
+nc.sty
+Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
+)
 )
 \@linkdim=\dimen185
 \Hy@linkcounter=\count353
 \Hy@pagecounter=\count354
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.def
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.def
 File: pd1enc.def 2025-07-12 v7.01o Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc.s
+ty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 )
 \Hy@SavedSpaceFactor=\count355
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\puenc.def
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\puenc.def
 File: puenc.def 2025-07-12 v7.01o Hyperref: PDF Unicode definition (HO)
 Now handling font encoding PU ...
 ... no UTF-8 mapping file for font encoding PU
@@ -406,16 +527,20 @@ Package hyperref Info: Backreferencing OFF on input line 4215.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4462.
 \c@Hy@tempcnt=\count356
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty
 \Urlmuskip=\muskip18
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 4801.
 \XeTeXLinkMargin=\dimen186
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigintcalc.sty
-Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO)
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigint
+calc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
 ))
 \Fld@menulength=\count357
 \Field@Width=\dimen187
@@ -432,20 +557,30 @@ Package hyperref Info: PDF/A mode OFF on input line 6108.
 \c@Hfootnote=\count360
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.def
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.de
+f
 File: hpdftex.def 2025-07-12 v7.01o Hyperref driver for pdfTeX
 \Fld@listcount=\count361
 \c@bookmark@seq@number=\count362
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\rerunfilecheck.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\reru
+nfilecheck.sty
 Package: rerunfilecheck 2025-06-21 v1.11 Rerun checks for auxiliary files (HO)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\uniquecounter.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\uni
+quecounter.sty
 Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 )
-Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 284.
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+84.
 )
 \Hy@SectionHShift=\skip67
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyhdr.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyhdr.s
+ty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
+
 \f@nch@headwidth=\skip68
 \f@nch@offset@elh=\skip69
 \f@nch@offset@erh=\skip70
@@ -461,17 +596,27 @@ Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@widthC=\skip80
 \f@nch@widthR=\skip81
 \@temptokenb=\toks36
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/lastpage\lastpage.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/lastpage\lastpage.s
+ty
 Package: lastpage 2025/08/14 v2.1h lastpage: 2.09 or 2e? (HMM)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/lastpage\lastpage2e.sty
-Package: lastpage2e 2025/08/14 v2.1h Decide which 2e lastpage version to use (HMM)
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/lastpage\lastpagemodern.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/lastpage\lastpage2e
+.sty
+Package: lastpage2e 2025/08/14 v2.1h Decide which 2e lastpage version to use (H
+MM)
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/lastpage\lastpagemo
+dern.sty
 Package: lastpagemodern 2025-08-14 v2.1h Refers to last page's name (HMM; JPG)
 \c@lastpagecount=\count363
 ) 
-)) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
+))
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.s
+ty
 Package: geometry 2020/01/02 v5.9 Page Geometry
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
 Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
 )
 \Gm@cnth=\count364
@@ -486,17 +631,27 @@ Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
 \Gm@layouthoffset=\dimen195
 \Gm@layoutvoffset=\dimen196
 \Gm@dimlist=\toks37
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.cfg))
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 151.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1ptm.fd
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.c
+fg))
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 1
+51.
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend
+-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count367
 ) (main.aux (tex/capa.aux
 Package babel Info: 'portuguese' activates 'portuges' shorthands.
 (babel)             Reported on input line 3.
-) (tex/agradecimentos.aux) (tex/resumo_pt.aux) (tex/resumo_en.aux) (tex/acronimos.aux) (tex/introducao.aux) (tex/trab_relacionado.aux) (tex/trab_realizado.aux) (tex/conclusao.aux) (tex/apendices.aux))
+) (tex/agradecimentos.aux)
+(tex/resumo_pt.aux) (tex/abstract.aux) (tex/acronimos.aux) (tex/introducao.aux)
+(tex/estado_arte.aux) (tex/visao_geral_abordagem_solucao.aux)
+(tex/desenvolvimento_tecnico_solucao.aux) (tex/testes_metodologia_avaliacao.aux
+) (tex/resultados_discussao.aux) (tex/conclusao.aux) (tex/apendices.aux))
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 151.
@@ -517,7 +672,9 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 151.
 LaTeX Font Info:    ... okay on input line 151.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 151.
 LaTeX Font Info:    ... okay on input line 151.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pd
+f.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count368
 \scratchdimen=\dimen197
@@ -530,10 +687,15 @@ LaTeX Font Info:    ... okay on input line 151.
 \MPnumerator=\count372
 \makeMPintoPDFobject=\count373
 \everyMPtoPDFconversion=\toks39
-) (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-base.sty
+)
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstop
+df-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
-Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.cfg
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-s
+ys.cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 )) (main.glsdefs)
 Package hyperref Info: Link coloring OFF on input line 151.
@@ -610,17 +772,21 @@ Package hyperref Info: Link coloring OFF on input line 151.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-LaTeX Font Info:    Trying to load font information for OT1+phv on input line 16.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1phv.fd
+LaTeX Font Info:    Trying to load font information for OT1+phv on input line 1
+6.
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1phv.fd
 File: ot1phv.fd 2020/03/25 scalable font definitions for OT1/phv.
 )
-<pic/logo_fcul.png, id=115, 531.4254pt x 281.853pt>
+<pic/logo_fcul.png, id=151, 531.4254pt x 281.853pt>
 File: pic/logo_fcul.png Graphic file (type png)
 <use pic/logo_fcul.png>
 Package pdftex.def Info: pic/logo_fcul.png  used on input line 27.
 (pdftex.def)             Requested size: 239.1392pt x 126.83267pt.
-LaTeX Font Info:    Trying to load font information for TS1+phv on input line 55.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ts1phv.fd
+LaTeX Font Info:    Trying to load font information for TS1+phv on input line 5
+5.
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ts1phv.fd
 File: ts1phv.fd 2020/03/25 scalable font definitions for TS1/phv.
 )
 
@@ -632,7 +798,9 @@ Non-PDF special ignored!
 
 
 
-{C:/Users/Consultor/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc} <./pic/logo_fcul.png>])
+{C:/Users/Consultor/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/
+Consultor/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc} <./pic/log
+o_fcul.png>])
 
 [2
 
@@ -660,8 +828,10 @@ Package blindtext Warning: portuguese not defined, using English instead.
 \openout2 = `./tex/resumo_pt.aux'.
 
  (tex/resumo_pt.tex
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 14.
- (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1pcr.fd
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
+4.
+
+(C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 
@@ -672,9 +842,9 @@ File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 ])
 
 [8]
-\openout2 = `./tex/resumo_en.aux'.
+\openout2 = `./tex/abstract.aux'.
 
- (tex/resumo_en.tex
+ (tex/abstract.tex
 
 [9
 
@@ -733,19 +903,23 @@ No file main.gls.
 
  (tex/introducao.tex
 Cap\'{\i }tulo 1.
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 6.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
+8.
 (C:\Users\Consultor\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-)
+))
 
 [1
 
 
 
 ]
+\openout2 = `./tex/estado_arte.aux'.
+
+ (tex/estado_arte.tex
 
 Package babel Info: 'portuguese' activates 'portuges' shorthands.
-(babel)             Reported on input line 28.
+(babel)             Reported on input line 1.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -753,37 +927,69 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[2]
-
-Package blindtext Warning: portuguese not defined, using English instead.
-(blindtext)                 on input line 31.
-
-
-Package blindtext Warning: portuguese not defined, using English instead.
-(blindtext)                 on input line 33.
-
-
-Package blindtext Warning: portuguese not defined, using English instead.
-(blindtext)                 on input line 37.
-
-
-Package blindtext Warning: portuguese not defined, using English instead.
-(blindtext)                 on input line 38.
-
-
-Package blindtext Warning: portuguese not defined, using English instead.
-(blindtext)                 on input line 38.
+[2
 
 
 
 
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+]
+Cap\'{\i }tulo 2.
 
-[3])
+Underfull \hbox (badness 10000) in paragraph at lines 6--6
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 13--13
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 15--16
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 17--18
+
+ []
+
+
+Overfull \hbox (15.92354pt too wide) in paragraph at lines 26--26
+\OT1/ptm/m/n/10.95 ou au-to-ma-ti-zar par-tes do de-sen-vol-vi-mento de soft-wa
+re, re-cor-rendo a mo-de-los []unicos ou a combina[][]oes
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 26--26
+
+ []
+
+
+
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 30--30
+
+ []
+
+
+Overfull \hbox (5.30139pt too wide) in paragraph at lines 38--38
+\OT1/ptm/m/n/10.95 Depois da defini[][]ao dos com-po-nen-tes e das in-ter-fa-ce
+s do sis-tema, segue-se a fase de implementa[][]ao,
+ []
+
+
+Overfull \hbox (9.60455pt too wide) in paragraph at lines 38--38
+\OT1/ptm/m/n/10.95 de-pend[]encias t[]ecnicas, ga-ran-tindo que os com-po-nen-t
+es fun-ci-o-nem de forma co-esa. A implementa[][]ao
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 38--38
+
+ []
+
+
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -793,21 +999,27 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
 [4]
-\openout2 = `./tex/trab_relacionado.aux'.
+Underfull \hbox (badness 10000) in paragraph at lines 40--40
 
- (tex/trab_relacionado.tex
-Cap\'{\i }tulo 2.
-)
+ []
 
-[5
+<../img/waterfall_agille.png, id=314, 1891.065pt x 1007.765pt>
+File: ../img/waterfall_agille.png Graphic file (type png)
+<use ../img/waterfall_agille.png>
+Package pdftex.def Info: ../img/waterfall_agille.png  used on input line 44.
+(pdftex.def)             Requested size: 192.03197pt x 134.85835pt.
+
+Overfull \hbox (6.49568pt too wide) in paragraph at lines 54--54
+\OT1/ptm/m/n/10.95 dom[]^^Pnio, com o ob-je-tivo de ajus-tar o com-por-ta-mento
+ do mo-delo []as ne-ces-si-da-des de uma organiza[][]ao
+ []
 
 
+Underfull \hbox (badness 10000) in paragraph at lines 54--54
+
+ []
 
 
-]
-\openout2 = `./tex/trab_realizado.aux'.
-
- (tex/trab_realizado.tex
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -816,16 +1028,59 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[6
+[5 <../img/waterfall_agille.png>]
+Underfull \vbox (badness 1867) has occurred while \output is active []
 
 
 
 
-]
-Cap\'{\i }tulo 3.
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[6]
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+
+ []
 
 
-[7]
+Overfull \hbox (18.39694pt too wide) in paragraph at lines 83--83
+\OT1/ptm/m/n/10.95 Nesta sec[][]ao s[]ao ana-li-sa-dos tra-ba-lhos que ilus-tra
+m v[]arias abor-da-gens para au-to-ma-ti-zar a transforma[][]ao
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 83--83
+
+ []
+
+<../img/codellama_family.pdf, id=343, 1075.12665pt x 201.77483pt>
+File: ../img/codellama_family.pdf Graphic file (type pdf)
+<use ../img/codellama_family.pdf>
+Package pdftex.def Info: ../img/codellama_family.pdf  used on input line 87.
+(pdftex.def)             Requested size: 362.77525pt x 68.08528pt.
+
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[7 <../img/codellama_family.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 103--103
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 109--110
+
+ []
+
+
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -835,12 +1090,32 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
 [8]
-Cap\'{\i }tulo 4.
+Underfull \hbox (badness 10000) in paragraph at lines 113--113
+
+ []
 
 
-[9
+Underfull \hbox (badness 10000) in paragraph at lines 117--118
 
-]
+ []
+
+<../img/code_generation_tineline.png, id=393, 296.307pt x 462.528pt>
+File: ../img/code_generation_tineline.png Graphic file (type png)
+<use ../img/code_generation_tineline.png>
+Package pdftex.def Info: ../img/code_generation_tineline.png  used on input lin
+e 121.
+(pdftex.def)             Requested size: 85.35715pt x 202.29903pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 128--128
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 131--131
+
+ []
+
+
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -849,13 +1124,41 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[10
+[9]
+Underfull \hbox (badness 10000) in paragraph at lines 133--133
 
-]
-Cap\'{\i }tulo 5.
+ []
 
+
+Underfull \hbox (badness 10000) in paragraph at lines 135--136
+
+ []
+
+
+Underfull \vbox (badness 1067) has occurred while \output is active []
+
+
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[10 <../img/code_generation_tineline.png>])
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
 [11]
+\openout2 = `./tex/visao_geral_abordagem_solucao.aux'.
+
+ (tex/visao_geral_abordagem_solucao.tex
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -866,11 +1169,17 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [12
 
-]
-Cap\'{\i }tulo 6.
 
+
+
+]
+Cap\'{\i }tulo 3.
+)
 
 [13]
+\openout2 = `./tex/desenvolvimento_tecnico_solucao.aux'.
+
+ (tex/desenvolvimento_tecnico_solucao.tex
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -881,21 +1190,17 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [14
 
-]
-Cap\'{\i }tulo 7.
 
+
+
+]
+Cap\'{\i }tulo 4.
+)
 
 [15]
-Overfull \hbox (4.9728pt too wide) in paragraph at lines 73--74
-[]\OT1/ptm/m/n/10.95 A utiliza[][]ao de iden-ti-fi-ca-do-res simb[]olicos em cada ecr[]a e mo-dal para re-pre-sen-tar a navega[][]ao,
- []
+\openout2 = `./tex/testes_metodologia_avaliacao.aux'.
 
-
-Overfull \hbox (0.43413pt too wide) in paragraph at lines 77--78
-[]\OT1/ptm/m/n/10.95 Estas observa[][]oes fo-ram fun-da-men-tais para per-ce-ber que, sem este tipo de restri[][]oes expl[]^^Pcitas,
- []
-
-
+ (tex/testes_metodologia_avaliacao.tex
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -904,21 +1209,19 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[16]
-Overfull \hbox (0.72495pt too wide) in paragraph at lines 114--115
-\OT1/ptm/m/n/10.95 as-sis-tida por mo-de-los de lin-gua-gem, foi con-du-zida uma se-gunda itera[][]ao com foco na consolida[][]ao
- []
+[16
 
 
 
 
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+]
+Cap\'{\i }tulo 5.
+)
 
 [17]
+\openout2 = `./tex/resultados_discussao.aux'.
+
+ (tex/resultados_discussao.tex
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -927,49 +1230,40 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[18]
+[18
 
 
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
-
-[19])
 
 
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+]
+Cap\'{\i }tulo 6.
+)
 
-[20]
+[19]
 \openout2 = `./tex/conclusao.aux'.
 
  (tex/conclusao.tex
-Cap\'{\i }tulo 8.
 
 
-[21
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[20
 
 
 
 
 ]
-Underfull \vbox (badness 1436) has occurred while \output is active []
+Cap\'{\i }tulo 7.
+)
 
+[21]
+\openout2 = `./tex/apendices.aux'.
 
-
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
-
-[22])
+ (tex/apendices.tex
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -977,6 +1271,15 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \setlength{\headheight}{13.59999pt}.
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[22
+
+
+
+
+]
+Ap\^endice A.
+)
 
 [23]
 
@@ -991,7 +1294,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 
 
-] (main.bbl)
+] (main.bbl
+Underfull \hbox (badness 2529) in paragraph at lines 4--7
+[]\OT1/ptm/m/n/10.95 Java mo-de-ling lan-guage (jml).  []$\OT1/pcr/m/n/10.95 ht
+tps : / / www . cs . ucf . edu / []leavens / JML /
+ []
+
+
 
 [25
 
@@ -1004,34 +1313,47 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[26
+[26])
 
-]
-No file main.ind.
-\openout2 = `./tex/apendices.aux'.
 
-(tex/apendices.tex) 
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[27] 
 enddocument/afterlastpage (AED): lastpage setting LastPage.
-(main.aux (tex/capa.aux) (tex/agradecimentos.aux) (tex/resumo_pt.aux) (tex/resumo_en.aux) (tex/acronimos.aux) (tex/introducao.aux) (tex/trab_relacionado.aux) (tex/trab_realizado.aux) (tex/conclusao.aux) (tex/apendices.aux))
+(main.aux (tex/capa.aux) (tex/agradecimentos.aux) (tex/resumo_pt.aux)
+(tex/abstract.aux) (tex/acronimos.aux) (tex/introducao.aux)
+(tex/estado_arte.aux) (tex/visao_geral_abordagem_solucao.aux)
+(tex/desenvolvimento_tecnico_solucao.aux) (tex/testes_metodologia_avaliacao.aux
+) (tex/resultados_discussao.aux) (tex/conclusao.aux) (tex/apendices.aux))
  ***********
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: CD4C5459908D1BCB3B30FE9F15934133;5037.
+(rerunfilecheck)             Checksum: 81561B94D4D949A9127C0C4DC0445ECF;6793.
  ) 
 Here is how much of TeX's memory you used:
- 19408 strings out of 468080
- 372635 string characters out of 5423836
- 850483 words of memory out of 5000000
- 47645 multiletter control sequences out of 15000+600000
- 654173 words of font info for 85 fonts, out of 8000000 for 9000
+ 19634 strings out of 468080
+ 379643 string characters out of 5423836
+ 856435 words of memory out of 5000000
+ 47800 multiletter control sequences out of 15000+600000
+ 661399 words of font info for 97 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 78i,15n,79p,2531b,678s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrr8a.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/helvetic/uhvb8ac.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/helvetic/uhvr8ac.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (42 pages, 219198 bytes).
+ 78i,15n,79p,2489b,678s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucr
+r8a.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/urw/helve
+tic/uhvb8ac.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts/type1/u
+rw/helvetic/uhvr8ac.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/fonts
+/type1/urw/times/utmb8a.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKTeX/f
+onts/type1/urw/times/utmr8a.pfb><C:/Users/Consultor/AppData/Local/Programs/MiKT
+eX/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (43 pages, 509170 bytes).
 PDF statistics:
- 394 PDF objects out of 1000 (max. 8388607)
- 84 named destinations out of 1000 (max. 500000)
- 230 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 560 PDF objects out of 1000 (max. 8388607)
+ 129 named destinations out of 1000 (max. 500000)
+ 317 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,0 +1,204 @@
+{
+    "updatedAt":  "2026-04-22T11:04:02.513Z",
+    "createdAt":  "2026-04-20T11:14:07.018Z",
+    "id":  "T4dsQ2fJfsRAz2eL",
+    "name":  "design-v2",
+    "description":  null,
+    "active":  false,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "promptType":  "define",
+                                         "text":  "={{ $json.userPrompt }}",
+                                         "messages":  {
+                                                          "messageValues":  [
+                                                                                {
+                                                                                    "message":  "------------------------------------------------\nROLE\n------------------------------------------------\n\nYou are a Senior UI Information Architect operating inside an automated software engineering pipeline.\n\nYou are responsible for extracting a predefined UI design plan from a requirements specification.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nAnalyze the provided requirements and extract the UI structure exactly as defined.\n\nYour goal is to produce a structured JSON describing:\n\n- Screens\n- Modals\n- Dialogs\n\nThis output is a direct projection of the UI design already defined in the requirements.\n\nYou are NOT designing the UI.\nYou are NOT interpreting.\nYou are NOT inferring.\n\nYou MUST strictly follow the UI plan present in the requirements.\n\n------------------------------------------------\nINPUT\n------------------------------------------------\n\nYou will receive:\n\n- A requirements specification (requirements.md)\n\nThe document already contains a UI design section describing Screens, Modals, and Dialogs.\n\n------------------------------------------------\nSOURCE OF TRUTH (CRITICAL)\n------------------------------------------------\n\nThe UI design section inside the requirements is the ONLY source of truth.\n\nRules:\n\n- Extract ALL UI elements defined in that section\n- Do NOT invent new UI elements\n- Do NOT omit any UI elements\n- Do NOT reinterpret or rename elements\n- Do NOT merge or split elements\n\nYour output MUST be a 1:1 representation of the UI plan.\n\n------------------------------------------------\nDEFINITIONS\n------------------------------------------------\n\nYou MUST classify UI elements into EXACTLY three categories:\n\n1. Screen\n   - Full pages or main views\n   - Contain multiple actions or sections\n\n2. Modal\n   - Focused interaction for a specific action\n   - Typically used for create/edit/configure flows\n\n3. Dialog\n   - Simple list or selection interface\n   - Lightweight and limited in scope\n\n------------------------------------------------\nEXTRACTION RULES (STRICT)\n------------------------------------------------\n\n- Only extract UI elements explicitly defined in the UI design section\n- Preserve names exactly as defined\n- Do NOT normalize or reinterpret names\n- Do NOT create missing elements even if flows seem incomplete\n- Do NOT remove elements even if they seem unnecessary\n\n------------------------------------------------\nCLASSIFICATION RULES\n------------------------------------------------\n\n- Use the classification implied in the requirements\n- If classification is ambiguous, infer based ONLY on the definitions above\n- Do NOT reclassify elements arbitrarily\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\n\nReturn ONLY valid JSON.\n\nStructure:\n\n{\n  \"screens\": [\n    { \"name\": \"Login\" },\n    { \"name\": \"Main Menu\" }\n  ],\n  \"modals\": [\n    { \"name\": \"Change Password\" },\n    { \"name\": \"Delete User\" }\n  ],\n  \"dialogs\": [\n    { \"name\": \"User Status\" },\n    { \"name\": \"Project Status\" }\n  ]\n}\n\n------------------------------------------------\nOUTPUT RULES\n------------------------------------------------\n\n- Do NOT include explanations\n- Do NOT include comments\n- Do NOT include additional fields\n- Do NOT include text outside JSON\n- Do NOT include empty categories (omit them instead)\n- Names MUST match EXACTLY the ones defined in the requirements\n\n------------------------------------------------\nQUALITY CHECK (SILENT)\n------------------------------------------------\n\nBefore returning:\n\n- Ensure ALL UI elements from the requirements are present\n- Ensure NO extra elements exist\n- Ensure names match exactly\n- Ensure no duplicates\n- Ensure correct classification\n\nReturn ONLY the JSON."
+                                                                                }
+                                                                            ]
+                                                      },
+                                         "batching":  {
+                                                          "batchSize":  1,
+                                                          "delayBetweenBatches":  0
+                                                      }
+                                     },
+                      "id":  "6b9e718e-9b07-4f71-8ac7-68ee42c8e570",
+                      "name":  "DESIGN - Extract Surface Plan",
+                      "type":  "@n8n/n8n-nodes-langchain.chainLlm",
+                      "typeVersion":  1.9,
+                      "position":  [
+                                       224,
+                                       0
+                                   ],
+                      "retryOnFail":  true,
+                      "maxTries":  3,
+                      "waitBetweenTries":  3000
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function parseCandidate(raw) {\n  try {\n    const parsed = JSON.parse(raw);\n    if (parsed \u0026\u0026 typeof parsed === \u0027object\u0027 \u0026\u0026 !Array.isArray(parsed)) {\n      return parsed;\n    }\n  } catch {}\n  return null;\n}\n\nfunction normalizeText(raw) {\n  let text = String(raw ?? \u0027\u0027).trim();\n  if (!text) {\n    throw new Error(\u0027Surface extraction model output is empty.\u0027);\n  }\n\n  const fenced = text.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);\n  if (fenced) {\n    text = fenced[1].trim();\n  }\n\n  return text;\n}\n\nfunction extractObject(text) {\n  const normalized = normalizeText(text);\n  const candidates = [normalized];\n\n  const firstObjectStart = normalized.indexOf(\u0027{\u0027);\n  const lastObjectEnd = normalized.lastIndexOf(\u0027}\u0027);\n  if (firstObjectStart \u003e= 0 \u0026\u0026 lastObjectEnd \u003e firstObjectStart) {\n    candidates.push(normalized.slice(firstObjectStart, lastObjectEnd + 1));\n  }\n\n  for (const candidate of candidates) {\n    const parsed = parseCandidate(candidate);\n    if (parsed) return parsed;\n  }\n\n  throw new Error(\u0027Could not extract valid JSON from model output.\u0027);\n}\n\nfunction normalizeBucket(payload, key) {\n  const bucket = payload?.[key];\n  if (!Array.isArray(bucket)) return [];\n\n  const seen = new Set();\n  const out = [];\n  for (const entry of bucket) {\n    const name = String(entry?.name ?? \u0027\u0027).trim();\n    if (!name) continue;\n    const normalized = name.replace(/\\s+/g, \u0027 \u0027).trim();\n    const dedupeKey = normalized.toLowerCase();\n    if (seen.has(dedupeKey)) continue;\n    seen.add(dedupeKey);\n    out.push({ name: normalized });\n  }\n  return out;\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst parsed = extractObject(item?.json?.text);\n\nconst screens = normalizeBucket(parsed, \u0027screens\u0027);\nconst modals = normalizeBucket(parsed, \u0027modals\u0027);\nconst dialogs = normalizeBucket(parsed, \u0027dialogs\u0027);\n\nconst output = {};\nif (screens.length) output.screens = screens;\nif (modals.length) output.modals = modals;\nif (dialogs.length) output.dialogs = dialogs;\n\nif (!Object.keys(output).length) {\n  throw new Error(\u0027Model output did not contain any valid screens/modals/dialogs entries.\u0027);\n}\n\nreturn [{\n  json: {\n    ...(item.json ?? {}),\n    designSurfacePlan: JSON.stringify(output, null, 2),\n    designSurfacePlanObject: output,\n    surfaceCounts: {\n      screens: screens.length,\n      modals: modals.length,\n      dialogs: dialogs.length,\n      total: screens.length + modals.length + dialogs.length,\n    },\n    response: JSON.stringify(output, null, 2),\n  },\n  binary: item?.binary ?? {},\n}];"
+                                     },
+                      "id":  "6c897440-4379-42dd-8320-9e9b3316f645",
+                      "name":  "DESIGN - Clean Response",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       624,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "async function getTextBinary(itemIndex, item, propertyName, fallbackFileName) {\n  const binary = item.binary?.[propertyName];\n  if (!binary) return null;\n\n  const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n  return {\n    key: propertyName,\n    fileName: binary.fileName || fallbackFileName,\n    mimeType: String(binary.mimeType || \u0027\u0027),\n    content: buffer.toString(\u0027utf8\u0027),\n  };\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst binary = item.binary ?? {};\nconst preferredKeys = [\u0027requirements\u0027, \u0027requirementsMd\u0027, \u0027requirements_md\u0027, \u0027requirementsFile\u0027, \u0027requirements_file\u0027];\n\nlet requirements = null;\nfor (const key of preferredKeys) {\n  requirements = await getTextBinary.call(this, 0, item, key, \u0027requirements.md\u0027);\n  if (requirements) break;\n}\n\nif (!requirements) {\n  for (const [key, entry] of Object.entries(binary)) {\n    const mime = String(entry?.mimeType ?? \u0027\u0027).toLowerCase();\n    const extRaw = String(entry?.fileExtension ?? \u0027\u0027).toLowerCase();\n    const ext = extRaw.startsWith(\u0027.\u0027) ? extRaw.slice(1) : extRaw;\n    const fileName = String(entry?.fileName ?? key).toLowerCase();\n    const likelyText = mime.startsWith(\u0027text/\u0027) || [\u0027md\u0027, \u0027txt\u0027, \u0027markdown\u0027].includes(ext) || fileName.endsWith(\u0027.md\u0027) || fileName.endsWith(\u0027.txt\u0027);\n    if (!likelyText) continue;\n\n    requirements = await getTextBinary.call(this, 0, item, key, \u0027requirements.md\u0027);\n    if (requirements) break;\n  }\n}\n\nif (!requirements) {\n  throw new Error(\u0027Missing requirements markdown file in form upload.\u0027);\n}\n\nconst requirementsText = String(requirements.content || \u0027\u0027).trim();\nif (!requirementsText) {\n  throw new Error(\u0027Requirements specification is empty.\u0027);\n}\n\nconst userPrompt = [\n  \u0027------------------------------------------------\u0027,\n  \u0027REQUIREMENTS SPECIFICATION INPUT\u0027,\n  \u0027------------------------------------------------\u0027,\n  requirementsText,\n].join(\u0027\\n\u0027);\n\nreturn [{\n  json: {\n    ...(item.json ?? {}),\n    requirementsBinaryProperty: requirements.key,\n    requirementsFile: requirements.fileName,\n    requirementsMimeType: requirements.mimeType,\n    userPrompt,\n  },\n  binary,\n}];"
+                                     },
+                      "id":  "feb7146c-9843-4070-a0ee-4e3d8129367b",
+                      "name":  "DESIGN - Build Prompt",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -32,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "model":  "mistral-medium-latest",
+                                         "options":  {
+                                                         "temperature":  0.2
+                                                     }
+                                     },
+                      "id":  "ba22592c-c8fb-464b-b424-26c0e5b8322b",
+                      "name":  "DESIGN - Model",
+                      "type":  "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+                      "typeVersion":  1,
+                      "position":  [
+                                       272,
+                                       192
+                                   ],
+                      "credentials":  {
+                                          "mistralCloudApi":  {
+                                                                  "id":  "9qA4lFjMsBaIEbTf",
+                                                                  "name":  "Mistral Cloud account"
+                                                              }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "formTitle":  "Design v2 - Requirements Intake",
+                                         "formDescription":  "Upload requirements.md to extract Screens, Modals and Dialogs in JSON format.",
+                                         "formFields":  {
+                                                            "values":  [
+                                                                           {
+                                                                               "fieldLabel":  "Requirements Markdown",
+                                                                               "fieldType":  "file",
+                                                                               "fieldName":  "requirements",
+                                                                               "multipleFiles":  false,
+                                                                               "acceptFileTypes":  ".md,.txt",
+                                                                               "requiredField":  true
+                                                                           }
+                                                                       ]
+                                                        },
+                                         "options":  {
+                                                         "buttonLabel":  "Generate Surface Plan",
+                                                         "path":  "3fd6f18b-2e52-4a78-8dec-5da1bed60d50",
+                                                         "useWorkflowTimezone":  true
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.formTrigger",
+                      "typeVersion":  2.5,
+                      "position":  [
+                                       -288,
+                                       0
+                                   ],
+                      "id":  "e62b606f-4b4b-48e3-8379-49ad958c555b",
+                      "name":  "DESIGN - Start",
+                      "webhookId":  "3fd6f18b-2e52-4a78-8dec-5da1bed60d50"
+                  }
+              ],
+    "connections":  {
+                        "DESIGN - Extract Surface Plan":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "DESIGN - Clean Response",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "DESIGN - Build Prompt":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "DESIGN - Extract Surface Plan",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "DESIGN - Model":  {
+                                               "ai_languageModel":  [
+                                                                        [
+                                                                            {
+                                                                                "node":  "DESIGN - Extract Surface Plan",
+                                                                                "type":  "ai_languageModel",
+                                                                                "index":  0
+                                                                            }
+                                                                        ]
+                                                                    ]
+                                           },
+                        "DESIGN - Start":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "DESIGN - Build Prompt",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  {
+                 "templateCredsSetupCompleted":  true
+             },
+    "pinData":  {
+
+                },
+    "versionId":  "7e8c935b-d2f0-4bd8-b951-87daf0e836e1",
+    "activeVersionId":  null,
+    "versionCounter":  14,
+    "triggerCount":  0,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-04-20T11:14:07.023Z",
+                       "createdAt":  "2026-04-20T11:14:07.023Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "T4dsQ2fJfsRAz2eL",
+                       "projectId":  "QcpgOQcXnvTTBDCu",
+                       "project":  {
+                                       "updatedAt":  "2026-02-28T20:05:48.391Z",
+                                       "createdAt":  "2026-02-28T20:05:24.898Z",
+                                       "id":  "QcpgOQcXnvTTBDCu",
+                                       "name":  "Gustavo Henriques \u003cgusta.santos.henriques@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "874e8826-31b6-4abc-8eb0-c01ae9472bd2"
+                                   }
+                   }
+               ],
+    "tags":  [
+
+             ],
+    "activeVersion":  null
+}

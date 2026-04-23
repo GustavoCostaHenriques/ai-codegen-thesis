@@ -1,0 +1,84 @@
+\glsdefs@newdocentry{cpu}%
+{%
+name={\acronymfont {\glsentryshort {cpu}}},%
+sort={CPU},%
+type={acronym},%
+first={CPU},%
+firstplural={CPUs},%
+text={CPU},%
+plural={CPUs},%
+description={Central Processing Unit},%
+descriptionplural={Central Processing Unit},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Central Processing Unit},%
+longplural={Central Processing Units},%
+short={CPU},%
+shortplural={CPUs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{mmu}%
+{%
+name={\acronymfont {\glsentryshort {mmu}}},%
+sort={MMU},%
+type={acronym},%
+first={MMU},%
+firstplural={MMUs},%
+text={MMU},%
+plural={MMUs},%
+description={Memory Management Unit},%
+descriptionplural={Memory Management Unit},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Memory Management Unit},%
+longplural={Memory Management Units},%
+short={MMU},%
+shortplural={MMUs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{cmd}%
+{%
+name={command line},%
+sort={command line},%
+type={main},%
+first={command line},%
+firstplural={command lines},%
+text={command line},%
+plural={command lines},%
+description={a type of text interface for inputting commands for a system},%
+descriptionplural={a type of text interface for inputting commands for a system},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+

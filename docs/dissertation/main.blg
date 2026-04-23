@@ -7,62 +7,70 @@ Reallocating 'name_of_file' (item size: 1) to 25 items.
 A level-1 auxiliary file: ./tex/agradecimentos.aux
 Reallocating 'name_of_file' (item size: 1) to 20 items.
 A level-1 auxiliary file: ./tex/resumo_pt.aux
-Reallocating 'name_of_file' (item size: 1) to 20 items.
-A level-1 auxiliary file: ./tex/resumo_en.aux
+Reallocating 'name_of_file' (item size: 1) to 19 items.
+A level-1 auxiliary file: ./tex/abstract.aux
 Reallocating 'name_of_file' (item size: 1) to 20 items.
 A level-1 auxiliary file: ./tex/acronimos.aux
 Reallocating 'name_of_file' (item size: 1) to 21 items.
 A level-1 auxiliary file: ./tex/introducao.aux
-Reallocating 'name_of_file' (item size: 1) to 27 items.
-A level-1 auxiliary file: ./tex/trab_relacionado.aux
-Reallocating 'name_of_file' (item size: 1) to 25 items.
-A level-1 auxiliary file: ./tex/trab_realizado.aux
+Reallocating 'name_of_file' (item size: 1) to 22 items.
+A level-1 auxiliary file: ./tex/estado_arte.aux
+Reallocating 'name_of_file' (item size: 1) to 40 items.
+A level-1 auxiliary file: ./tex/visao_geral_abordagem_solucao.aux
+Reallocating 'name_of_file' (item size: 1) to 42 items.
+A level-1 auxiliary file: ./tex/desenvolvimento_tecnico_solucao.aux
+Reallocating 'name_of_file' (item size: 1) to 39 items.
+A level-1 auxiliary file: ./tex/testes_metodologia_avaliacao.aux
+Reallocating 'name_of_file' (item size: 1) to 31 items.
+A level-1 auxiliary file: ./tex/resultados_discussao.aux
 Reallocating 'name_of_file' (item size: 1) to 20 items.
 A level-1 auxiliary file: ./tex/conclusao.aux
+Reallocating 'name_of_file' (item size: 1) to 20 items.
+A level-1 auxiliary file: ./tex/apendices.aux
 Reallocating 'name_of_file' (item size: 1) to 6 items.
 The style file: plain.bst
 Reallocating 'name_of_file' (item size: 1) to 13 items.
-Reallocating 'name_of_file' (item size: 1) to 20 items.
-A level-1 auxiliary file: ./tex/apendices.aux
 Database file #1: bibliografia.bib
-You've used 4 entries,
+Warning--to sort, need author or key in JML
+You've used 35 entries,
             2118 wiz_defined-function locations,
-            531 strings with 4619 characters,
-and the built_in function-call counts, 963 in all, are:
-= -- 85
-> -- 39
-< -- 0
-+ -- 16
-- -- 12
-* -- 47
-:= -- 177
-add.period$ -- 12
-call.type$ -- 4
-change.case$ -- 14
+            716 strings with 10543 characters,
+and the built_in function-call counts, 12147 in all, are:
+= -- 1114
+> -- 752
+< -- 5
++ -- 303
+- -- 263
+* -- 856
+:= -- 2092
+add.period$ -- 106
+call.type$ -- 35
+change.case$ -- 229
 chr.to.int$ -- 0
-cite$ -- 4
-duplicate$ -- 48
-empty$ -- 89
-format.name$ -- 12
-if$ -- 201
+cite$ -- 36
+duplicate$ -- 436
+empty$ -- 853
+format.name$ -- 263
+if$ -- 2466
 int.to.chr$ -- 0
-int.to.str$ -- 4
-missing$ -- 8
-newline$ -- 23
-num.names$ -- 8
-pop$ -- 30
+int.to.str$ -- 35
+missing$ -- 39
+newline$ -- 178
+num.names$ -- 70
+pop$ -- 274
 preamble$ -- 1
-purify$ -- 14
+purify$ -- 199
 quote$ -- 0
-skip$ -- 24
+skip$ -- 301
 stack$ -- 0
-substring$ -- 20
-swap$ -- 4
-text.length$ -- 0
+substring$ -- 520
+swap$ -- 87
+text.length$ -- 5
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 8
-warning$ -- 0
-while$ -- 8
-width$ -- 5
-write$ -- 46
+type$ -- 128
+warning$ -- 1
+while$ -- 97
+width$ -- 37
+write$ -- 366
+(There was 1 warning)

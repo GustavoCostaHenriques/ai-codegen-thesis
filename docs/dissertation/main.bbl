@@ -1,24 +1,208 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
+
+\bibitem{JML}
+Java modeling language (jml).
+\newblock \url{https://www.cs.ucf.edu/~leavens/JML/index.shtml}.
+\newblock Accessed: 2025-11-22.
 
 \bibitem{bolker2008writing}
 Joan Bolker.
 \newblock {\em Writing Your Dissertation in Fifteen Minutes a Day}.
-\newblock Hachette Books, New York, NY, 2008.
+\newblock Hachette Books, 2008.
+
+\bibitem{UML}
+E.~M. Bouzian.
+\newblock Use case and uml scenarios engineering for building b2b e-commerce.
+\newblock {\em International Journal of Advanced Trends in Computer Science and
+  Engineering}, 9(4):5428--5432, 2020.
+
+\bibitem{MDEInPratice}
+Marco Brambilla, Jordi Cabot, and Manuel Wimmer.
+\newblock {\em Model-Driven Software Engineering in Practice}.
+\newblock Morgan and Claypool, 2012.
+
+\bibitem{CostIncreaseInLLMS}
+Ben Cottier, Robi Rahman, Loredana Fattorini, Nestor Maslej, and David Owen.
+\newblock The rising costs of training frontier ai models.
+\newblock {\em arXiv preprint arXiv:2405.21015}, 2024.
+
+\bibitem{PECYCLE}
+Yangruibo Ding, Marcus~J. Min, Gail~E. Kaiser, and Baishakhi Ray.
+\newblock Cycle: Learning to self-refine the code generation.
+\newblock {\em Proceedings of the ACM on Programming Languages},
+  8(OOPSLA1):392--418, 2024.
 
 \bibitem{eco2015how}
 Umberto Eco.
 \newblock {\em How to Write a Thesis}.
-\newblock The MIT Press, Cambridge, MA, 2015.
+\newblock The MIT Press, 2015.
+
+\bibitem{StarCoder2}
+Anton~Lozhkov et~al.
+\newblock Starcoder 2 and the stack v2: The next generation.
+\newblock {\em arXiv preprint arXiv:2402.19173}, 2024.
+
+\bibitem{CodeLlama}
+Baptiste~Roziere et~al.
+\newblock Code llama: Open foundation models for code.
+\newblock {\em arXiv preprint arXiv:2308.12950}, 2023.
+
+\bibitem{Llama2}
+Hugo~Touvron et~al.
+\newblock Llama 2: Open foundation and fine-tuned chat models.
+\newblock {\em arXiv preprint arXiv:2307.09288}, 2023.
+
+\bibitem{Codex}
+Mark~Chen et~al.
+\newblock Evaluating large language models trained on code.
+\newblock {\em arXiv preprint arXiv:2107.03374}, 2021.
+
+\bibitem{StarCoder}
+Raymond~Li et~al.
+\newblock Starcoder: May the source be with you.
+\newblock {\em Transactions on Machine Learning Research}, 2023.
+
+\bibitem{GPT-3}
+Tom B.~Brown et~al.
+\newblock Language models are few-shot learners.
+\newblock In Hugo Larochelle, Marc'Aurelio Ranzato, Raia Hadsell, Maria-Florina
+  Balcan, and Hsuan-Tien Lin, editors, {\em Advances in Neural Information
+  Processing Systems 33}, 2020.
 
 \bibitem{evans2014how}
 David Evans, Paul Gruba, and Justin Zobel.
 \newblock {\em How to Write a Better Thesis}.
-\newblock Springer, Melbourne, Australia, 2014.
+\newblock Springer, 2014.
+
+\bibitem{Agile}
+Marta Fernandez-Diego, Erwin~R. Mendez, Fernando Gonzalez-Ladron de~Guevara,
+  Silvia Abrahao, and Emilio Insfran.
+\newblock An update on effort estimation in agile software development: A
+  systematic literature review.
+\newblock {\em IEEE Access}, 8:166768--166800, 2020.
+
+\bibitem{LLM4SE}
+Xinyi Hou, Yanjie Zhao, Yue Liu, Zhou Yang, Kailong Wang, Li~Li, Xiapu Luo,
+  David Lo, John Grundy, and Haoyu Wang.
+\newblock Large language models for software engineering: A systematic
+  literature review.
+\newblock {\em ACM Transactions on Software Engineering and Methodology},
+  33(8), 2024.
+
+\bibitem{PEIMPACTWITHCODEPROMPTEVAL}
+Ranim Khojah, Francisco~Gomes de~Oliveira~Neto, Mazen Mohamad, and Philipp
+  Leitner.
+\newblock The impact of prompt programming on function-level code generation.
+\newblock {\em IEEE Transactions on Software Engineering}, 51(8):2381--2395,
+  2025.
+
+\bibitem{RE}
+Sachiko Lim, Aron Henriksson, and Jelena Zdravkovic.
+\newblock Data-driven requirements elicitation: A systematic literature review.
+\newblock {\em SN Computer Science}, 2(1):16, 2021.
+
+\bibitem{ChatGPTGenerationPE}
+Chao Liu, Xuanlin Bao, Hongyu Zhang, Neng Zhang, Haibo Hu, Xiaohong Zhang, and
+  Meng Yan.
+\newblock Improving chatgpt prompt for code generation.
+\newblock {\em arXiv preprint arXiv:2305.08360}, 2023.
+
+\bibitem{SpecGen}
+Lezhi Ma, Shangqing Liu, Yi~Li, Xiaofei Xie, and Lei Bu.
+\newblock Specgen: Automated generation of formal program specifications via
+  large language models.
+\newblock In {\em ICSE}, pages 16--28, 2025.
+
+\bibitem{PEinLLMS}
+Ggaliwango Marvin, Hellen Nakayiza, Daudi Jjingo, and Joyce Nakatumba-Nabende.
+\newblock Prompt engineering in large language models.
+\newblock In {\em International Conference on Data Intelligence and Cognitive
+  Informatics}, pages 387--402, 2023.
+
+\bibitem{CopilotStudy}
+Antonio Mastropaolo, Luca Pascarella, Emanuela Guglielmi, Matteo Ciniselli,
+  Simone Scalabrino, Rocco Oliveto, and Gabriele Bavota.
+\newblock On the robustness of code generation techniques: An empirical study
+  on github copilot.
+\newblock In {\em 45th IEEE/ACM International Conference on Software
+  Engineering (ICSE 2023)}, pages 2149--2160. IEEE, 2023.
+
+\bibitem{DSLs}
+Marjan Mernik, Jan Heering, and Anthony~M. Sloane.
+\newblock When and how to develop domain-specific languages.
+\newblock {\em ACM Computing Surveys}, 37(4):316--344, 2005.
+
+\bibitem{CopilotRole}
+Nettur, Suresh Babu, Karpurapu, Shanthi, Nettur, Unnati, Gajja, Likhit Sagar,
+  Myneni, Sravanthy, Dusi, and Akhil.
+\newblock The role of github copilot on software development: A perspective on
+  productivity, security, best practices and future directions.
+\newblock {\em arXiv preprint arXiv:2502.13199}, 2025.
+
+\bibitem{Spec2Code}
+Minal~Suresh Patil, Gustav Ung, and Mattias Nyberg.
+\newblock Towards specification-driven llm-based generation of embedded
+  automotive software.
+\newblock In {\em AISoLA}, pages 125--144, 2024.
+
+\bibitem{Waterfall}
+W.~W. Royce.
+\newblock Managing the development of large software systems: Concepts and
+  techniques.
+\newblock In {\em Proceedings of ICSE}, pages 328--339, 1987.
+
+\bibitem{PETechniques}
+Pranab Sahoo, Ayush~Kumar Singh, Sriparna Saha, Vinija Jain, Samrat Mondal, and
+  Aman Chadha.
+\newblock A systematic survey of prompt engineering in large language models:
+  Techniques and applications.
+\newblock {\em arXiv preprint arXiv:2402.07927}, 2024.
+
+\bibitem{MDE-Schmidt}
+Douglas~C. Schmidt.
+\newblock Guest editor's introduction: Model-driven engineering.
+\newblock {\em Computer}, 39(2):25--31, 2006.
 
 \bibitem{silvia2018how}
 Paul~J. Silvia.
 \newblock {\em How to Write a Lot: A Practical Guide to Productive Academic
   Writing}.
-\newblock APA LifeTools, Washington, D.C., 2018.
+\newblock APA LifeTools, 2018.
+
+\bibitem{ALLLIFECYCLE}
+Ian Sommerville.
+\newblock {\em Software Engineering}.
+\newblock Pearson, 10 edition, 2015.
+
+\bibitem{Transformer}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N. Gomez, Lukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em NeurIPS}, 2017.
+
+\bibitem{PET-SELECT}
+Chung-Yu Wang, Alireza DaghighFarsoodeh, and Hung~Viet Pham.
+\newblock Selection of prompt engineering techniques for code generation
+  through predicting code complexity.
+\newblock {\em arXiv preprint arXiv:2409.16416}, 2024.
+
+\bibitem{AmazonCodeWhisperer}
+Burak Yetistiren, Isik Ozsoy, Miray Ayerdem, and Eray Tuzun.
+\newblock Evaluating the code quality of ai-assisted code generation tools: An
+  empirical study on github copilot, amazon codewhisperer, and chatgpt.
+\newblock {\em arXiv preprint arXiv:2304.10778}, 2023.
+
+\bibitem{PEREFINERCODE}
+Changzhi Zhou, Xinyu Zhang, Dandan Song, Xiancai Chen, Wanli Gu, Huipeng Ma,
+  Yuhang Tian, Mengdi Zhang, and Linmei Hu.
+\newblock Refinecoder: Iterative improving of large language models via
+  adaptive critique refinement for code generation.
+\newblock arXiv:2502.09183, 2025.
+
+\bibitem{GitHubCopilot}
+Albert Ziegler, Eirini Kalliamvakou, Shawn Simister, Ganesh Sittampalam,
+  X.~Alice Li, Andrew Rice, Devon Rifkin, and Edward Aftandilian.
+\newblock Productivity assessment of neural code completion.
+\newblock {\em arXiv preprint arXiv:2205.06537}, 2022.
 
 \end{thebibliography}

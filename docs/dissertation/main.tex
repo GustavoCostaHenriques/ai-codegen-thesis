@@ -163,7 +163,7 @@
 \include{./tex/resumo_pt}
 
 % Pagina do resumo em ingles
-\include{./tex/resumo_en}
+\include{./tex/abstract}
 
 %\pagestyle{plain}
 
@@ -231,12 +231,20 @@
 % Conteudo (incl. Introducao)
 \include{./tex/introducao}
 
-% Estado da arte
-\include{./tex/trab_relacionado}
+% Capitulo 2
+\include{./tex/estado_arte}
 
-% trabalho realizado (podem ser vários capítulos)
-\include{./tex/trab_realizado}
+% Capitulo 3
+\include{./tex/visao_geral_abordagem_solucao}
 
+% Capitulo 4
+\include{./tex/desenvolvimento_tecnico_solucao}
+
+% Capitulo 5
+\include{./tex/testes_metodologia_avaliacao}
+
+% Capitulo 6
+\include{./tex/resultados_discussao}
 % Conclusao
 \include{./tex/conclusao}
 
@@ -245,8 +253,12 @@
 
 
 
-% Bibliografia
+% Inicio apendices
+\appendix
 
+\include{./tex/apendices}
+
+% Bibliografia
 %\LIMPA
 \nocite{*}
 \cleardoublepage
@@ -254,16 +266,9 @@
 \phantomsection
 \addcontentsline {toc} {chapter} {\bibname}
 \bibliography{bibliografia}
-
-% Indice remissivo
-%\LIMPA
-\cleardoublepage
-\phantomsection
-\addcontentsline {toc} {chapter} {\indexname}
-\printindex
-
-% Inicio apendices
-\appendix
-
-\include{./tex/apendices}
 \end{document}
+
+
+
+
+

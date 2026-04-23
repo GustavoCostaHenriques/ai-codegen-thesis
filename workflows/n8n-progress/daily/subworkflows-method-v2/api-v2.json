@@ -1,0 +1,892 @@
+{
+    "updatedAt":  "2026-04-23T09:55:46.599Z",
+    "createdAt":  "2026-04-23T09:54:31.968Z",
+    "id":  "S6fBEWkLZhEtcs20",
+    "name":  "api-v2",
+    "description":  null,
+    "active":  false,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "jsCode":  "async function getTextBinary(itemIndex, item, propertyName, expectedFileName) {\n  const binary = item.binary?.[propertyName];\n  if (!binary) {\n    throw new Error(`Missing binary property \u0027${propertyName}\u0027.`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n  return {\n    fileName: binary.fileName || expectedFileName,\n    content: buffer.toString(\u0027utf8\u0027),\n  };\n}\n\nconst items = $input.all();\n\nreturn await Promise.all(items.map(async (item, itemIndex) =\u003e {\n  const requirements = await getTextBinary.call(this, itemIndex, item, \u0027requirements\u0027, \u0027requirements.md\u0027);\n  const designApi = await getTextBinary.call(this, itemIndex, item, \u0027design_api\u0027, \u0027design_api.json\u0027);\n\n  const userPrompt = [\n    \u0027Here are the two input artefacts.\u0027,\n    \u0027\u0027,\n    requirements.fileName,\n    \u0027```md\u0027,\n    requirements.content,\n    \u0027```\u0027,\n    \u0027\u0027,\n    designApi.fileName,\n    \u0027```json\u0027,\n    designApi.content,\n    \u0027```\u0027,\n  ].join(\u0027\\n\u0027);\n\n  return {\n    json: {\n      ...item.json,\n      userPrompt,\n    },\n    binary: item.binary,\n  };\n}));"
+                                     },
+                      "id":  "0edcd062-d06f-426b-a2fe-a3806ecdc5e8",
+                      "name":  "API - Build Prompt",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       352,
+                                       672
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = item?.json ?? {};\n\nfunction getNodeItems(nodeName) {\n  if (typeof $items !== \u0027function\u0027) return [];\n  try {\n    return $items(nodeName) || [];\n  } catch {\n    return [];\n  }\n}\n\nfunction looksTextLike(binaryEntry, key) {\n  const mime = String(binaryEntry?.mimeType ?? \u0027\u0027).toLowerCase();\n  const extRaw = String(binaryEntry?.fileExtension ?? \u0027\u0027).toLowerCase();\n  const ext = extRaw.startsWith(\u0027.\u0027) ? extRaw.slice(1) : extRaw;\n\n  const textExt = new Set([\n    \u0027txt\u0027, \u0027md\u0027, \u0027markdown\u0027, \u0027json\u0027, \u0027yaml\u0027, \u0027yml\u0027, \u0027csv\u0027, \u0027tsv\u0027, \u0027xml\u0027, \u0027html\u0027, \u0027htm\u0027,\n    \u0027js\u0027, \u0027ts\u0027, \u0027py\u0027, \u0027java\u0027, \u0027c\u0027, \u0027cpp\u0027, \u0027cs\u0027, \u0027sql\u0027, \u0027log\u0027, \u0027ini\u0027, \u0027cfg\u0027,\n  ]);\n\n  if (mime.startsWith(\u0027text/\u0027)) return true;\n  if (mime.includes(\u0027json\u0027) || mime.includes(\u0027xml\u0027) || mime.includes(\u0027yaml\u0027)) return true;\n  if (textExt.has(ext)) return true;\n\n  const keyLower = String(key ?? \u0027\u0027).toLowerCase();\n  if (keyLower.endsWith(\u0027.txt\u0027) || keyLower.endsWith(\u0027.md\u0027) || keyLower.endsWith(\u0027.json\u0027) || keyLower.endsWith(\u0027.yaml\u0027) || keyLower.endsWith(\u0027.yml\u0027)) return true;\n\n  return false;\n}\n\nfunction decodeText(binaryEntry) {\n  try {\n    const raw = String(binaryEntry?.data ?? \u0027\u0027);\n    if (!raw) return \u0027\u0027;\n    return Buffer.from(raw, \u0027base64\u0027).toString(\u0027utf8\u0027);\n  } catch {\n    return \u0027\u0027;\n  }\n}\n\nasync function getTextBinary(propertyName, fallbackFileName) {\n  const binaryEntry = mergedBinary[propertyName] ?? item?.binary?.[propertyName];\n  if (!binaryEntry) {\n    throw new Error(`Missing binary property \u0027${propertyName}\u0027 for API refinement.`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(0, propertyName);\n  return {\n    fileName: String(binaryEntry.fileName ?? fallbackFileName).trim() || fallbackFileName,\n    content: buffer.toString(\u0027utf8\u0027).trim(),\n  };\n}\n\nconst hvItems = getNodeItems(\u0027API - Human Validation\u0027);\nconst hv1Items = getNodeItems(\u0027API - Human Validation1\u0027);\nconst loopItems = getNodeItems(\u0027API - Loop Decision\u0027);\n\nconst hvJson = hvItems[0]?.json ?? {};\nconst hv1Json = hv1Items[0]?.json ?? {};\nconst loopJson = loopItems[0]?.json ?? {};\n\nconst hvBinary = hvItems[0]?.binary ?? {};\nconst hv1Binary = hv1Items[0]?.binary ?? {};\nconst loopBinary = loopItems[0]?.binary ?? {};\n\nconst mergedJson = { ...hvJson, ...hv1Json, ...loopJson, ...json };\nconst mergedBinary = { ...hvBinary, ...hv1Binary, ...loopBinary, ...(item?.binary ?? {}) };\n\nconst [requirements, designApi] = await Promise.all([\n  getTextBinary.call(this, \u0027requirements\u0027, \u0027requirements.md\u0027),\n  getTextBinary.call(this, \u0027design_api\u0027, \u0027design_api.json\u0027),\n]);\n\nif (!requirements.content) {\n  throw new Error(\u0027Approved requirements specification is missing for API refinement.\u0027);\n}\n\nif (!designApi.content) {\n  throw new Error(\u0027Approved design specification is missing for API refinement.\u0027);\n}\n\nconst openapiYaml = String(mergedJson.openapiYaml ?? mergedJson.response ?? \u0027\u0027).trim();\nif (!openapiYaml) throw new Error(\u0027OpenAPI YAML draft is missing for refinement.\u0027);\n\nconst reviewerFeedback = [\n  mergedJson.feedback,\n  mergedJson.Feedback,\n  loopJson.feedback,\n  loopJson.Feedback,\n  hv1Json.feedback,\n  hv1Json.Feedback,\n  hvJson.feedback,\n  hvJson.Feedback,\n]\n  .map((value) =\u003e String(value ?? \u0027\u0027).trim())\n  .find((value) =\u003e value.length \u003e 0)\n  || \u0027Reviewer requested changes without additional details.\u0027;\n\nconst revisionNumber = Math.max(0, Math.trunc(Number(mergedJson.revisionNumber ?? 0) || 0)) + 1;\n\nconst attachmentEntries = Object.entries(mergedBinary)\n  .filter(([key]) =\u003e /^attachments?(?:_|$)/i.test(String(key)));\n\nconst attachmentSummaries = [];\nconst attachmentTextBlocks = [];\n\nlet totalTextChars = 0;\nconst maxTotalChars = 24000;\nconst maxPerFileChars = 6000;\n\nfor (const [key, bin] of attachmentEntries) {\n  const fileName = String(bin?.fileName ?? key);\n  const mimeType = String(bin?.mimeType ?? \u0027application/octet-stream\u0027);\n  const fileSize = Number(bin?.fileSize ?? 0);\n\n  attachmentSummaries.push({ key, fileName, mimeType, fileSize });\n\n  if (!looksTextLike(bin, key)) continue;\n  if (totalTextChars \u003e= maxTotalChars) continue;\n\n  const text = decodeText(bin).trim();\n  if (!text) continue;\n\n  const remaining = maxTotalChars - totalTextChars;\n  const take = Math.min(maxPerFileChars, remaining);\n  const excerpt = text.slice(0, take);\n\n  attachmentTextBlocks.push(`Attachment: ${fileName} (${mimeType})\\n---\\n${excerpt}`);\n  totalTextChars += excerpt.length;\n}\n\nconst attachmentSummaryText = attachmentSummaries.length\n  ? attachmentSummaries.map((a, i) =\u003e `${i + 1}) ${a.fileName} | mime=${a.mimeType} | size=${a.fileSize}`).join(\u0027\\n\u0027)\n  : \u0027[No attachments provided.]\u0027;\n\nconst attachmentExtractedText = attachmentTextBlocks.length\n  ? attachmentTextBlocks.join(\u0027\\n\\n\u0027)\n  : \u0027[No text could be extracted from attachments automatically.]\u0027;\n\nconst promptParts = [\n  \u0027You are correcting an existing OpenAPI YAML draft.\u0027,\n  \u0027The approved requirements and the approved API-ready design remain source material and must still be enforced together with the reviewer feedback.\u0027,\n  \u0027\u0027,\n  \u0027Input priority (highest to lowest):\u0027,\n  \u00271) Explicit reviewer feedback field\u0027,\n  \u00272) Approved requirements specification\u0027,\n  \u00273) Approved design context prepared for API generation\u0027,\n  \u00274) Attachment context (metadata + extracted text when available)\u0027,\n  \u00275) Current OpenAPI YAML draft\u0027,\n  \u0027\u0027,\n  \u0027MANDATORY ENFORCEMENT:\u0027,\n  \u0027- Apply all explicit reviewer requests that are compatible with OpenAPI 3.x.\u0027,\n  \u0027- Keep the refined API aligned with the approved requirements and approved design. If reviewer feedback conflicts with those artefacts, satisfy the artefacts first and reinterpret the feedback conservatively.\u0027,\n  \u0027- Preserve existing valid endpoints, schemas, and naming unless they conflict with reviewer requests, the approved requirements, or the approved design.\u0027,\n  \u0027- Keep YAML indentation and structure valid.\u0027,\n  \u0027\u0027,\n  \u0027Return ONLY the FULL corrected OpenAPI YAML document.\u0027,\n  \u0027- First line MUST start with: openapi:\u0027,\n  \u0027- Do NOT return markdown fences.\u0027,\n  \u0027- Do NOT explain your answer.\u0027,\n  \u0027- Do NOT return patch instructions or line-by-line diffs.\u0027,\n  \u0027\u0027,\n  `Approved requirements file: ${requirements.fileName}`,\n  \u0027Approved requirements specification:\u0027,\n  requirements.content,\n  \u0027\u0027,\n  `Approved API-ready design file: ${designApi.fileName}`,\n  \u0027Approved API-ready design context:\u0027,\n  designApi.content,\n  \u0027\u0027,\n  \u0027Reviewer feedback:\u0027,\n  reviewerFeedback,\n  \u0027\u0027,\n  \u0027Attachment metadata:\u0027,\n  attachmentSummaryText,\n  \u0027\u0027,\n  \u0027Extracted attachment text (partial when available):\u0027,\n  attachmentExtractedText,\n  \u0027\u0027,\n  \u0027Current OpenAPI YAML draft:\u0027,\n  openapiYaml,\n];\n\nreturn [{\n  json: {\n    openapiYaml,\n    reviewerFeedback,\n    revisionNumber,\n    attachmentCount: attachmentSummaries.length,\n    attachmentSummaries,\n    requirementsFile: requirements.fileName,\n    designApiFile: designApi.fileName,\n    patchPrompt: promptParts.join(\u0027\\n\u0027),\n  },\n  ...(mergedBinary \u0026\u0026 Object.keys(mergedBinary).length \u003e 0 ? { binary: mergedBinary } : {}),\n}];"
+                                     },
+                      "id":  "086e8557-df46-4171-bff6-75220576cd20",
+                      "name":  "API - Build Refinement Prompt",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       656,
+                                       416
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function extractOpenApiYaml(rawText) {\n  if (typeof rawText !== \u0027string\u0027 || !rawText.trim()) {\n    throw new Error(\u0027Model output is empty.\u0027);\n  }\n\n  let text = rawText.trim();\n\n  const fencedMatch = text.match(/\\`\\`\\`(?:yaml|yml)?\\s*([\\s\\S]*?)\\`\\`\\`/i);\n  if (fencedMatch) {\n    text = fencedMatch[1].trim();\n  }\n\n  const openapiMatch = text.match(/(?:^|\\n)(openapi:\\s*[\\s\\S]*)/i);\n  if (openapiMatch) {\n    text = openapiMatch[1].trim();\n  }\n\n  const trailingMarkers = [\n    /\\nThis OpenAPI specification/i,\n    /\\nThis specification/i,\n    /\\nKey features include:/i,\n    /\\nThe specification is ready/i,\n    /\\nAll endpoints follow/i,\n  ];\n\n  let endIndex = text.length;\n  for (const marker of trailingMarkers) {\n    const match = marker.exec(text);\n    if (match \u0026\u0026 match.index \u003e 0) endIndex = Math.min(endIndex, match.index);\n  }\n\n  text = text.slice(0, endIndex).trim();\n  if (!/^openapi:\\s*/i.test(text)) {\n    throw new Error(\u0027Could not find an OpenAPI YAML document in model output.\u0027);\n  }\n\n  return text;\n}\n\nconst item = $input.first();\nconst json = item?.json ?? {};\n\nreturn [{\n  json: {\n    response: extractOpenApiYaml(json.text ?? json.response),\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n  },\n  ...(item?.binary \u0026\u0026 Object.keys(item.binary).length \u003e 0 ? { binary: item.binary } : {}),\n}];"
+                                     },
+                      "id":  "de5e240b-dbc2-42ab-aed0-7cdcd3e38013",
+                      "name":  "API - Clean Refinement Response",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1360,
+                                       400
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function extractOpenApiYaml(rawText) {\n  if (typeof rawText !== \"string\" || !rawText.trim()) {\n    throw new Error(\"Model output is empty.\");\n  }\n\n  let text = rawText.trim();\n  const fencedMatch = text.match(/```(?:yaml|yml)?\\s*([\\s\\S]*?)```/i);\n  if (fencedMatch) {\n    text = fencedMatch[1].trim();\n  }\n\n  const openapiMatch = text.match(/(?:^|\\n)(openapi:\\s*[\\s\\S]*)/i);\n  if (openapiMatch) {\n    text = openapiMatch[1].trim();\n  }\n\n  const trailingMarkers = [\n    /\\nThis OpenAPI specification/i,\n    /\\nThis specification/i,\n    /\\nKey features include:/i,\n    /\\nThe specification is ready/i,\n    /\\nAll endpoints follow/i,\n  ];\n\n  let endIndex = text.length;\n  for (const marker of trailingMarkers) {\n    const match = marker.exec(text);\n    if (match \u0026\u0026 match.index \u003e 0) endIndex = Math.min(endIndex, match.index);\n  }\n\n  text = text.slice(0, endIndex).trim();\n  if (!/^openapi:\\s*/i.test(text)) {\n    throw new Error(\"Could not find an OpenAPI YAML document in model output.\");\n  }\n  return text;\n}\n\nconst item = $input.first();\nreturn [{\n  json: {\n    response: extractOpenApiYaml(item.json?.text ?? item.json?.response),\n    revisionNumber: Number(item.json?.revisionNumber ?? 0) || 0,\n  },\n  ...(item.binary \u0026\u0026 Object.keys(item.binary).length \u003e 0 ? { binary: item.binary } : {}),\n}];"
+                                     },
+                      "id":  "745422e2-1f7a-409a-a3f4-042929780d74",
+                      "name":  "API - Clean Response",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1056,
+                                       672
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "workflowId":  {
+                                                            "__rl":  true,
+                                                            "value":  "pQM23J0BoE8iVhNc",
+                                                            "mode":  "list",
+                                                            "cachedResultUrl":  "/workflow/pQM23J0BoE8iVhNc",
+                                                            "cachedResultName":  "zip link"
+                                                        },
+                                         "workflowInputs":  {
+                                                                "value":  {
+                                                                              "archiveData":  "={{ $binary.reviewZip ? ($binary.reviewZip.data || ($binary.reviewZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+                                                                              "revisionNumber":  "={{ $json.revisionNumber }}",
+                                                                              "archiveMimeType":  "={{ $binary.reviewZip ? $binary.reviewZip.mimeType : \"application/zip\" }}",
+                                                                              "response":  "={{ $json.response }}",
+                                                                              "archiveFileName":  "={{ $binary.reviewZip ? $binary.reviewZip.fileName : \"api.zip\" }}",
+                                                                              "archiveId":  "={{ $binary.reviewZip ? ($binary.reviewZip.id || \"\") : \"\" }}"
+                                                                          },
+                                                                "mappingMode":  "defineBelow",
+                                                                "schema":  [
+                                                                               {
+                                                                                   "id":  "archiveMimeType",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "archiveMimeType",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveFileName",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "archiveFileName",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "revisionNumber",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "revisionNumber",
+                                                                                   "type":  "number",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "response",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "response",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveData",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "archiveData",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveId",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "archiveId",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               },
+                                                                               {
+                                                                                   "id":  "archiveBinaryProperty",
+                                                                                   "canBeUsedToMatch":  true,
+                                                                                   "required":  false,
+                                                                                   "displayName":  "archiveBinaryProperty",
+                                                                                   "type":  "string",
+                                                                                   "removed":  false,
+                                                                                   "display":  true,
+                                                                                   "defaultMatch":  false
+                                                                               }
+                                                                           ],
+                                                                "attemptToConvertTypes":  false,
+                                                                "matchingColumns":  [
+
+                                                                                    ],
+                                                                "convertFieldsToString":  true
+                                                            },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.executeWorkflow",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       2400,
+                                       656
+                                   ],
+                      "id":  "344c37f2-b2bc-4945-9c6c-a246701dc128",
+                      "name":  "API - Create Zip Link"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "toText",
+                                         "sourceProperty":  "response",
+                                         "binaryPropertyName":  "openapiSpec",
+                                         "options":  {
+                                                         "fileName":  "openapi.yaml"
+                                                     }
+                                     },
+                      "id":  "1e0b3e3d-c7cf-4788-a656-b807aa2bdf6e",
+                      "name":  "API - File to Review",
+                      "type":  "n8n-nodes-base.convertToFile",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       1776,
+                                       512
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://host.docker.internal:11434/api/generate",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ { \"model\": \"mistral\", \"prompt\": $json.userPrompt, \"system\": \"You are a senior backend API designer working in an API-first software development pipeline.\\n\\nYour task is NOT to generate implementation code.\\n\\nYour task is to generate a COMPLETE and CONSISTENT OpenAPI 3.x specification that defines the REST API of the system.\\n\\nThe output of your work will be used to:\\n- validate backend/frontend integration\\n- serve as the single source of the API contract\\n\\nINPUT\\n\\nYou receive TWO input artefacts:\\n1. requirements.md\\n2. design_api.json\\n\\nTogether, these files are the SINGLE SOURCE OF TRUTH.\\n\\n- requirements.md defines functional requirements, domain concepts, business rules, constraints, and invariants.\\n- design_api.json defines application screens modals and dialogs, UI structure and hierarchy, user interactions and navigation flows, and actions that must be supported by the API.\\n\\nOUTPUT\\n\\nReturn ONLY the OpenAPI YAML document.\\n\\nMANDATORY OUTPUT RULES:\\n- Output raw YAML only\\n- The first line MUST start with: openapi:\\n- Do NOT wrap the output in markdown fences\\n- Do NOT add any introduction, explanation, summary, or trailing notes\\n- Do NOT describe what you generated\\n- Do NOT output anything before the YAML\\n- Do NOT output anything after the YAML\\n\\nThe specification MUST:\\n- follow OpenAPI version 3.x\\n- be valid and machine-readable\\n- be suitable for code generation\\n- fully represent the system\u0027s API contract\\n\\nAPI DESIGN PRINCIPLES:\\n- Resource-oriented design\\n- Correct HTTP method usage\\n- Unique camelCase operationId values\\n- Kebab-case paths\\n- PascalCase schemas\\n- camelCase properties\\n- Reusable schemas in components/schemas\\n- Reusable responses in components/responses\\n- Explicit parameter types\\n- Clear required vs optional fields\\n\\nCONSTRAINTS:\\n- Do NOT include business logic\\n- Do NOT generate example implementation code\", \"stream\": false } }}",
+                                         "options":  {
+                                                         "timeout":  7200000
+                                                     }
+                                     },
+                      "id":  "99397240-332d-4e4f-9a2b-5aeb49c8576f",
+                      "name":  "API - Model",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.1,
+                      "position":  [
+                                       672,
+                                       672
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first();\nconst json = item?.json ?? {};\nconst openapiYaml = String(json.response ?? \u0027\u0027).trim();\nif (!openapiYaml) throw new Error(\u0027OpenAPI YAML draft is missing.\u0027);\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? \u0027\u0027).trim();\nif (!zipDownloadUrl) throw new Error(\u0027Review ZIP download URL is missing.\u0027);\nconst zipDownloadToken = String(json.zipDownloadToken ?? \u0027\u0027).trim();\nif (!zipDownloadToken) throw new Error(\u0027Review ZIP download token is missing.\u0027);\nconst downloadLinkHtml = \u0027\u003cp\u003e\u003ca href=\"\u0027 + zipDownloadUrl + \u0027\" download target=\"_blank\" rel=\"noopener noreferrer\"\u003eDownload current API ZIP (YAML + PDF)\u003c/a\u003e\u003c/p\u003e\u0027;\nconst output = {\n  json: { ...json, openapiYaml, revisionNumber, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary \u0026\u0026 Object.keys(item.binary).length \u003e 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+                                     },
+                      "id":  "b960d6fb-4cb8-4c96-a347-d1d8eedf84e5",
+                      "name":  "API - Prepare Information",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2400,
+                                       464
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       1168,
+                                       400
+                                   ],
+                      "id":  "77926a0c-ae39-492c-b529-e8192063f0ce",
+                      "name":  "API - Previous and New Response"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://host.docker.internal:11434/api/generate",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ { \"model\": \"mistral\", \"prompt\": $json.patchPrompt, \"system\": \"You are correcting an existing OpenAPI YAML draft.\\\\nThe approved requirements and the approved API-ready design remain source material and must still be enforced together with the reviewer feedback.\\\\n\\\\nInput priority (highest to lowest):\\\\n1) Explicit reviewer feedback field\\\\n2) Approved requirements specification\\\\n3) Approved design context prepared for API generation\\\\n4) Attachment context (metadata + extracted text when available)\\\\n5) Current OpenAPI YAML draft\\\\n\\\\nMANDATORY ENFORCEMENT:\\\\n- Apply all explicit reviewer requests that are compatible with OpenAPI 3.x.\\\\n- Keep the refined API aligned with the approved requirements and approved design. If reviewer feedback conflicts with those artefacts, satisfy the artefacts first and reinterpret the feedback conservatively.\\\\n- Preserve existing valid endpoints, schemas, and naming unless they conflict with reviewer requests, the approved requirements, or the approved design.\\\\n- Keep YAML indentation and structure valid.\\\\n\\\\nReturn ONLY the FULL corrected OpenAPI YAML document.\\\\n- First line MUST start with: openapi:\\\\n- Do NOT return markdown fences.\\\\n- Do NOT explain your answer.\\\\n- Do NOT return patch instructions or line-by-line diffs.\", \"stream\": false } }}",
+                                         "options":  {
+                                                         "timeout":  7200000
+                                                     }
+                                     },
+                      "id":  "89f89522-81b0-4e7e-b1e9-69fcf14184ae",
+                      "name":  "API - Refinement Model",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.1,
+                      "position":  [
+                                       960,
+                                       336
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "20f46147-3791-4095-9bda-9605531ad275",
+                      "name":  "API - Text and Zip",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       2176,
+                                       656
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "8e000aa9-df74-40d6-959e-a769e68d9cb4",
+                      "name":  "API - Yaml and Pdf",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       1968,
+                                       448
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first();\nconst json = item?.json ?? {};\nconst yaml = String(json.response ?? \u0027\u0027).replace(/\\r\\n/g, \u0027\\n\u0027);\n\nif (!yaml.trim()) {\n  throw new Error(\u0027OpenAPI YAML is missing, cannot generate PDF.\u0027);\n}\n\nconst PAGE_WIDTH = 595;\nconst PAGE_HEIGHT = 842;\nconst MARGIN_X = 48;\nconst MARGIN_Y = 52;\nconst CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);\nconst FONT_SIZE = 11;\nconst LINE_HEIGHT = 14;\nconst INDENT_PER_SPACE = 3.2;\n\nconst WIN_ANSI_MAP = {\n  \u0027\\u20AC\u0027: 0x80,\n  \u0027\\u201A\u0027: 0x82,\n  \u0027\\u0192\u0027: 0x83,\n  \u0027\\u201E\u0027: 0x84,\n  \u0027\\u2026\u0027: 0x85,\n  \u0027\\u2020\u0027: 0x86,\n  \u0027\\u2021\u0027: 0x87,\n  \u0027\\u02C6\u0027: 0x88,\n  \u0027\\u2030\u0027: 0x89,\n  \u0027\\u0160\u0027: 0x8A,\n  \u0027\\u2039\u0027: 0x8B,\n  \u0027\\u0152\u0027: 0x8C,\n  \u0027\\u017D\u0027: 0x8E,\n  \u0027\\u2018\u0027: 0x91,\n  \u0027\\u2019\u0027: 0x92,\n  \u0027\\u201C\u0027: 0x93,\n  \u0027\\u201D\u0027: 0x94,\n  \u0027\\u2022\u0027: 0x95,\n  \u0027\\u2013\u0027: 0x96,\n  \u0027\\u2014\u0027: 0x97,\n  \u0027\\u02DC\u0027: 0x98,\n  \u0027\\u2122\u0027: 0x99,\n  \u0027\\u0161\u0027: 0x9A,\n  \u0027\\u203A\u0027: 0x9B,\n  \u0027\\u0153\u0027: 0x9C,\n  \u0027\\u017E\u0027: 0x9E,\n  \u0027\\u0178\u0027: 0x9F,\n};\n\nfunction normalizeText(value) {\n  return String(value ?? \u0027\u0027)\n    .normalize(\u0027NFC\u0027)\n    .replace(/\\u0000/g, \u0027\u0027)\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, \u0027\u0027)\n    .replace(/\\t/g, \u0027    \u0027);\n}\n\nfunction escapePdfLiteral(value) {\n  return String(value ?? \u0027\u0027)\n    .replace(/\\\\/g, \u0027\\\\\\\\\u0027)\n    .replace(/\\(/g, \u0027\\\\(\u0027)\n    .replace(/\\)/g, \u0027\\\\)\u0027);\n}\n\nfunction toWinAnsiString(value) {\n  const input = String(value ?? \u0027\u0027).normalize(\u0027NFC\u0027);\n  let out = \u0027\u0027;\n\n  for (const char of input) {\n    const code = char.codePointAt(0);\n\n    if (code \u003c= 0xff) {\n      out += String.fromCharCode(code);\n      continue;\n    }\n\n    if (WIN_ANSI_MAP[char] !== undefined) {\n      out += String.fromCharCode(WIN_ANSI_MAP[char]);\n      continue;\n    }\n\n    const noDiacritics = char.normalize(\u0027NFKD\u0027).replace(/[\\u0300-\\u036f]/g, \u0027\u0027);\n    if (noDiacritics \u0026\u0026 noDiacritics.codePointAt(0) \u003c= 0xff) {\n      out += String.fromCharCode(noDiacritics.codePointAt(0));\n    }\n  }\n\n  return out;\n}\n\nfunction splitWrappedContent(content, maxChars) {\n  if (!content) return [\u0027\u0027];\n  if (content.length \u003c= maxChars) return [content];\n\n  const out = [];\n  let remaining = content;\n  while (remaining.length \u003e maxChars) {\n    let breakAt = remaining.lastIndexOf(\u0027 \u0027, maxChars);\n    if (breakAt \u003c Math.floor(maxChars * 0.5)) breakAt = maxChars;\n    out.push(remaining.slice(0, breakAt).trimEnd());\n    remaining = remaining.slice(breakAt).trimStart();\n  }\n  out.push(remaining);\n  return out;\n}\n\nfunction lineToDisplayRows(rawLine) {\n  const normalized = String(rawLine ?? \u0027\u0027).replace(/\\s+$/g, \u0027\u0027);\n  if (!normalized.length) return [{ indentSpaces: 0, text: \u0027\u0027 }];\n\n  const leadingMatch = normalized.match(/^ */);\n  const leadingSpaces = leadingMatch ? leadingMatch[0].length : 0;\n  const content = normalized.slice(leadingSpaces);\n\n  const indentPoints = leadingSpaces * INDENT_PER_SPACE;\n  const usableWidth = Math.max(40, CONTENT_WIDTH - indentPoints);\n  const approxCharWidth = 6.0;\n  const maxChars = Math.max(10, Math.floor(usableWidth / approxCharWidth));\n\n  const wrapped = splitWrappedContent(content, maxChars);\n  return wrapped.map((segment) =\u003e ({ indentSpaces: leadingSpaces, text: segment }));\n}\n\nconst lines = normalizeText(yaml).split(\u0027\\n\u0027);\nconst displayRows = lines.flatMap(lineToDisplayRows);\n\nconst pages = [];\nlet currentPage = [];\nlet y = PAGE_HEIGHT - MARGIN_Y;\n\nfunction pushPage() {\n  pages.push(currentPage);\n  currentPage = [];\n  y = PAGE_HEIGHT - MARGIN_Y;\n}\n\nfor (const row of displayRows) {\n  if (y \u003c MARGIN_Y) pushPage();\n\n  currentPage.push({\n    type: \u0027text\u0027,\n    text: row.text,\n    x: MARGIN_X + (row.indentSpaces * INDENT_PER_SPACE),\n    y,\n    font: \u0027F1\u0027,\n    fontSize: FONT_SIZE,\n  });\n\n  y -= LINE_HEIGHT;\n}\n\nif (currentPage.length === 0) {\n  currentPage.push({ type: \u0027text\u0027, text: \u0027(empty document)\u0027, x: MARGIN_X, y: PAGE_HEIGHT - MARGIN_Y, font: \u0027F1\u0027, fontSize: FONT_SIZE });\n}\npages.push(currentPage);\n\nfunction pageToStream(pageRows) {\n  const out = [];\n  for (const row of pageRows) {\n    const safe = escapePdfLiteral(toWinAnsiString(row.text || \u0027 \u0027));\n    out.push(\u0027BT\u0027);\n    out.push(\u0027/\u0027 + row.font + \u0027 \u0027 + row.fontSize + \u0027 Tf\u0027);\n    out.push(\u00271 0 0 1 \u0027 + row.x.toFixed(2) + \u0027 \u0027 + row.y.toFixed(2) + \u0027 Tm\u0027);\n    out.push(\u0027(\u0027 + safe + \u0027) Tj\u0027);\n    out.push(\u0027ET\u0027);\n  }\n  return out.join(\u0027\\n\u0027);\n}\n\nfunction buildPdfDocument(pageStreams) {\n  const objects = [];\n  const pageStart = 4;\n  const contentStart = pageStart + pageStreams.length;\n  const pageRefs = pageStreams.map((_, i) =\u003e (pageStart + i) + \u0027 0 R\u0027).join(\u0027 \u0027);\n\n  objects[1] = \u0027\u003c\u003c /Type /Catalog /Pages 2 0 R \u003e\u003e\u0027;\n  objects[2] = \u0027\u003c\u003c /Type /Pages /Kids [\u0027 + pageRefs + \u0027] /Count \u0027 + pageStreams.length + \u0027 \u003e\u003e\u0027;\n  objects[3] = \u0027\u003c\u003c /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding \u003e\u003e\u0027;\n\n  for (let i = 0; i \u003c pageStreams.length; i += 1) {\n    const pageObj = pageStart + i;\n    const contentObj = contentStart + i;\n    objects[pageObj] = [\n      \u0027\u003c\u003c /Type /Page\u0027,\n      \u0027/Parent 2 0 R\u0027,\n      \u0027/MediaBox [0 0 \u0027 + PAGE_WIDTH + \u0027 \u0027 + PAGE_HEIGHT + \u0027]\u0027,\n      \u0027/Resources \u003c\u003c /Font \u003c\u003c /F1 3 0 R \u003e\u003e \u003e\u003e\u0027,\n      \u0027/Contents \u0027 + contentObj + \u0027 0 R\u0027,\n      \u0027\u003e\u003e\u0027,\n    ].join(\u0027 \u0027);\n\n    const stream = pageStreams[i];\n    const len = Buffer.byteLength(stream, \u0027latin1\u0027);\n    objects[contentObj] = \u0027\u003c\u003c /Length \u0027 + len + \u0027 \u003e\u003e\\nstream\\n\u0027 + stream + \u0027\\nendstream\u0027;\n  }\n\n  const maxObject = objects.length - 1;\n  let pdf = \u0027%PDF-1.4\\n\u0027;\n  const offsets = [0];\n\n  for (let i = 1; i \u003c= maxObject; i += 1) {\n    offsets[i] = Buffer.byteLength(pdf, \u0027latin1\u0027);\n    pdf += i + \u0027 0 obj\\n\u0027 + objects[i] + \u0027\\nendobj\\n\u0027;\n  }\n\n  const xrefOffset = Buffer.byteLength(pdf, \u0027latin1\u0027);\n  pdf += \u0027xref\\n0 \u0027 + (maxObject + 1) + \u0027\\n\u0027;\n  pdf += \u00270000000000 65535 f \\n\u0027;\n\n  for (let i = 1; i \u003c= maxObject; i += 1) {\n    const offset = String(offsets[i]).padStart(10, \u00270\u0027);\n    pdf += offset + \u0027 00000 n \\n\u0027;\n  }\n\n  pdf += \u0027trailer\\n\u003c\u003c /Size \u0027 + (maxObject + 1) + \u0027 /Root 1 0 R \u003e\u003e\\n\u0027;\n  pdf += \u0027startxref\\n\u0027 + xrefOffset + \u0027\\n%%EOF\u0027;\n  return Buffer.from(pdf, \u0027latin1\u0027);\n}\n\nconst streams = pages.map(pageToStream);\nconst pdfBuffer = buildPdfDocument(streams);\n\nreturn [{\n  json: { ...json },\n  binary: {\n    ...(item.binary ?? {}),\n    openapiPdf: {\n      data: pdfBuffer.toString(\u0027base64\u0027),\n      mimeType: \u0027application/pdf\u0027,\n      fileName: \u0027openapi.pdf\u0027,\n      fileExtension: \u0027pdf\u0027,\n    },\n  },\n}];"
+                                     },
+                      "id":  "27c1f717-5679-425a-8f96-806dc111e3a9",
+                      "name":  "API - YAML to PDF",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1776,
+                                       368
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "compress",
+                                         "binaryPropertyName":  "openapiSpec,openapiPdf",
+                                         "fileName":  "api.zip",
+                                         "binaryPropertyOutput":  "reviewZip"
+                                     },
+                      "type":  "n8n-nodes-base.compression",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       2160,
+                                       448
+                                   ],
+                      "id":  "75a00b55-2a15-4b23-9b0e-d9655067c09a",
+                      "name":  "API - Zip to Review"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const INPUT_FIELD = \"design\";\nconst OUTPUT_FIELD = \"design_api\";\n\nconst CONFIG = {\n  container_types: new Set([\"rectangle\", \"ellipse\", \"diamond\", \"frame\"]),\n  screen_types: new Set([\"rectangle\", \"frame\"]),\n  min_container_width: 24,\n  min_container_height: 24,\n  min_container_area: 800,\n  top_level_containment_ratio: 0.96,\n  top_level_center_overlap_ratio: 0.85,\n  screen_area_percentile: 0.85,\n  screen_child_count_percentile: 0.85,\n  min_screen_area: 120000,\n  min_screen_width: 280,\n  min_screen_height: 320,\n  min_screen_child_count: 6,\n  screen_membership_overlap_ratio: 0.35,\n  screen_membership_margin: 24,\n  overlay_min_width: 160,\n  overlay_min_height: 100,\n  overlay_min_child_count: 2,\n  modal_min_width: 420,\n  modal_min_height: 260,\n  modal_min_area: 90000,\n  component_containment_ratio: 0.9,\n  component_center_overlap_ratio: 0.6,\n  label_vertical_gap: 28,\n  label_horizontal_gap: 20,\n  label_horizontal_overlap_ratio: 0.45,\n  title_top_band_ratio: 0.22,\n  title_above_margin: 36,\n  title_horizontal_margin: 48,\n};\n\nconst NUMERIC_RE = /^[\\W\\d_]+$/;\nconst WHITESPACE_RE = /\\s+/g;\nconst CONTROL_CHAR_ESCAPES = {\n  \"\\b\": \"\\\\b\",\n  \"\\f\": \"\\\\f\",\n  \"\\n\": \"\\\\n\",\n  \"\\r\": \"\\\\r\",\n  \"\\t\": \"\\\\t\",\n};\n\nfunction cleanText(value) {\n  if (value === undefined || value === null) {\n    return null;\n  }\n\n  const cleaned = String(value).replace(WHITESPACE_RE, \" \").trim();\n  return cleaned || null;\n}\n\nfunction createBounds(left, top, right, bottom) {\n  return {\n    left,\n    top,\n    right,\n    bottom,\n    get width() {\n      return Math.max(0, this.right - this.left);\n    },\n    get height() {\n      return Math.max(0, this.bottom - this.top);\n    },\n    get area() {\n      return this.width * this.height;\n    },\n    get center() {\n      return [this.left + this.width / 2, this.top + this.height / 2];\n    },\n  };\n}\n\nfunction expandBounds(bounds, margin) {\n  return createBounds(\n    bounds.left - margin,\n    bounds.top - margin,\n    bounds.right + margin,\n    bounds.bottom + margin,\n  );\n}\n\nfunction elementBounds(element) {\n  const x = Number(element.x || 0);\n  const y = Number(element.y || 0);\n  const width = Number(element.width || 0);\n  const height = Number(element.height || 0);\n\n  const xs = [x, x + width];\n  const ys = [y, y + height];\n\n  const points = element.points || [];\n  if (Array.isArray(points)) {\n    for (const point of points) {\n      if (Array.isArray(point) \u0026\u0026 point.length \u003e= 2) {\n        xs.push(x + Number(point[0]));\n        ys.push(y + Number(point[1]));\n      }\n    }\n  }\n\n  return createBounds(\n    Math.min(...xs),\n    Math.min(...ys),\n    Math.max(...xs),\n    Math.max(...ys),\n  );\n}\n\nfunction pointInBounds(point, bounds) {\n  const [x, y] = point;\n  return bounds.left \u003c= x \u0026\u0026 x \u003c= bounds.right \u0026\u0026 bounds.top \u003c= y \u0026\u0026 y \u003c= bounds.bottom;\n}\n\nfunction intersectionArea(a, b) {\n  const left = Math.max(a.left, b.left);\n  const right = Math.min(a.right, b.right);\n  const top = Math.max(a.top, b.top);\n  const bottom = Math.min(a.bottom, b.bottom);\n  if (right \u003c= left || bottom \u003c= top) {\n    return 0;\n  }\n  return (right - left) * (bottom - top);\n}\n\nfunction overlapRatio(inner, outer) {\n  return intersectionArea(inner, outer) / Math.max(inner.area, 1);\n}\n\nfunction percentile(values, q) {\n  if (!values.length) {\n    return 0;\n  }\n\n  const ordered = [...values].map(Number).sort((a, b) =\u003e a - b);\n  if (ordered.length === 1) {\n    return ordered[0];\n  }\n\n  const position = (ordered.length - 1) * Math.max(0, Math.min(1, q));\n  const lower = Math.floor(position);\n  const upper = Math.ceil(position);\n  if (lower === upper) {\n    return ordered[lower];\n  }\n\n  const fraction = position - lower;\n  return ordered[lower] * (1 - fraction) + ordered[upper] * fraction;\n}\n\nfunction makeNode(raw, index) {\n  return {\n    id: raw.id || `element-${index}`,\n    sourceElementId: raw.id || `element-${index}`,\n    type: raw.type || \"unknown\",\n    text: cleanText(raw.text || raw.originalText),\n    fontSize: raw.fontSize,\n    bounds: elementBounds(raw),\n    zIndex: index,\n  };\n}\n\nfunction isContainer(node) {\n  const bounds = node.bounds;\n  return (\n    CONFIG.container_types.has(node.type) \u0026\u0026\n    bounds.width \u003e= CONFIG.min_container_width \u0026\u0026\n    bounds.height \u003e= CONFIG.min_container_height \u0026\u0026\n    bounds.area \u003e= CONFIG.min_container_area\n  );\n}\n\nfunction isTopLevelContainer(candidate, containers) {\n  const childBounds = candidate.bounds;\n  const childCenter = childBounds.center;\n\n  for (const parent of containers) {\n    if (parent.id === candidate.id) {\n      continue;\n    }\n\n    const parentBounds = parent.bounds;\n    if (parentBounds.area \u003c= childBounds.area * 1.05) {\n      continue;\n    }\n\n    const ratio = overlapRatio(childBounds, parentBounds);\n    if (ratio \u003e= CONFIG.top_level_containment_ratio) {\n      return false;\n    }\n\n    if (pointInBounds(childCenter, parentBounds) \u0026\u0026 ratio \u003e= CONFIG.top_level_center_overlap_ratio) {\n      return false;\n    }\n  }\n\n  return true;\n}\n\nfunction countMembers(container, elements, margin = 0) {\n  const bounds = expandBounds(container.bounds, margin);\n  let total = 0;\n\n  for (const element of elements) {\n    if (element.id === container.id) {\n      continue;\n    }\n\n    const box = element.bounds;\n    if (\n      pointInBounds(box.center, bounds) ||\n      overlapRatio(box, bounds) \u003e= CONFIG.screen_membership_overlap_ratio\n    ) {\n      total += 1;\n    }\n  }\n\n  return total;\n}\n\nfunction detectScreens(elements) {\n  const containers = elements.filter(\n    (node) =\u003e isContainer(node) \u0026\u0026 CONFIG.screen_types.has(node.type),\n  );\n  if (!containers.length) {\n    return [];\n  }\n\n  let topLevel = containers.filter((node) =\u003e isTopLevelContainer(node, containers));\n  if (!topLevel.length) {\n    topLevel = containers;\n  }\n\n  topLevel = topLevel.filter(\n    (node) =\u003e\n      node.bounds.width \u003e= CONFIG.min_screen_width \u0026\u0026\n      node.bounds.height \u003e= CONFIG.min_screen_height,\n  );\n  if (!topLevel.length) {\n    return [];\n  }\n\n  const memberCounts = Object.fromEntries(\n    topLevel.map((node) =\u003e [node.id, countMembers(node, elements)]),\n  );\n  const areaThreshold = Math.max(\n    CONFIG.min_screen_area,\n    percentile(\n      topLevel.map((node) =\u003e node.bounds.area),\n      CONFIG.screen_area_percentile,\n    ),\n  );\n  const childThreshold = Math.max(\n    CONFIG.min_screen_child_count,\n    percentile(Object.values(memberCounts), CONFIG.screen_child_count_percentile),\n  );\n\n  let screens = topLevel.filter(\n    (node) =\u003e\n      node.bounds.area \u003e= areaThreshold || memberCounts[node.id] \u003e= childThreshold,\n  );\n\n  if (!screens.length) {\n    screens = [\n      topLevel.reduce((best, node) =\u003e {\n        const bestScore = [best.bounds.area, memberCounts[best.id]];\n        const nextScore = [node.bounds.area, memberCounts[node.id]];\n        return nextScore[0] \u003e bestScore[0] || (nextScore[0] === bestScore[0] \u0026\u0026 nextScore[1] \u003e bestScore[1])\n          ? node\n          : best;\n      }),\n    ];\n  }\n\n  return screens.sort(\n    (a, b) =\u003e a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex,\n  );\n}\n\nfunction inferRootName(root, textNodes, usedNames, defaultPrefix, topBandRatio = 0.22) {\n  const bounds = root.bounds;\n  const titleBandBottom = bounds.top + bounds.height * topBandRatio;\n  const candidates = [];\n\n  for (const node of textNodes) {\n    const text = node.text;\n    if (!text || NUMERIC_RE.test(text)) {\n      continue;\n    }\n\n    const nodeBounds = node.bounds;\n    if (nodeBounds.right \u003c bounds.left - CONFIG.title_horizontal_margin) {\n      continue;\n    }\n    if (nodeBounds.left \u003e bounds.right + CONFIG.title_horizontal_margin) {\n      continue;\n    }\n    if (nodeBounds.top \u003c bounds.top - CONFIG.title_above_margin) {\n      continue;\n    }\n    if (nodeBounds.top \u003e titleBandBottom) {\n      continue;\n    }\n\n    const distance =\n      Math.max(0, nodeBounds.left - bounds.left) +\n      Math.max(0, nodeBounds.top - bounds.top);\n    const fontSize = Number(node.fontSize || 16);\n    const alphaBonus = [...text].filter((char) =\u003e /[A-Za-z]/.test(char)).length;\n    const score = fontSize * 2 + Math.min(alphaBonus, 30) - distance / 30;\n    candidates.push([score, text]);\n  }\n\n  let baseName = `${defaultPrefix}_${root.id}`;\n  if (candidates.length) {\n    candidates.sort((a, b) =\u003e b[0] - a[0] || a[1].localeCompare(b[1]));\n    baseName = candidates[0][1];\n  }\n\n  const suffix = usedNames[baseName] || 0;\n  usedNames[baseName] = suffix + 1;\n  return suffix === 0 ? baseName : `${baseName} (${suffix + 1})`;\n}\n\nfunction distanceBetween(a, b) {\n  return Math.hypot(a[0] - b[0], a[1] - b[1]);\n}\n\nfunction rootMembershipScore(element, root) {\n  const rootBounds = expandBounds(root.bounds, CONFIG.screen_membership_margin);\n  const elementBoundsValue = element.bounds;\n  const centerInside = pointInBounds(elementBoundsValue.center, rootBounds);\n  const overlap = overlapRatio(elementBoundsValue, rootBounds);\n\n  if (!centerInside \u0026\u0026 overlap \u003c CONFIG.screen_membership_overlap_ratio) {\n    return null;\n  }\n\n  const distance = distanceBetween(rootBounds.center, elementBoundsValue.center);\n  const diagonal = Math.hypot(rootBounds.width, rootBounds.height) || 1;\n  const distancePenalty = distance / diagonal;\n  return (centerInside ? 1.5 : 0) + overlap * 2 - distancePenalty;\n}\n\nfunction assignElementsToRoots(elements, roots) {\n  const assignments = Object.fromEntries(roots.map((root) =\u003e [root.id, []]));\n  const rootIds = new Set(roots.map((root) =\u003e root.id));\n  const remaining = [];\n\n  for (const element of elements) {\n    if (rootIds.has(element.id)) {\n      continue;\n    }\n\n    let bestRoot = null;\n    let bestScore = null;\n\n    for (const root of roots) {\n      const score = rootMembershipScore(element, root);\n      if (score === null) {\n        continue;\n      }\n      if (bestScore === null || score \u003e bestScore) {\n        bestScore = score;\n        bestRoot = root;\n      }\n    }\n\n    if (!bestRoot) {\n      remaining.push(element);\n    } else {\n      assignments[bestRoot.id].push(element);\n    }\n  }\n\n  return [assignments, remaining];\n}\n\nfunction detectStandaloneOverlays(elements) {\n  const containers = elements.filter(\n    (node) =\u003e\n      isContainer(node) \u0026\u0026\n      node.bounds.width \u003e= CONFIG.overlay_min_width \u0026\u0026\n      node.bounds.height \u003e= CONFIG.overlay_min_height,\n  );\n  if (!containers.length) {\n    return [];\n  }\n\n  const topLevel = containers.filter((node) =\u003e isTopLevelContainer(node, containers));\n  const overlays = topLevel.filter(\n    (node) =\u003e countMembers(node, elements) \u003e= CONFIG.overlay_min_child_count,\n  );\n\n  return overlays.sort(\n    (a, b) =\u003e a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex,\n  );\n}\n\nfunction componentParentScore(child, parent) {\n  const childBounds = child.bounds;\n  const parentBounds = parent.bounds;\n\n  if (parentBounds.area \u003c= childBounds.area * 1.01) {\n    return null;\n  }\n\n  const centerInside = pointInBounds(childBounds.center, parentBounds);\n  const ratio = overlapRatio(childBounds, parentBounds);\n\n  if (!centerInside \u0026\u0026 ratio \u003c CONFIG.component_containment_ratio) {\n    return null;\n  }\n  if (centerInside \u0026\u0026 ratio \u003c CONFIG.component_center_overlap_ratio) {\n    return null;\n  }\n\n  const freeSpace = Math.max(parentBounds.area - childBounds.area, 1);\n  return ratio * 3 + (centerInside ? 1 : 0) - Math.log(freeSpace);\n}\n\nfunction horizontalOverlapRatio(a, b) {\n  const overlap = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));\n  return overlap / Math.max(Math.min(a.width, b.width), 1);\n}\n\nfunction verticalGap(a, b) {\n  if (a.bottom \u003c= b.top) {\n    return b.top - a.bottom;\n  }\n  if (b.bottom \u003c= a.top) {\n    return a.top - b.bottom;\n  }\n  return 0;\n}\n\nfunction isMeaningfulText(node) {\n  return Boolean(node.text \u0026\u0026 !NUMERIC_RE.test(node.text));\n}\n\nfunction attachTextLabels(textNodes, objectNodes) {\n  const labels = {};\n\n  for (const textNode of textNodes) {\n    if (!isMeaningfulText(textNode)) {\n      continue;\n    }\n\n    const textBounds = textNode.bounds;\n    let bestTarget = null;\n    let bestScore = null;\n\n    for (const candidate of objectNodes) {\n      const candidateBounds = candidate.bounds;\n      let score = null;\n\n      if (pointInBounds(textBounds.center, candidateBounds)) {\n        score = 5 - Math.log(Math.max(candidateBounds.area, 1));\n      } else {\n        const gap = verticalGap(textBounds, candidateBounds);\n        const overlap = horizontalOverlapRatio(textBounds, candidateBounds);\n        const closeAbove = textBounds.bottom \u003c= candidateBounds.top + CONFIG.label_vertical_gap;\n        const closeLeft =\n          Math.abs(textBounds.right - candidateBounds.left) \u003c= CONFIG.label_horizontal_gap \u0026\u0026\n          overlap \u003e= 0.25;\n\n        if (\n          gap \u003c= CONFIG.label_vertical_gap \u0026\u0026\n          overlap \u003e= CONFIG.label_horizontal_overlap_ratio \u0026\u0026\n          closeAbove\n        ) {\n          score =\n            3 -\n            gap / Math.max(CONFIG.label_vertical_gap, 1) -\n            Math.log(Math.max(candidateBounds.area, 1));\n        } else if (closeLeft) {\n          score =\n            2 -\n            Math.abs(textBounds.right - candidateBounds.left) /\n              Math.max(CONFIG.label_horizontal_gap, 1);\n        }\n      }\n\n      if (score === null) {\n        continue;\n      }\n\n      if (bestScore === null || score \u003e bestScore) {\n        bestScore = score;\n        bestTarget = candidate;\n      }\n    }\n\n    if (!bestTarget) {\n      continue;\n    }\n\n    labels[bestTarget.id] = labels[bestTarget.id] || [];\n    if (!labels[bestTarget.id].includes(textNode.text)) {\n      labels[bestTarget.id].push(textNode.text);\n    }\n  }\n\n  return labels;\n}\n\nfunction classifyOverlayKind(bounds, referenceBounds) {\n  if (referenceBounds) {\n    const widthRatio = bounds.width / Math.max(referenceBounds.width, 1);\n    const heightRatio = bounds.height / Math.max(referenceBounds.height, 1);\n    const detached =\n      bounds.left \u003e referenceBounds.left + referenceBounds.width * 0.04 \u0026\u0026\n      bounds.right \u003c referenceBounds.right - referenceBounds.width * 0.04 \u0026\u0026\n      bounds.top \u003e referenceBounds.top + referenceBounds.height * 0.04 \u0026\u0026\n      bounds.bottom \u003c referenceBounds.bottom - referenceBounds.height * 0.04;\n    const centered =\n      referenceBounds.left + referenceBounds.width * 0.15 \u003c= bounds.center[0] \u0026\u0026\n      bounds.center[0] \u003c= referenceBounds.right - referenceBounds.width * 0.15 \u0026\u0026\n      referenceBounds.top + referenceBounds.height * 0.12 \u003c= bounds.center[1] \u0026\u0026\n      bounds.center[1] \u003c= referenceBounds.bottom - referenceBounds.height * 0.12;\n\n    if (centered \u0026\u0026 detached \u0026\u0026 widthRatio \u003e= 0.16 \u0026\u0026 heightRatio \u003e= 0.14) {\n      return widthRatio \u003e= 0.28 || heightRatio \u003e= 0.26 ? \"modal\" : \"dialog\";\n    }\n  }\n\n  if (\n    bounds.width \u003e= CONFIG.modal_min_width ||\n    bounds.height \u003e= CONFIG.modal_min_height ||\n    bounds.area \u003e= CONFIG.modal_min_area\n  ) {\n    return \"modal\";\n  }\n\n  return \"dialog\";\n}\n\nfunction inferObjectKind(node, childNodes, labels, rootBounds) {\n  const overlayKind = rootBounds ? classifyOverlayKind(node.bounds, rootBounds) : null;\n  if (overlayKind \u0026\u0026 rootBounds \u0026\u0026 node.bounds.area \u003c rootBounds.area * 0.85) {\n    return overlayKind;\n  }\n  if (labels.length \u0026\u0026 node.bounds.height \u003c= 72) {\n    return \"control\";\n  }\n  if (childNodes.length) {\n    return \"group\";\n  }\n  if (node.bounds.height \u003c= 88) {\n    return \"control\";\n  }\n  return \"container\";\n}\n\nfunction boundsToBox(bounds) {\n  return [\n    Number(bounds.left.toFixed(2)),\n    Number(bounds.top.toFixed(2)),\n    Number(bounds.width.toFixed(2)),\n    Number(bounds.height.toFixed(2)),\n  ];\n}\n\nfunction serializeObject(node, childrenMap, labelMap, rootBounds) {\n  const childNodes = [...(childrenMap[node.id] || [])].sort(\n    (a, b) =\u003e a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex,\n  );\n  const labels = labelMap[node.id] || [];\n\n  const payload = {\n    id: node.id,\n    sourceId: node.sourceElementId,\n    kind: inferObjectKind(node, childNodes, labels, rootBounds),\n    type: node.type,\n    box: boundsToBox(node.bounds),\n  };\n\n  if (labels.length) {\n    payload.labels = labels;\n  }\n  if (childNodes.length) {\n    payload.objects = childNodes.map((child) =\u003e\n      serializeObject(child, childrenMap, labelMap, rootBounds),\n    );\n  }\n\n  return payload;\n}\n\nfunction buildReducedObjects(elements, rootBounds) {\n  if (!elements.length) {\n    return [];\n  }\n\n  const objectNodes = elements.filter((node) =\u003e isContainer(node));\n  if (!objectNodes.length) {\n    return [];\n  }\n\n  const parentMap = {};\n  const sortedNodes = [...objectNodes].sort(\n    (a, b) =\u003e a.bounds.area - b.bounds.area || a.zIndex - b.zIndex,\n  );\n\n  for (const node of sortedNodes) {\n    let bestParent = null;\n    let bestScore = null;\n\n    for (const parent of objectNodes) {\n      if (parent.id === node.id) {\n        continue;\n      }\n\n      const score = componentParentScore(node, parent);\n      if (score === null) {\n        continue;\n      }\n      if (bestScore === null || score \u003e bestScore) {\n        bestScore = score;\n        bestParent = parent.id;\n      }\n    }\n\n    parentMap[node.id] = bestParent;\n  }\n\n  const childrenMap = {};\n  const roots = [];\n\n  for (const node of objectNodes) {\n    const parentId = parentMap[node.id];\n    if (parentId) {\n      childrenMap[parentId] = childrenMap[parentId] || [];\n      childrenMap[parentId].push(node);\n    } else {\n      roots.push(node);\n    }\n  }\n\n  const labelMap = attachTextLabels(\n    elements.filter((node) =\u003e node.type === \"text\"),\n    objectNodes,\n  );\n\n  return roots\n    .sort((a, b) =\u003e a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left || a.zIndex - b.zIndex)\n    .map((node) =\u003e serializeObject(node, childrenMap, labelMap, rootBounds));\n}\n\nfunction transformExcalidraw(data) {\n  const rawElements = Array.isArray(data.elements) ? data.elements : [];\n  const elements = rawElements\n    .filter((raw) =\u003e raw \u0026\u0026 typeof raw === \"object\" \u0026\u0026 !raw.isDeleted)\n    .map((raw, index) =\u003e makeNode(raw, index));\n\n  const screens = detectScreens(elements);\n  const [screenAssignments, remaining] = assignElementsToRoots(elements, screens);\n  const overlays = detectStandaloneOverlays(remaining);\n  const [overlayAssignments] = assignElementsToRoots(remaining, overlays);\n  const textNodes = elements.filter((node) =\u003e node.type === \"text\");\n\n  const usedScreenNames = {};\n  const usedOverlayNames = {};\n\n  const serializedScreens = screens.map((screen, index) =\u003e ({\n    id: `screen-${index + 1}`,\n    name: inferRootName(screen, textNodes, usedScreenNames, \"screen\"),\n    sourceId: screen.sourceElementId,\n    box: boundsToBox(screen.bounds),\n    objects: buildReducedObjects(screenAssignments[screen.id] || [], screen.bounds),\n  }));\n\n  const serializedModals = [];\n  const serializedDialogs = [];\n\n  overlays.forEach((overlay, index) =\u003e {\n    const kind = classifyOverlayKind(overlay.bounds, null);\n    const payload = {\n      id: `${kind}-${index + 1}`,\n      name: inferRootName(overlay, textNodes, usedOverlayNames, kind, 0.3),\n      sourceId: overlay.sourceElementId,\n      box: boundsToBox(overlay.bounds),\n      objects: buildReducedObjects(overlayAssignments[overlay.id] || [], overlay.bounds),\n    };\n\n    if (kind === \"modal\") {\n      serializedModals.push(payload);\n    } else {\n      serializedDialogs.push(payload);\n    }\n  });\n\n  return {\n    meta: {\n      source: data.source,\n      type: data.type,\n      version: data.version,\n      elementCount: elements.length,\n      screenCount: serializedScreens.length,\n      modalCount: serializedModals.length,\n      dialogCount: serializedDialogs.length,\n    },\n    screens: serializedScreens,\n    modals: serializedModals,\n    dialogs: serializedDialogs,\n  };\n}\n\nfunction escapeControlCharsInJsonStrings(value) {\n  let result = \"\";\n  let inString = false;\n  let escaped = false;\n\n  for (let index = 0; index \u003c value.length; index += 1) {\n    const char = value[index];\n\n    if (inString) {\n      if (escaped) {\n        result += char;\n        escaped = false;\n        continue;\n      }\n\n      if (char === \"\\\\\") {\n        result += char;\n        escaped = true;\n        continue;\n      }\n\n      if (char === \u0027\"\u0027) {\n        result += char;\n        inString = false;\n        continue;\n      }\n\n      const code = char.charCodeAt(0);\n      if (code \u003c= 0x1f) {\n        result += CONTROL_CHAR_ESCAPES[char] || \u0027\\\\\u0027 + \u0027u\u0027 + code.toString(16).padStart(4, \u00270\u0027);\n        continue;\n      }\n\n      result += char;\n      continue;\n    }\n\n    if (char === \u0027\"\u0027) {\n      inString = true;\n    }\n\n    result += char;\n  }\n\n  return result;\n}\n\nfunction parseJsonObject(rawDesign, itemIndex) {\n  const attempts = [rawDesign, escapeControlCharsInJsonStrings(rawDesign)];\n  let lastError = null;\n\n  for (const candidate of attempts) {\n    try {\n      const parsed = JSON.parse(candidate);\n      if (parsed \u0026\u0026 typeof parsed === \"object\" \u0026\u0026 !Array.isArray(parsed)) {\n        return parsed;\n      }\n\n      throw new Error(\"Item \" + itemIndex + \": field \u0027\" + INPUT_FIELD + \"\u0027 must decode to a JSON object.\");\n    } catch (error) {\n      lastError = error;\n    }\n  }\n\n  throw new Error(\"Item \" + itemIndex + \": field \u0027\" + INPUT_FIELD + \"\u0027 is not valid JSON: \" + lastError.message);\n}\n\nfunction parseDesign(rawDesign, itemIndex) {\n  if (rawDesign \u0026\u0026 typeof rawDesign === \"object\" \u0026\u0026 !Array.isArray(rawDesign)) {\n    return rawDesign;\n  }\n\n  if (typeof rawDesign === \"string\") {\n    return parseJsonObject(rawDesign, itemIndex);\n  }\n\n  throw new Error(\"Item \" + itemIndex + \": field \u0027\" + INPUT_FIELD + \"\u0027 must be a JSON string or object.\");\n}\n\nasync function resolveRawDesign(item, itemIndex) {\n  const sourceJson = item.json || {};\n  if (\n    INPUT_FIELD in sourceJson \u0026\u0026\n    sourceJson[INPUT_FIELD] !== undefined \u0026\u0026\n    sourceJson[INPUT_FIELD] !== null \u0026\u0026\n    sourceJson[INPUT_FIELD] !== \"\"\n  ) {\n    return sourceJson[INPUT_FIELD];\n  }\n  if (sourceJson.finalDesignExcalidraw) {\n    return sourceJson.finalDesignExcalidraw;\n  }\n  const sourceBinary = item.binary || {};\n  const binaryKeysToTry = [INPUT_FIELD, INPUT_FIELD + \"File\"];\n  for (const key of binaryKeysToTry) {\n    if (!sourceBinary[key]) continue;\n    const binaryBuffer = await this.helpers.getBinaryDataBuffer(itemIndex, key);\n    const rawBinary = binaryBuffer.toString(\"utf8\").trim();\n    if (!rawBinary) {\n      throw new Error(\"Item \" + itemIndex + \": binary \u0027\" + key + \"\u0027 is empty.\");\n    }\n    return rawBinary;\n  }\n  throw new Error(\"Item \" + itemIndex + \": missing \u0027\" + INPUT_FIELD + \"\u0027 (expected approved Excalidraw JSON).\");\n}\n\nconst items = $input.all();\n\nreturn await Promise.all(items.map(async (item, itemIndex) =\u003e {\n  const rawDesign = await resolveRawDesign.call(this, item, itemIndex);\n  const design = parseDesign(rawDesign, itemIndex);\n  const reducedJson = transformExcalidraw(design);\n\n  return {\n    json: {\n      ...(item.json || {}),\n      [OUTPUT_FIELD]: reducedJson,\n    },\n    ...(item.binary \u0026\u0026 Object.keys(item.binary).length ? { binary: item.binary } : {}),\n  };\n}));"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       176,
+                                       224
+                                   ],
+                      "id":  "7fdc37ba-a75b-4614-9e0d-0a855179dd6f",
+                      "name":  "DESIGN_FOR_API"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "toText",
+                                         "sourceProperty":  "design_api",
+                                         "binaryPropertyName":  "design_api",
+                                         "options":  {
+                                                         "fileName":  "design_api.json"
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.convertToFile",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       368,
+                                       224
+                                   ],
+                      "id":  "1d91f39a-fc66-4ba8-bdd7-cc2f0fab7289",
+                      "name":  "DESIGN_FOR_API FILE"
+                  },
+                  {
+                      "parameters":  {
+                                         "content":  "## API Generation Module\n\nTransforms **structured requirements** and **UI design artifacts** into an **OpenAPI specification** using an LLM.\n",
+                                         "height":  944,
+                                         "width":  2640,
+                                         "color":  "#DCFCE7"
+                                     },
+                      "type":  "n8n-nodes-base.stickyNote",
+                      "position":  [
+                                       0,
+                                       0
+                                   ],
+                      "typeVersion":  1,
+                      "id":  "dfc540e1-cf71-443d-90d4-db91f40b3474",
+                      "name":  "Sticky Note"
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "cond-bb01ba6e-5908-4232-94f5-06751473af5c",
+                                                                                   "leftValue":  "={{ $json.reviewMode }}",
+                                                                                   "rightValue":  "refine",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "a56dfe1d-c2b9-44c0-b340-0ee7ce7f7888",
+                      "name":  "API - Execute Refinement?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       128,
+                                       432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== \u0027function\u0027) return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json[\u0027Start Again\u0027];\n  delete json.reviewMode;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) =\u003e !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) =\u003e !String(key).endsWith(\u0027_firstIteration\u0027)),\n  );\n}\n\nfunction firstNonEmpty(values) {\n  for (const value of values) {\n    if (typeof value === \u0027string\u0027 \u0026\u0026 value.trim()) return value.trim();\n  }\n  return \u0027\u0027;\n}\n\nfunction makeTextBinary(text, fileName, mimeType) {\n  const value = String(text ?? \u0027\u0027).trim();\n  if (!value) return null;\n  return {\n    data: Buffer.from(value, \u0027utf8\u0027).toString(\u0027base64\u0027),\n    fileName,\n    mimeType,\n  };\n}\n\nconst firstNode = getNodeItemSafe(\u0027API - Prepare Information for First Iteration\u0027);\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\nconst currentValue = firstNonEmpty([currentJson.openapiYaml, currentJson.response]);\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst currentArtifact = makeTextBinary(currentValue, \u0027openapi.yaml\u0027, \u0027application/yaml\u0027);\nif (currentArtifact) cleanCurrentBinary[\u0027openapiSpec\u0027] = currentArtifact;\n\nconst firstValue = firstNonEmpty([firstJson.openapiYaml, baseJson.firstIterationOpenapiYaml, currentValue]);\nconst firstArtifact = makeTextBinary(firstValue, \u0027openapi.yaml\u0027, \u0027application/yaml\u0027);\nconst inheritedFirst = rawBinary[\u0027openapiSpec_firstIteration\u0027];\nif (firstArtifact || inheritedFirst) cleanCurrentBinary[\u0027openapiSpec_firstIteration\u0027] = firstArtifact || inheritedFirst;\n\nconst outputJson = {\n  ...baseJson,\n  reviewMode: \u0027\u0027,\n  openapiYaml: currentValue,\n    firstIterationOpenapiYaml: firstValue,\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? \u0027\u0027).trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? \u0027\u0027).trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? \u0027\u0027).trim(),\n};\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+                                     },
+                      "id":  "ddf4674e-1de3-44b6-8e33-540fa57d8d7a",
+                      "name":  "API - Review Output",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2400,
+                                       272
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst refinementRaw = json.refinement;\nconst refinement = typeof refinementRaw === \u0027boolean\u0027\n  ? refinementRaw\n  : [\u0027true\u0027, \u00271\u0027, \u0027yes\u0027, \u0027y\u0027, \u0027refine\u0027].includes(String(refinementRaw ?? \u0027\u0027).trim().toLowerCase());\n\nif (!String(json.reviewMode ?? \u0027\u0027).trim()) {\n  json.reviewMode = refinement ? \u0027refine\u0027 : \u0027\u0027;\n}\n\nif (!binary.requirements \u0026\u0026 binary.requirementsFile) {\n  binary.requirements = binary.requirementsFile;\n}\n\nif (!binary.requirements) {\n  const requirementsText = String(json.requirements ?? \u0027\u0027).trim();\n  if (requirementsText) {\n    binary.requirements = {\n      data: Buffer.from(requirementsText, \u0027utf8\u0027).toString(\u0027base64\u0027),\n      fileName: \u0027requirements.md\u0027,\n      mimeType: \u0027text/markdown\u0027,\n    };\n  }\n}\n\nif (!binary.design \u0026\u0026 binary.designFile) {\n  binary.design = binary.designFile;\n}\n\nfor (const key of [\u0027Approved\u0027, \u0027Start Again\u0027, \u0027Feedback\u0027, \u0027feedback\u0027, \u0027Attachments (optional)\u0027]) {\n  delete json[key];\n}\n\ndelete json.requirementsFile;\ndelete json.designFile;\ndelete json.refinement;\n\nconst cleanedBinary = Object.fromEntries(\n  Object.entries(binary).filter(([key]) =\u003e !/^attachments?(?:_|$)/i.test(String(key)))\n);\n\nreturn [{\n  json,\n  ...(Object.keys(cleanedBinary).length ? { binary: cleanedBinary } : {}),\n}];"
+                                     },
+                      "id":  "7a7e0c74-d899-430a-952e-206d5af7221b",
+                      "name":  "API - Sanitize Output Context",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1488,
+                                       112
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "53cc41f3-6648-43d1-8033-22951ec32b5b",
+                      "name":  "API - Start Zip Process Creation",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       1360,
+                                       672
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const branchItem = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== \u0027function\u0027) return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nconst contextItem = getNodeItemSafe(\u0027API - Sanitize Output Context\u0027) ?? { json: {}, binary: {} };\n\nconst mergedJson = {\n  ...(contextItem.json ?? {}),\n  ...(branchItem.json ?? {}),\n};\n\nconst mergedBinary = {\n  ...(contextItem.binary ?? {}),\n  ...(branchItem.binary ?? {}),\n};\n\nif (!mergedBinary.requirements) {\n  throw new Error(\u0027Missing requirements binary before API prompt generation.\u0027);\n}\n\nif (!mergedBinary.design_api) {\n  throw new Error(\u0027Missing design_api binary before API prompt generation.\u0027);\n}\n\nreturn [{\n  json: mergedJson,\n  ...(Object.keys(mergedBinary).length ? { binary: mergedBinary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       128,
+                                       672
+                                   ],
+                      "id":  "c4f0777f-579f-4168-ac05-9ffb5ab9a0ba",
+                      "name":  "API - Requirements and Design First Iteration"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const branchItem = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== \u0027function\u0027) return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nconst contextItem = getNodeItemSafe(\u0027API - Sanitize Output Context\u0027) ?? { json: {}, binary: {} };\n\nconst mergedJson = {\n  ...(contextItem.json ?? {}),\n  ...(branchItem.json ?? {}),\n};\n\nconst mergedBinary = {\n  ...(contextItem.binary ?? {}),\n  ...(branchItem.binary ?? {}),\n};\n\nif (!mergedBinary.requirements) {\n  throw new Error(\u0027Missing requirements binary before API prompt generation.\u0027);\n}\n\nif (!mergedBinary.design_api) {\n  throw new Error(\u0027Missing design_api binary before API prompt generation.\u0027);\n}\n\nreturn [{\n  json: mergedJson,\n  ...(Object.keys(mergedBinary).length ? { binary: mergedBinary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       400,
+                                       416
+                                   ],
+                      "id":  "93ea0d51-c921-499e-884f-9c7d8bdd76de",
+                      "name":  "API - Requirements and Design for Refinement"
+                  },
+                  {
+                      "parameters":  {
+                                         "formTitle":  "API Generation Intake",
+                                         "formDescription":  "Provide requirements and design input, then choose whether to run refinement mode.",
+                                         "formFields":  {
+                                                            "values":  [
+                                                                           {
+                                                                               "fieldLabel":  "Requirements File",
+                                                                               "fieldType":  "file",
+                                                                               "fieldName":  "requirementsFile",
+                                                                               "multipleFiles":  false,
+                                                                               "acceptFileTypes":  ".md,.txt"
+                                                                           },
+                                                                           {
+                                                                               "fieldLabel":  "Requirements",
+                                                                               "fieldType":  "textarea",
+                                                                               "fieldName":  "requirements",
+                                                                               "placeholder":  "Paste requirements text when no file is uploaded."
+                                                                           },
+                                                                           {
+                                                                               "fieldLabel":  "Design File",
+                                                                               "fieldType":  "file",
+                                                                               "fieldName":  "designFile",
+                                                                               "multipleFiles":  false,
+                                                                               "acceptFileTypes":  ".json,.excalidraw,.txt"
+                                                                           },
+                                                                           {
+                                                                               "fieldLabel":  "Design",
+                                                                               "fieldType":  "textarea",
+                                                                               "fieldName":  "design",
+                                                                               "placeholder":  "Paste design JSON when no file is uploaded."
+                                                                           },
+                                                                           {
+                                                                               "fieldLabel":  "Refinement",
+                                                                               "fieldType":  "dropdown",
+                                                                               "fieldName":  "refinement",
+                                                                               "defaultValue":  "false",
+                                                                               "fieldOptions":  {
+                                                                                                    "values":  [
+                                                                                                                   {
+                                                                                                                       "option":  "false"
+                                                                                                                   },
+                                                                                                                   {
+                                                                                                                       "option":  "true"
+                                                                                                                   }
+                                                                                                               ]
+                                                                                                },
+                                                                               "requiredField":  true
+                                                                           }
+                                                                       ]
+                                                        },
+                                         "options":  {
+                                                         "buttonLabel":  "Run API Workflow",
+                                                         "path":  "api-v2-intake",
+                                                         "useWorkflowTimezone":  true
+                                                     }
+                                     },
+                      "id":  "10d5127e-4fbf-4ec4-8414-da80ad75408a",
+                      "name":  "API - Workflow trigger",
+                      "type":  "n8n-nodes-base.formTrigger",
+                      "typeVersion":  2.5,
+                      "position":  [
+                                       -48,
+                                       112
+                                   ],
+                      "webhookId":  "1cfc872b-60b6-421b-9459-10262c46fd8d"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "f9e3ad28-1930-4494-9594-a141b70f68cf",
+                      "name":  "API - Workflow Output",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       2592,
+                                       128
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "API - Clean Response":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "API - Start Zip Process Creation",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "API - File to Review":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "API - Yaml and Pdf",
+                                                                          "type":  "main",
+                                                                          "index":  1
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "API - Zip to Review":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "API - Text and Zip",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "API - Refinement Model":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "API - Previous and New Response",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "DESIGN_FOR_API FILE":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "API - Execute Refinement?",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "API - Text and Zip":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "API - Create Zip Link",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "API - Build Prompt":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "API - Model",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "API - Model":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "API - Clean Response",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "API - Create Zip Link":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "API - Prepare Information",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "DESIGN_FOR_API":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "DESIGN_FOR_API FILE",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "API - Clean Refinement Response":  {
+                                                                "main":  [
+                                                                             [
+                                                                                 {
+                                                                                     "node":  "API - Start Zip Process Creation",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 }
+                                                                             ]
+                                                                         ]
+                                                            },
+                        "API - Yaml and Pdf":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "API - Zip to Review",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "API - Previous and New Response":  {
+                                                                "main":  [
+                                                                             [
+                                                                                 {
+                                                                                     "node":  "API - Clean Refinement Response",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 }
+                                                                             ]
+                                                                         ]
+                                                            },
+                        "API - YAML to PDF":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "API - Yaml and Pdf",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "API - Build Refinement Prompt":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "API - Refinement Model",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               },
+                                                                               {
+                                                                                   "node":  "API - Previous and New Response",
+                                                                                   "type":  "main",
+                                                                                   "index":  1
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "API - Review Output":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "API - Workflow Output",
+                                                                         "type":  "main",
+                                                                         "index":  1
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "API - Execute Refinement?":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "API - Requirements and Design for Refinement",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ],
+                                                                       [
+                                                                           {
+                                                                               "node":  "API - Requirements and Design First Iteration",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "API - Prepare Information":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "API - Review Output",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "API - Start Zip Process Creation":  {
+                                                                 "main":  [
+                                                                              [
+                                                                                  {
+                                                                                      "node":  "API - File to Review",
+                                                                                      "type":  "main",
+                                                                                      "index":  0
+                                                                                  },
+                                                                                  {
+                                                                                      "node":  "API - YAML to PDF",
+                                                                                      "type":  "main",
+                                                                                      "index":  0
+                                                                                  },
+                                                                                  {
+                                                                                      "node":  "API - Text and Zip",
+                                                                                      "type":  "main",
+                                                                                      "index":  1
+                                                                                  }
+                                                                              ]
+                                                                          ]
+                                                             },
+                        "API - Requirements and Design First Iteration":  {
+                                                                              "main":  [
+                                                                                           [
+                                                                                               {
+                                                                                                   "node":  "API - Build Prompt",
+                                                                                                   "type":  "main",
+                                                                                                   "index":  0
+                                                                                               }
+                                                                                           ]
+                                                                                       ]
+                                                                          },
+                        "API - Requirements and Design for Refinement":  {
+                                                                             "main":  [
+                                                                                          [
+                                                                                              {
+                                                                                                  "node":  "API - Build Refinement Prompt",
+                                                                                                  "type":  "main",
+                                                                                                  "index":  0
+                                                                                              }
+                                                                                          ]
+                                                                                      ]
+                                                                         },
+                        "API - Workflow trigger":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "API - Sanitize Output Context",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        },
+                                                                        {
+                                                                            "node":  "DESIGN_FOR_API",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "API - Sanitize Output Context":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "API - Workflow Output",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  null,
+    "pinData":  {
+
+                },
+    "versionId":  "37b19723-8c3d-4cf4-a672-3336e76244fd",
+    "activeVersionId":  null,
+    "versionCounter":  12,
+    "triggerCount":  0,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-04-23T09:54:31.975Z",
+                       "createdAt":  "2026-04-23T09:54:31.975Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "S6fBEWkLZhEtcs20",
+                       "projectId":  "QcpgOQcXnvTTBDCu",
+                       "project":  {
+                                       "updatedAt":  "2026-02-28T20:05:48.391Z",
+                                       "createdAt":  "2026-02-28T20:05:24.898Z",
+                                       "id":  "QcpgOQcXnvTTBDCu",
+                                       "name":  "Gustavo Henriques \u003cgusta.santos.henriques@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "874e8826-31b6-4abc-8eb0-c01ae9472bd2"
+                                   }
+                   }
+               ],
+    "tags":  [
+
+             ],
+    "activeVersion":  null
+}

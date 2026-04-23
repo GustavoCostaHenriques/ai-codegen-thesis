@@ -1,0 +1,470 @@
+{
+    "updatedAt":  "2026-04-22T10:45:56.841Z",
+    "createdAt":  "2026-04-10T16:43:27.276Z",
+    "id":  "daa2UAUSVV3Pz1dJ",
+    "name":  "backend-independent",
+    "description":  null,
+    "active":  false,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "formTitle":  "Backend Module - Standalone",
+                                         "formDescription":  "Upload requirements and API spec, then run backend generation with human validation loop.",
+                                         "formFields":  {
+                                                            "values":  [
+                                                                           {
+                                                                               "fieldLabel":  "Requirements File",
+                                                                               "fieldType":  "file",
+                                                                               "fieldName":  "requirements",
+                                                                               "multipleFiles":  false,
+                                                                               "acceptFileTypes":  ".md,.txt"
+                                                                           },
+                                                                           {
+                                                                               "fieldLabel":  "OpenAPI File",
+                                                                               "fieldType":  "file",
+                                                                               "fieldName":  "openapiSpec",
+                                                                               "multipleFiles":  false,
+                                                                               "acceptFileTypes":  ".yaml,.yml,.json"
+                                                                           }
+                                                                       ]
+                                                        },
+                                         "options":  {
+                                                         "buttonLabel":  "Generate Backend",
+                                                         "path":  "backend-standalone-4d78065d",
+                                                         "useWorkflowTimezone":  true
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.formTrigger",
+                      "typeVersion":  2.5,
+                      "position":  [
+                                       496,
+                                       0
+                                   ],
+                      "id":  "2b7e29bc-627c-4d87-adda-362d93ff65a1",
+                      "name":  "Start",
+                      "webhookId":  "7f74a4be-1f88-40cd-802e-bbcf5992ed82",
+                      "notesInFlow":  false
+                  },
+                  {
+                      "parameters":  {
+                                         "workflowId":  {
+                                                            "__rl":  true,
+                                                            "value":  "t4DpvJ4pVTGh64YT",
+                                                            "mode":  "list",
+                                                            "cachedResultUrl":  "/workflow/t4DpvJ4pVTGh64YT",
+                                                            "cachedResultName":  "backend-v2"
+                                                        },
+                                         "workflowInputs":  {
+                                                                "mappingMode":  "defineBelow",
+                                                                "value":  {
+
+                                                                          },
+                                                                "matchingColumns":  [
+
+                                                                                    ],
+                                                                "schema":  [
+
+                                                                           ],
+                                                                "attemptToConvertTypes":  false,
+                                                                "convertFieldsToString":  true
+                                                            },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "43c52eac-e438-4010-9536-d49a3152a595",
+                      "name":  "BE - Create Backend",
+                      "type":  "n8n-nodes-base.executeWorkflow",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       720,
+                                       -128
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = {};\nif (Array.isArray(item.json?.backendHistory)) {\n  json.backendHistory = item.json.backendHistory;\n}\n\nconst binary = {};\nfor (const [name, value] of Object.entries(item.binary ?? {})) {\n  if (name === \u0027requirements\u0027 || name === \u0027openapiSpec\u0027 || name === \u0027backendZip\u0027 || /^backend_iteration_\\d+$/.test(name)) {\n    binary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       720,
+                                       128
+                                   ],
+                      "id":  "ffdf3b06-e5bd-461e-a7f6-68e28197e8f4",
+                      "name":  "BE - History Context"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "344af5dd-4c76-42c2-a7e0-c2145038912a",
+                      "name":  "BE - History Merge",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       960,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst escapeHtml = (value) =\u003e String(value ?? \u0027\u0027)\n  .replace(/\u0026/g, \u0027\u0026amp;\u0027)\n  .replace(/\u003c/g, \u0027\u0026lt;\u0027)\n  .replace(/\u003e/g, \u0027\u0026gt;\u0027)\n  .replace(/\"/g, \u0027\u0026quot;\u0027)\n  .replace(/\u0027/g, \u0027\u0026#39;\u0027);\n\nconst buildBackendReviewAssets = ({ history, currentIterationNumber, currentZipDownloadUrl, restoreError }) =\u003e {\n  const currentDownloadUrl = String(currentZipDownloadUrl ?? \u0027\u0027).trim();\n  const currentDownloadHtml = currentDownloadUrl\n    ? `\u003cp\u003e\u003ca href=\"${escapeHtml(currentDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\"\u003eDownload current Backend ZIP\u003c/a\u003e\u003c/p\u003e`\n    : \u0027\u0027;\n\n  const historyItemsHtml = history.map((entry) =\u003e {\n    const iterationNumber = Number(entry.iterationNumber ?? 0) || 0;\n    const revisionNumber = Number(entry.revisionNumber ?? 0) || 0;\n    const currentTag = iterationNumber === currentIterationNumber ? \u0027 \u003cstrong\u003e(current)\u003c/strong\u003e\u0027 : \u0027\u0027;\n    const entryDownloadUrl = String(entry.zipDownloadUrl ?? \u0027\u0027).trim();\n    const entryDownloadHtml = entryDownloadUrl\n      ? `\u003ca href=\"${escapeHtml(entryDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\"\u003eDownload ZIP\u003c/a\u003e`\n      : \u0027\u0027;\n    return `\u003cli\u003e\u003cstrong\u003eIteration ${iterationNumber}\u003c/strong\u003e - Revision ${escapeHtml(revisionNumber)}${currentTag}${entryDownloadHtml ? ` - ${entryDownloadHtml}` : \u0027\u0027}\u003c/li\u003e`;\n  }).join(\u0027\u0027);\n\n  const restoreChoices = history\n    .filter((entry) =\u003e Number(entry.iterationNumber ?? 0) !== currentIterationNumber)\n    .map((entry) =\u003e ({\n      option: `Iteration ${Number(entry.iterationNumber ?? 0) || 0} (rev ${Number(entry.revisionNumber ?? 0) || 0})`,\n    }));\n\n  const formFields = [\n    {\n      fieldLabel: \u0027Approved\u0027,\n      fieldName: \u0027Approved\u0027,\n      fieldType: \u0027dropdown\u0027,\n      fieldOptions: {\n        values: [\n          { option: \u0027approved\u0027 },\n          { option: \u0027rejected\u0027 },\n        ],\n      },\n      requiredField: true,\n    },\n    {\n      fieldLabel: \u0027Restore older iteration\u0027,\n      fieldName: \u0027Restore older iteration\u0027,\n      fieldType: \u0027dropdown\u0027,\n      fieldOptions: {\n        values: [\n          { option: \u0027Yes\u0027 },\n          { option: \u0027No\u0027 },\n        ],\n      },\n      defaultValue: \u0027No\u0027,\n      requiredField: true,\n    },\n    {\n      fieldLabel: \u0027Iteration to restore\u0027,\n      fieldName: \u0027Iteration to restore\u0027,\n      fieldType: \u0027dropdown\u0027,\n      fieldOptions: {\n        values: restoreChoices,\n      },\n    },\n    {\n      fieldLabel: \u0027Attachments (optional)\u0027,\n      fieldName: \u0027Attachments\u0027,\n      fieldType: \u0027file\u0027,\n    },\n    {\n      fieldLabel: \u0027Feedback\u0027,\n      fieldName: \u0027Feedback\u0027,\n      fieldType: \u0027textarea\u0027,\n      placeholder: \u0027Describe exactly what should change in the backend package.\u0027,\n    },\n  ];\n\n  const descriptionHtml = [\n    \u0027\u003cp\u003eReview the current Backend ZIP, then approve it or request changes.\u003c/p\u003e\u0027,\n    currentDownloadHtml,\n    restoreError ? `\u003cp\u003e\u003cstrong\u003e${escapeHtml(restoreError)}\u003c/strong\u003e\u003c/p\u003e` : \u0027\u0027,\n    \u0027\u003cp\u003eIf you want to return to a previously generated version, choose Yes in Restore older iteration. You can also download any generated iteration below.\u003c/p\u003e\u0027,\n    historyItemsHtml ? `\u003cp\u003eGenerated iterations:\u003c/p\u003e\u003col\u003e${historyItemsHtml}\u003c/ol\u003e` : \u0027\u003cp\u003eNo generated iterations are available yet.\u003c/p\u003e\u0027,\n  ].filter(Boolean).join(\u0027\u0027);\n\n  return {\n    descriptionHtml,\n    formJson: JSON.stringify(formFields),\n  };\n};\n\nconst existingHistory = Array.isArray(json.backendHistory)\n  ? json.backendHistory.filter((entry) =\u003e entry \u0026\u0026 typeof entry === \u0027object\u0027)\n  : [];\n\nconst normalizedHistory = existingHistory.map((entry, index) =\u003e ({\n  iterationNumber: Number(entry.iterationNumber ?? index + 1) || (index + 1),\n  revisionNumber: Number(entry.revisionNumber ?? 0) || 0,\n  backendStructure: String(entry.backendStructure ?? entry.response ?? \u0027\u0027).trim(),\n  zipDownloadUrl: String(entry.zipDownloadUrl ?? \u0027\u0027).trim(),\n  zipDownloadToken: String(entry.zipDownloadToken ?? \u0027\u0027).trim(),\n  downloadLinkHtml: String(entry.downloadLinkHtml ?? \u0027\u0027).trim(),\n  binaryPropertyName: String(entry.binaryPropertyName ?? \u0027\u0027).trim(),\n  fileCount: Number(entry.fileCount ?? 0) || 0,\n  files: Array.isArray(entry.files) ? entry.files : [],\n}));\n\nconst currentEntry = {\n  revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n  backendStructure: String(json.backendStructure ?? json.response ?? \u0027\u0027).trim(),\n  zipDownloadUrl: String(json.zipDownloadUrl ?? \u0027\u0027).trim(),\n  zipDownloadToken: String(json.zipDownloadToken ?? \u0027\u0027).trim(),\n  downloadLinkHtml: String(json.downloadLinkHtml ?? \u0027\u0027).trim(),\n  fileCount: Number(json.fileCount ?? 0) || 0,\n  files: Array.isArray(json.files) ? json.files : [],\n};\n\nconst isSameEntry = (entry) =\u003e\n  entry.revisionNumber === currentEntry.revisionNumber \u0026\u0026\n  entry.zipDownloadToken === currentEntry.zipDownloadToken \u0026\u0026\n  entry.zipDownloadUrl === currentEntry.zipDownloadUrl \u0026\u0026\n  entry.backendStructure === currentEntry.backendStructure;\n\nlet storedEntry = normalizedHistory.find(isSameEntry);\n\nconst usedBinaryPropertyNames = new Set(\n  normalizedHistory\n    .map((entry) =\u003e String(entry.binaryPropertyName ?? \u0027\u0027).trim())\n    .filter(Boolean),\n);\n\nif (!storedEntry) {\n  const nextIterationNumber = normalizedHistory.reduce(\n    (maxValue, entry) =\u003e Math.max(maxValue, Number(entry.iterationNumber ?? 0) || 0),\n    0,\n  ) + 1;\n\n  let binaryPropertyName = \u0027\u0027;\n  if (binary.backendZip) {\n    let suffix = nextIterationNumber;\n    do {\n      binaryPropertyName = `backend_iteration_${suffix}`;\n      suffix += 1;\n    } while (usedBinaryPropertyNames.has(binaryPropertyName) || binary[binaryPropertyName]);\n    binary[binaryPropertyName] = binary.backendZip;\n  }\n\n  storedEntry = {\n    iterationNumber: nextIterationNumber,\n    ...currentEntry,\n    binaryPropertyName,\n  };\n  normalizedHistory.push(storedEntry);\n} else if (!storedEntry.binaryPropertyName \u0026\u0026 binary.backendZip) {\n  let suffix = Number(storedEntry.iterationNumber ?? normalizedHistory.length + 1) || (normalizedHistory.length + 1);\n  let binaryPropertyName = \u0027\u0027;\n  do {\n    binaryPropertyName = `backend_iteration_${suffix}`;\n    suffix += 1;\n  } while (usedBinaryPropertyNames.has(binaryPropertyName) || binary[binaryPropertyName]);\n  binary[binaryPropertyName] = binary.backendZip;\n  storedEntry.binaryPropertyName = binaryPropertyName;\n}\n\njson.backendHistory = normalizedHistory;\njson.currentBackendIterationNumber = Number(storedEntry.iterationNumber ?? 0) || 0;\n\nconst reviewAssets = buildBackendReviewAssets({\n  history: normalizedHistory,\n  currentIterationNumber: json.currentBackendIterationNumber,\n  currentZipDownloadUrl: json.zipDownloadUrl,\n  restoreError: \u0027\u0027,\n});\njson.backendReviewDescriptionHtml = reviewAssets.descriptionHtml;\njson.backendReviewFormJson = reviewAssets.formJson;\n\ndelete json.backendHistoryHtml;\n\nconst preservedBinary = {};\nfor (const [name, value] of Object.entries(binary)) {\n  if (name === \u0027requirements\u0027 || name === \u0027openapiSpec\u0027 || name === \u0027backendZip\u0027 || /^backend_iteration_\\d+$/.test(name)) {\n    preservedBinary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(preservedBinary).length ? { binary: preservedBinary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1200,
+                                       0
+                                   ],
+                      "id":  "40e666ef-b331-4198-b9f1-4e3ad9136d66",
+                      "name":  "BE - Store Iterations",
+                      "notesInFlow":  false
+                  },
+                  {
+                      "parameters":  {
+                                         "defineForm":  "json",
+                                         "jsonOutput":  "={{ $json.backendReviewFormJson }}",
+                                         "options":  {
+                                                         "formTitle":  "Human Review: Backend Draft",
+                                                         "formDescription":  "={{ $json.backendReviewDescriptionHtml }}",
+                                                         "buttonLabel":  "Submit"
+                                                     }
+                                     },
+                      "id":  "c4b1025c-3046-4561-b794-948e0a12fa29",
+                      "name":  "BE - Review",
+                      "type":  "n8n-nodes-base.form",
+                      "typeVersion":  2.5,
+                      "position":  [
+                                       1392,
+                                       96
+                                   ],
+                      "webhookId":  "9d6db7aa-72a2-4a75-9df1-fcd690176c4c"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "combine",
+                                         "combineBy":  "combineByPosition",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "231e80ed-bab6-4627-a76c-980c6aeebf9a",
+                      "name":  "BE - Review Context",
+                      "type":  "n8n-nodes-base.merge",
+                      "typeVersion":  3.2,
+                      "position":  [
+                                       1584,
+                                       16
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "restore-older-api",
+                                                                                   "leftValue":  "={{ $json[\"Restore older iteration\"] }}",
+                                                                                   "rightValue":  "Yes",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "94b71156-246d-4b78-8a4f-7c4643a156bf",
+                      "name":  "BE - Restore Older Iteration?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       1776,
+                                       16
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\nconst history = Array.isArray(json.backendHistory)\n  ? json.backendHistory.filter((entry) =\u003e entry \u0026\u0026 typeof entry === \u0027object\u0027)\n  : [];\n\nconst escapeHtml = (value) =\u003e String(value ?? \u0027\u0027)\n  .replace(/\u0026/g, \u0027\u0026amp;\u0027)\n  .replace(/\u003c/g, \u0027\u0026lt;\u0027)\n  .replace(/\u003e/g, \u0027\u0026gt;\u0027)\n  .replace(/\"/g, \u0027\u0026quot;\u0027)\n  .replace(/\u0027/g, \u0027\u0026#39;\u0027);\n\nconst buildBackendReviewAssets = ({ history, currentIterationNumber, currentZipDownloadUrl, restoreError }) =\u003e {\n  const currentDownloadUrl = String(currentZipDownloadUrl ?? \u0027\u0027).trim();\n  const currentDownloadHtml = currentDownloadUrl\n    ? `\u003cp\u003e\u003ca href=\"${escapeHtml(currentDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\"\u003eDownload current Backend ZIP\u003c/a\u003e\u003c/p\u003e`\n    : \u0027\u0027;\n\n  const historyItemsHtml = history.map((entry) =\u003e {\n    const iterationNumber = Number(entry.iterationNumber ?? 0) || 0;\n    const revisionNumber = Number(entry.revisionNumber ?? 0) || 0;\n    const currentTag = iterationNumber === currentIterationNumber ? \u0027 \u003cstrong\u003e(current)\u003c/strong\u003e\u0027 : \u0027\u0027;\n    const entryDownloadUrl = String(entry.zipDownloadUrl ?? \u0027\u0027).trim();\n    const entryDownloadHtml = entryDownloadUrl\n      ? `\u003ca href=\"${escapeHtml(entryDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\"\u003eDownload ZIP\u003c/a\u003e`\n      : \u0027\u0027;\n    return `\u003cli\u003e\u003cstrong\u003eIteration ${iterationNumber}\u003c/strong\u003e - Revision ${escapeHtml(revisionNumber)}${currentTag}${entryDownloadHtml ? ` - ${entryDownloadHtml}` : \u0027\u0027}\u003c/li\u003e`;\n  }).join(\u0027\u0027);\n\n  const restoreChoices = history\n    .filter((entry) =\u003e Number(entry.iterationNumber ?? 0) !== currentIterationNumber)\n    .map((entry) =\u003e ({\n      option: `Iteration ${Number(entry.iterationNumber ?? 0) || 0} (rev ${Number(entry.revisionNumber ?? 0) || 0})`,\n    }));\n\n  const formFields = [\n    {\n      fieldLabel: \u0027Approved\u0027,\n      fieldName: \u0027Approved\u0027,\n      fieldType: \u0027dropdown\u0027,\n      fieldOptions: {\n        values: [\n          { option: \u0027approved\u0027 },\n          { option: \u0027rejected\u0027 },\n        ],\n      },\n      requiredField: true,\n    },\n    {\n      fieldLabel: \u0027Restore older iteration\u0027,\n      fieldName: \u0027Restore older iteration\u0027,\n      fieldType: \u0027dropdown\u0027,\n      fieldOptions: {\n        values: [\n          { option: \u0027Yes\u0027 },\n          { option: \u0027No\u0027 },\n        ],\n      },\n      defaultValue: \u0027No\u0027,\n      requiredField: true,\n    },\n    {\n      fieldLabel: \u0027Iteration to restore\u0027,\n      fieldName: \u0027Iteration to restore\u0027,\n      fieldType: \u0027dropdown\u0027,\n      fieldOptions: {\n        values: restoreChoices,\n      },\n    },\n    {\n      fieldLabel: \u0027Attachments (optional)\u0027,\n      fieldName: \u0027Attachments\u0027,\n      fieldType: \u0027file\u0027,\n    },\n    {\n      fieldLabel: \u0027Feedback\u0027,\n      fieldName: \u0027Feedback\u0027,\n      fieldType: \u0027textarea\u0027,\n      placeholder: \u0027Describe exactly what should change in the backend package.\u0027,\n    },\n  ];\n\n  const descriptionHtml = [\n    \u0027\u003cp\u003eReview the current Backend ZIP, then approve it or request changes.\u003c/p\u003e\u0027,\n    currentDownloadHtml,\n    restoreError ? `\u003cp\u003e\u003cstrong\u003e${escapeHtml(restoreError)}\u003c/strong\u003e\u003c/p\u003e` : \u0027\u0027,\n    \u0027\u003cp\u003eIf you want to return to a previously generated version, choose Yes in Restore older iteration. You can also download any generated iteration below.\u003c/p\u003e\u0027,\n    historyItemsHtml ? `\u003cp\u003eGenerated iterations:\u003c/p\u003e\u003col\u003e${historyItemsHtml}\u003c/ol\u003e` : \u0027\u003cp\u003eNo generated iterations are available yet.\u003c/p\u003e\u0027,\n  ].filter(Boolean).join(\u0027\u0027);\n\n  return {\n    descriptionHtml,\n    formJson: JSON.stringify(formFields),\n  };\n};\n\nconst selectionLabel = String(json[\u0027Iteration to restore\u0027] ?? \u0027\u0027).trim();\nconst selectionMatch = selectionLabel.match(/Iteration\\s+(\\d+)/i);\nconst selectedIterationNumber = selectionMatch ? Number.parseInt(selectionMatch[1], 10) : Number.NaN;\nconst currentIterationNumber = Number(json.currentBackendIterationNumber ?? 0) || 0;\nconst selectedEntry = history.find((entry) =\u003e Number(entry.iterationNumber ?? 0) === selectedIterationNumber);\n\nif (selectedEntry \u0026\u0026 Number(selectedEntry.iterationNumber ?? 0) !== currentIterationNumber) {\n  json.backendStructure = String(selectedEntry.backendStructure ?? selectedEntry.response ?? json.backendStructure ?? json.response ?? \u0027\u0027).trim();\n  json.response = json.backendStructure;\n  json.fileCount = Number(selectedEntry.fileCount ?? json.fileCount ?? 0) || 0;\n  json.files = Array.isArray(selectedEntry.files) ? selectedEntry.files : (Array.isArray(json.files) ? json.files : []);\n  json.revisionNumber = Number(selectedEntry.revisionNumber ?? json.revisionNumber ?? 0) || 0;\n  json.zipDownloadUrl = String(selectedEntry.zipDownloadUrl ?? json.zipDownloadUrl ?? \u0027\u0027).trim();\n  json.zipDownloadToken = String(selectedEntry.zipDownloadToken ?? json.zipDownloadToken ?? \u0027\u0027).trim();\n  json.downloadLinkHtml = String(selectedEntry.downloadLinkHtml ?? json.downloadLinkHtml ?? \u0027\u0027).trim();\n  json.currentBackendIterationNumber = Number(selectedEntry.iterationNumber ?? json.currentBackendIterationNumber ?? 0) || 0;\n  json.fileCount = Number(selectedEntry.fileCount ?? json.fileCount ?? 0) || 0;\n  json.files = Array.isArray(selectedEntry.files) ? selectedEntry.files : (Array.isArray(json.files) ? json.files : []);\n\n  const binaryPropertyName = String(selectedEntry.binaryPropertyName ?? \u0027\u0027).trim();\n  if (binaryPropertyName \u0026\u0026 binary[binaryPropertyName]) {\n    binary.backendZip = binary[binaryPropertyName];\n  }\n\n  delete json.restoreSelectionError;\n} else {\n  json.restoreSelectionError = \u0027Select one of the previously generated iterations to restore it.\u0027;\n}\n\nconst reviewAssets = buildBackendReviewAssets({\n  history,\n  currentIterationNumber: Number(json.currentBackendIterationNumber ?? 0) || 0,\n  currentZipDownloadUrl: json.zipDownloadUrl,\n  restoreError: String(json.restoreSelectionError ?? \u0027\u0027).trim(),\n});\njson.backendReviewDescriptionHtml = reviewAssets.descriptionHtml;\njson.backendReviewFormJson = reviewAssets.formJson;\n\ndelete json.backendHistoryHtml;\ndelete json.reviewMode;\ndelete json.feedback;\ndelete json.Feedback;\ndelete json.Approved;\ndelete json.Attachments;\ndelete json[\u0027Restore older iteration\u0027];\ndelete json[\u0027Iteration to restore\u0027];\n\nconst preservedBinary = {};\nfor (const [name, value] of Object.entries(binary)) {\n  if (name === \u0027requirements\u0027 || name === \u0027openapiSpec\u0027 || name === \u0027backendZip\u0027 || /^backend_iteration_\\d+$/.test(name)) {\n    preservedBinary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(preservedBinary).length ? { binary: preservedBinary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1696,
+                                       224
+                                   ],
+                      "id":  "44e22876-b8e4-41a8-bd55-3c2516064d2a",
+                      "name":  "BE - Restore Selected Iteration"
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "approved-api",
+                                                                                   "leftValue":  "={{ $json.Approved }}",
+                                                                                   "rightValue":  "approved",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "9e45e142-a69d-4b04-8105-267fbd53f187",
+                      "name":  "BE - Approved?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       1984,
+                                       32
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nreturn [{\n  json: {\n    ...(item.json ?? {}),\n    reviewMode: \u0027refine\u0027,\n  },\n  ...(item.binary \u0026\u0026 Object.keys(item.binary).length ? { binary: item.binary } : {}),\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1904,
+                                       240
+                                   ],
+                      "id":  "5ee7ba8b-73d4-4748-acd2-cdd7c77678c5",
+                      "name":  "BE - Prepare Refine Input"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst backendZip = item.binary?.backendZip;\n\nif (!backendZip) {\n  throw new Error(\u0027Approved backend ZIP is missing.\u0027);\n}\n\nreturn [{\n  json: {\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    fileCount: Number(json.fileCount ?? 0) || 0,\n    zipDownloadUrl: String(json.zipDownloadUrl ?? \u0027\u0027).trim(),\n    zipDownloadToken: String(json.zipDownloadToken ?? \u0027\u0027).trim(),\n    currentBackendIterationNumber: Number(json.currentBackendIterationNumber ?? 0) || 0,\n  },\n  binary: {\n    backendZip,\n  },\n}];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2224,
+                                       16
+                                   ],
+                      "id":  "40c0642e-0032-452c-bfe5-0f44256b77ee",
+                      "name":  "BE - End"
+                  }
+              ],
+    "connections":  {
+                        "Start":  {
+                                      "main":  [
+                                                   [
+                                                       {
+                                                           "node":  "BE - Create Backend",
+                                                           "type":  "main",
+                                                           "index":  0
+                                                       },
+                                                       {
+                                                           "node":  "BE - History Context",
+                                                           "type":  "main",
+                                                           "index":  0
+                                                       }
+                                                   ]
+                                               ]
+                                  },
+                        "BE - Create Backend":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "BE - History Merge",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "BE - History Context":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "BE - History Merge",
+                                                                          "type":  "main",
+                                                                          "index":  1
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "BE - History Merge":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "BE - Store Iterations",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "BE - Store Iterations":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "BE - Review",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       },
+                                                                       {
+                                                                           "node":  "BE - Review Context",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "BE - Review":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "BE - Review Context",
+                                                                 "type":  "main",
+                                                                 "index":  1
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "BE - Review Context":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "BE - Restore Older Iteration?",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "BE - Restore Older Iteration?":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "BE - Restore Selected Iteration",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ],
+                                                                           [
+                                                                               {
+                                                                                   "node":  "BE - Approved?",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "BE - Restore Selected Iteration":  {
+                                                                "main":  [
+                                                                             [
+                                                                                 {
+                                                                                     "node":  "BE - Review",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 },
+                                                                                 {
+                                                                                     "node":  "BE - Review Context",
+                                                                                     "type":  "main",
+                                                                                     "index":  0
+                                                                                 }
+                                                                             ]
+                                                                         ]
+                                                            },
+                        "BE - Approved?":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "BE - End",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ],
+                                                            [
+                                                                {
+                                                                    "node":  "BE - Prepare Refine Input",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "BE - Prepare Refine Input":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "BE - Create Backend",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           },
+                                                                           {
+                                                                               "node":  "BE - History Context",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "callerPolicy":  "workflowsFromSameOwner",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  null,
+    "pinData":  {
+
+                },
+    "versionId":  "226bd04c-2f7e-4b7c-8bd5-2c6b9d8a5fcb",
+    "activeVersionId":  null,
+    "versionCounter":  36,
+    "triggerCount":  0,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-04-10T16:43:27.282Z",
+                       "createdAt":  "2026-04-10T16:43:27.282Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "daa2UAUSVV3Pz1dJ",
+                       "projectId":  "QcpgOQcXnvTTBDCu",
+                       "project":  {
+                                       "updatedAt":  "2026-02-28T20:05:48.391Z",
+                                       "createdAt":  "2026-02-28T20:05:24.898Z",
+                                       "id":  "QcpgOQcXnvTTBDCu",
+                                       "name":  "Gustavo Henriques \u003cgusta.santos.henriques@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "874e8826-31b6-4abc-8eb0-c01ae9472bd2"
+                                   }
+                   }
+               ],
+    "tags":  [
+
+             ],
+    "activeVersion":  null
+}
