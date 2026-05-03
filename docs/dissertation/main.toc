@@ -26,25 +26,32 @@
 \contentsline {subsection}{\numberline {2.1.4}Ferramentas de Orquestração de Fluxos}{6}{subsection.2.1.4}%
 \contentsline {section}{\numberline {2.2}Trabalho Relacionado}{7}{section.2.2}%
 \contentsline {subsection}{\numberline {2.2.1}Geração Automática de Código}{7}{subsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.2.2}Engenharia de Prompts}{9}{subsection.2.2.2}%
-\contentsline {chapter}{\numberline {3}Vis\~ao Geral e Abordagem \`a Solu\c {c}\~ao}{13}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Arquitetura e Design da Solu\c {c}\~ao}{13}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Fases de Desenvolvimento}{13}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Desafios e Decis\~oes de Implementa\c {c}\~ao}{13}{section.3.3}%
-\contentsline {chapter}{\numberline {4}Desenvolvimento T\'ecnico da Solu\c {c}\~ao}{15}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Desenvolvimento Inicial com Prompts Manuais}{15}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Fluxo de Automa\c {c}\~ao em n8n}{15}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Itera\c {c}\~oes e Refinamentos}{15}{section.4.3}%
-\contentsline {chapter}{\numberline {5}Testes e Metodologia de Avalia\c {c}\~ao}{17}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Plano Experimental}{17}{section.5.1}%
-\contentsline {section}{\numberline {5.2}M\'etricas e Crit\'erios de Avalia\c {c}\~ao}{17}{section.5.2}%
-\contentsline {chapter}{\numberline {6}Resultados e Discuss\~ao}{19}{chapter.6}%
-\contentsline {section}{\numberline {6.1}An\'alise Comparativa}{19}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Discuss\~ao dos Resultados}{19}{section.6.2}%
-\contentsline {chapter}{\numberline {7}Conclus\~ao}{21}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Conclus\~oes Finais}{21}{section.7.1}%
-\contentsline {section}{\numberline {7.2}Trabalho Futuro}{21}{section.7.2}%
-\contentsline {chapter}{\numberline {A}Material de Apoio}{23}{appendix.A}%
-\contentsline {section}{\numberline {A.1}Prompts Utilizados}{23}{section.A.1}%
-\contentsline {section}{\numberline {A.2}Resultados Detalhados}{23}{section.A.2}%
-\contentsline {chapter}{Bibliografia}{25}{section*.4}%
+\contentsline {subsection}{\numberline {2.2.2}Engenharia de Prompts}{10}{subsection.2.2.2}%
+\contentsline {chapter}{\numberline {3}Abordagem à Solução e Contextualização do Sistema}{13}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Processo Atual de Desenvolvimento de Software}{13}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Análise de Negócio}{13}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Requisitos, Design e Arquitetura}{14}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}Especificação da API (OpenAPI)}{15}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}Desenvolvimento Backend}{16}{subsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.1.5}Desenvolvimento Frontend}{17}{subsection.3.1.5}%
+\contentsline {subsection}{\numberline {3.1.6}Testes, Qualidade e Conformidade}{17}{subsection.3.1.6}%
+\contentsline {section}{\numberline {3.2}Fase Experimental de Prompt Engineering}{18}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Seleção da Ferramenta de Orquestração}{18}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Arquitetura Geral da Solução}{20}{section.3.4}%
+\contentsline {chapter}{\numberline {4}Desenvolvimento T\'ecnico da Solu\c {c}\~ao}{21}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Desenvolvimento Inicial com Prompts Manuais}{21}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Fluxo de Automa\c {c}\~ao em n8n}{21}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Itera\c {c}\~oes e Refinamentos}{21}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Testes e Metodologia de Avalia\c {c}\~ao}{23}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Plano Experimental}{23}{section.5.1}%
+\contentsline {section}{\numberline {5.2}M\'etricas e Crit\'erios de Avalia\c {c}\~ao}{23}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Resultados e Discuss\~ao}{25}{chapter.6}%
+\contentsline {section}{\numberline {6.1}An\'alise Comparativa}{25}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Discuss\~ao dos Resultados}{25}{section.6.2}%
+\contentsline {chapter}{\numberline {7}Conclus\~ao}{27}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Conclus\~oes Finais}{27}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Trabalho Futuro}{27}{section.7.2}%
+\contentsline {chapter}{\numberline {A}Material de Apoio}{29}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Prompts Utilizados}{29}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Resultados Detalhados}{29}{section.A.2}%
+\contentsline {chapter}{Bibliografia}{31}{section*.4}%

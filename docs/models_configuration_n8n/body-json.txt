@@ -1,0 +1,130 @@
+===========================================================================================
+===========================================================================================
+                                        OLLAMA
+===========================================================================================
+===========================================================================================
+
+============
+URL - http://host.docker.internal:11434/api/generate
+============
+
+============
+HEADERS
+
+Content-Type: application/json
+============
+
+============
+EXPRESSION:
+
+{{ JSON.stringify({
+  model: "qwen2.5:7b",
+  prompt: $json.userPrompt,
+  system: `...`,
+  stream: true,
+  options: {
+    num_ctx: 128000,
+    num_predict: 100000,
+    temperature: 0.2,
+    num_thread: 8,
+    num_batch: 1
+  }
+}) }}
+============
+
+============
+EXPRESSION-REFINEMENT
+
+{{ JSON.stringify({
+  model: "qwen2.5:7b",
+  prompt: $json.patchPrompt,
+  system: `...`,
+  stream: true,
+  options: {
+    num_ctx: 128000,
+    num_predict: 100000,
+    temperature: 0.2,
+    num_thread: 8,
+    num_batch: 1
+  }
+}) }}
+============
+
+===========================================================================================
+===========================================================================================
+                                        MISTRAL
+===========================================================================================
+===========================================================================================
+
+============
+URL - https://api.mistral.ai/v1/chat/completions
+============
+
+============
+HEADERS
+
+Authorization: Bearer OR0sxOaBgUkWjAz8g5Ib6LXJwMwAIGSc
+Content-Type: application/json
+============
+
+============
+EXPRESSION:
+
+{{ JSON.stringify({
+  model: "mistral-large-latest",
+  messages: [
+    {
+      role: "system",
+      content: `...`
+    },
+    {
+      role: "user",
+      content: $json.userPrompt
+    }
+  ],
+  temperature: 0.2,
+  max_tokens: 100000,
+  stream: true,
+}) }}
+============
+
+============
+EXPRESSION-REFINEMENT
+
+{{ JSON.stringify({
+  model: "mistral-large-latest",
+  messages: [
+    {
+      role: "system",
+      content: `...`
+    },
+    {
+      role: "user",
+      content: $json.patchPrompt
+    }
+  ],
+  temperature: 0.2,
+  max_tokens: 100000,
+  stream: true,
+}) }}
+============
+
+============
+EXPRESSION-VALIDATION
+{{ JSON.stringify({
+  model: "mistral-large-latest",
+  messages: [
+    {
+      role: "system",
+      content: `...`
+    },
+    {
+      role: "user",
+      content: $json.compileFixPrompt
+    }
+  ],
+  temperature: 0.2,
+  max_tokens: 100000,
+  stream: true,
+}) }}
+============

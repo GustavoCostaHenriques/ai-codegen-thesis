@@ -1,0 +1,830 @@
+{
+  "name": "backend-v3",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8fa434a6-62fc-4231-a6cf-e1008b5be44a",
+      "name": "BE - Workflow Trigger",
+      "position": [
+        18752,
+        8560
+      ],
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst refinementRaw = json.refinement ?? json.isRefinementInteraction;\nconst refinement = typeof refinementRaw === 'boolean'\n  ? refinementRaw\n  : ['true', '1', 'yes', 'y', 'refine'].includes(String(refinementRaw ?? '').trim().toLowerCase());\n\nif (!String(json.reviewMode ?? '').trim()) {\n  json.reviewMode = refinement ? 'refine' : '';\n}\n\nif (!binary.requirements && binary.requirementsFile) {\n  binary.requirements = binary.requirementsFile;\n}\n\nif (!binary.requirements) {\n  const requirementsText = String(json.requirements ?? '').trim();\n  if (requirementsText) {\n    binary.requirements = {\n      data: Buffer.from(requirementsText, 'utf8').toString('base64'),\n      fileName: 'requirements.md',\n      mimeType: 'text/markdown',\n    };\n  }\n}\n\nif (!binary.openapiSpec && binary.api) {\n  binary.openapiSpec = binary.api;\n}\n\nif (!binary.openapiSpec && binary.openapi) {\n  binary.openapiSpec = binary.openapi;\n}\n\nif (!binary.openapiSpec && binary.openapiSpecFile) {\n  binary.openapiSpec = binary.openapiSpecFile;\n}\n\nif (!binary.openapiSpec && binary.apiFile) {\n  binary.openapiSpec = binary.apiFile;\n}\n\nif (!binary.openapiSpec) {\n  const apiText = String(json.api ?? json.openapiSpec ?? '').trim();\n  if (apiText) {\n    binary.openapiSpec = {\n      data: Buffer.from(apiText, 'utf8').toString('base64'),\n      fileName: 'openapi.yaml',\n      mimeType: 'application/yaml',\n    };\n  }\n}\n\nif (String(json.Feedback ?? '').trim() && !String(json.feedback ?? '').trim()) {\n  json.feedback = String(json.Feedback).trim();\n}\n\nif (!json.refinement && typeof json.isRefinementInteraction !== 'undefined') {\n  json.refinement = refinement;\n}\n\nfor (const key of ['Approved', 'Start Again']) {\n  delete json[key];\n}\n\ndelete json.requirementsFile;\ndelete json.apiFile;\ndelete json.openapiSpecFile;\ndelete json.isRefinementInteraction;\n\nconst cleanedBinary = { ...binary };\n\n// Never carry stale generated artefacts into the next generation cycle.\ndelete cleanedBinary.reviewZip;\ndelete cleanedBinary.outTokens;\n\nreturn [{\n  json,\n  ...(Object.keys(cleanedBinary).length ? { binary: cleanedBinary } : {}),\n}];"
+      },
+      "id": "715dd542-4027-4599-b430-969a809a27fb",
+      "name": "BE - Sanitize Output Context",
+      "position": [
+        19056,
+        8560
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-bb01ba6e-5908-4232-94f5-06751473af5c",
+              "leftValue": "={{ ((String($json.reviewMode ?? \"\").trim().toLowerCase() === \"refine\") || (String($json.refinement ?? \"\").trim().toLowerCase() === \"true\") || (String(($items(\"BE - Sanitize Output Context\")[0] && $items(\"BE - Sanitize Output Context\")[0].json ? $items(\"BE - Sanitize Output Context\")[0].json.reviewMode : \"\")).trim().toLowerCase() === \"refine\") || (String(($items(\"BE - Sanitize Output Context\")[0] && $items(\"BE - Sanitize Output Context\")[0].json ? $items(\"BE - Sanitize Output Context\")[0].json.refinement : \"\")).trim().toLowerCase() === \"true\")) ? \"refine\" : \"\" }}",
+              "rightValue": "refine",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fd93de72-fa13-4ad9-aaba-9269b360a44c",
+      "name": "BE - Execute Refinement?",
+      "position": [
+        19360,
+        8128
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "jsCode": "const branchItem = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nconst contextItem = getNodeItemSafe('BE - Sanitize Output Context') ?? { json: {}, binary: {} };\n\nconst mergedJson = {\n  ...(contextItem.json ?? {}),\n  ...(branchItem.json ?? {}),\n};\n\nconst mergedBinary = {\n  ...(contextItem.binary ?? {}),\n  ...(branchItem.binary ?? {}),\n};\n\nif (!mergedBinary.requirements) {\n  throw new Error('Missing requirements binary before backend prompt generation.');\n}\n\nif (!mergedBinary.openapiSpec) {\n  throw new Error('Missing openapiSpec binary before backend prompt generation.');\n}\n\nreturn [{\n  json: mergedJson,\n  ...(Object.keys(mergedBinary).length ? { binary: mergedBinary } : {}),\n}];"
+      },
+      "id": "46f7515b-bfa2-46a0-b7bf-5fe5f159f906",
+      "name": "BE - Requirements and API First Iteration",
+      "position": [
+        19568,
+        8288
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const branchItem = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nconst contextItem = getNodeItemSafe('BE - Sanitize Output Context') ?? { json: {}, binary: {} };\n\nconst mergedJson = {\n  ...(contextItem.json ?? {}),\n  ...(branchItem.json ?? {}),\n};\n\nconst mergedBinary = {\n  ...(contextItem.binary ?? {}),\n  ...(branchItem.binary ?? {}),\n};\n\nif (!mergedBinary.requirements) {\n  throw new Error('Missing requirements binary before backend prompt generation.');\n}\n\nif (!mergedBinary.openapiSpec) {\n  throw new Error('Missing openapiSpec binary before backend prompt generation.');\n}\n\nreturn [{\n  json: mergedJson,\n  ...(Object.keys(mergedBinary).length ? { binary: mergedBinary } : {}),\n}];"
+      },
+      "id": "c6326479-acad-43ac-a7f9-b01b42171b5e",
+      "name": "BE - Requirements and API for Refinement",
+      "position": [
+        19584,
+        7984
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "async function beCompactContextArtifacts() {\n  const items = $input.all();\n  if (!items.length) {\n    throw new Error('OpenAPI compactor received no input.');\n  }\n\n  async function readBinaryText(itemIndex, propertyName, fallbackFileName) {\n    const item = items[itemIndex];\n    const binary = item.binary?.[propertyName];\n    if (!binary) return null;\n\n    const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n    return {\n      fileName: binary.fileName || fallbackFileName,\n      text: buffer.toString('utf8'),\n    };\n  }\n\n  function compactRequirementsText(text) {\n    const lines = String(text || '')\n      .replace(/\\u0000/g, '')\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n')\n      .replace(/[ \\t]+/g, ' ')\n      .split('\\n');\n    const compacted = [];\n\n    for (let rawLine of lines) {\n      let line = String(rawLine || '').trim();\n      if (!line) continue;\n      if (/^[-*_]{3,}$/.test(line)) continue;\n\n      line = line.replace(/^#{1,6}\\s*/, '');\n      line = line.replace(/^\\s*>\\s?/, '');\n      line = line.replace(/^\\s*[-*+]\\s+/, '- ');\n      line = line.replace(/^\\s*\\d+[.)]\\s+/, '- ');\n      line = line.replace(/!\\[([^\\]]*)\\]\\([^)]+\\)/g, '$1');\n      line = line.replace(/\\[([^\\]]+)\\]\\([^)]+\\)/g, '$1');\n      line = line.replace(/`([^`]+)`/g, '$1');\n      line = line.replace(/[*_~]+/g, '');\n      line = line.replace(/\\s+/g, ' ').trim();\n\n      if (!line) continue;\n      compacted.push(line);\n    }\n\n    return compacted.join('\\n').trim();\n  }\n\n  function normalizeText(text) {\n    return String(text || '')\n      .replace(/\\u0000/g, '')\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n')\n      .replace(/\\t/g, '  ')\n      .replace(/[ \\t]+$/gm, '')\n      .replace(/\\n{3,}/g, '\\n\\n')\n      .trim();\n  }\n\n  function countIndent(line) {\n    let count = 0;\n    while (count < line.length && line[count] === ' ') count += 1;\n    return count;\n  }\n\n  function nextMeaningfulIndent(lines, startIndex) {\n    for (let index = startIndex; index < lines.length; index += 1) {\n      if (lines[index].trim()) return countIndent(lines[index]);\n    }\n    return null;\n  }\n\n  function splitKeyValue(text) {\n    let inSingle = false;\n    let inDouble = false;\n    let squareDepth = 0;\n    let curlyDepth = 0;\n\n    for (let index = 0; index < text.length; index += 1) {\n      const char = text[index];\n      const prev = index > 0 ? text[index - 1] : '';\n      const next = index + 1 < text.length ? text[index + 1] : '';\n\n      if (char === \"'\" && !inDouble) {\n        if (inSingle && next === \"'\") {\n          index += 1;\n          continue;\n        }\n        inSingle = !inSingle;\n        continue;\n      }\n\n      if (char === '\"' && !inSingle && prev !== '\\\\') {\n        inDouble = !inDouble;\n        continue;\n      }\n\n      if (inSingle || inDouble) continue;\n\n      if (char === '[') squareDepth += 1;\n      else if (char === ']') squareDepth = Math.max(0, squareDepth - 1);\n      else if (char === '{') curlyDepth += 1;\n      else if (char === '}') curlyDepth = Math.max(0, curlyDepth - 1);\n      else if (\n        char === ':' &&\n        squareDepth === 0 &&\n        curlyDepth === 0 &&\n        (next === '' || /\\s/.test(next))\n      ) {\n        return {\n          key: text.slice(0, index).trim(),\n          value: text.slice(index + 1).trimStart(),\n        };\n      }\n    }\n\n    return null;\n  }\n\n  function splitFlowItems(text) {\n    const items = [];\n    let start = 0;\n    let inSingle = false;\n    let inDouble = false;\n    let squareDepth = 0;\n    let curlyDepth = 0;\n\n    for (let index = 0; index < text.length; index += 1) {\n      const char = text[index];\n      const prev = index > 0 ? text[index - 1] : '';\n      const next = index + 1 < text.length ? text[index + 1] : '';\n\n      if (char === \"'\" && !inDouble) {\n        if (inSingle && next === \"'\") {\n          index += 1;\n          continue;\n        }\n        inSingle = !inSingle;\n        continue;\n      }\n\n      if (char === '\"' && !inSingle && prev !== '\\\\') {\n        inDouble = !inDouble;\n        continue;\n      }\n\n      if (inSingle || inDouble) continue;\n\n      if (char === '[') squareDepth += 1;\n      else if (char === ']') squareDepth = Math.max(0, squareDepth - 1);\n      else if (char === '{') curlyDepth += 1;\n      else if (char === '}') curlyDepth = Math.max(0, curlyDepth - 1);\n      else if (char === ',' && squareDepth === 0 && curlyDepth === 0) {\n        const item = text.slice(start, index).trim();\n        if (item) items.push(item);\n        start = index + 1;\n      }\n    }\n\n    const tail = text.slice(start).trim();\n    if (tail) items.push(tail);\n    return items;\n  }\n\n  function parseQuotedString(text) {\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n      try {\n        return JSON.parse(text);\n      } catch {\n        return text.slice(1, -1).replace(/\\\\\"/g, '\"').replace(/\\\\\\\\/g, '\\\\');\n      }\n    }\n\n    if (text.startsWith(\"'\") && text.endsWith(\"'\")) {\n      return text.slice(1, -1).replace(/''/g, \"'\");\n    }\n\n    return text;\n  }\n\n  function parseScalar(raw) {\n    const text = String(raw ?? '').trim();\n    if (!text) return '';\n    if (text === '[]') return [];\n    if (text === '{}') return {};\n    if (\n      (text.startsWith('\"') && text.endsWith('\"')) ||\n      (text.startsWith(\"'\") && text.endsWith(\"'\"))\n    ) {\n      return parseQuotedString(text);\n    }\n    if (text.startsWith('[') && text.endsWith(']')) {\n      return splitFlowItems(text.slice(1, -1)).map((item) => parseScalar(item));\n    }\n    if (text.startsWith('{') && text.endsWith('}')) {\n      const output = {};\n      for (const part of splitFlowItems(text.slice(1, -1))) {\n        const mapping = splitKeyValue(part);\n        if (!mapping) continue;\n        output[String(parseScalar(mapping.key))] = parseScalar(mapping.value);\n      }\n      return output;\n    }\n    if (/^(?:null|Null|NULL|~)$/.test(text)) return null;\n    if (/^(?:true|True|TRUE)$/.test(text)) return true;\n    if (/^(?:false|False|FALSE)$/.test(text)) return false;\n    if (/^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$/.test(text)) return Number(text);\n    return text;\n  }\n\n  function parseKey(raw) {\n    const text = String(raw ?? '').trim();\n    const value = parseScalar(text);\n    return typeof value === 'string' ? value : String(value);\n  }\n\n  function readBlockScalar(lines, startIndex, parentIndent, style) {\n    const parts = [];\n    let blockIndent = null;\n    let index = startIndex;\n\n    while (index < lines.length) {\n      const line = lines[index];\n      if (!line.trim()) {\n        if (blockIndent !== null) parts.push('');\n        index += 1;\n        continue;\n      }\n\n      const indent = countIndent(line);\n      if (indent <= parentIndent) break;\n      if (blockIndent === null) blockIndent = indent;\n      parts.push(line.slice(blockIndent));\n      index += 1;\n    }\n\n    let value = '';\n    if (style === '>') {\n      const paragraphs = [];\n      let current = [];\n      for (const part of parts) {\n        if (part === '') {\n          if (current.length) {\n            paragraphs.push(current.join(' '));\n            current = [];\n          }\n          paragraphs.push('');\n        } else {\n          current.push(part.trim());\n        }\n      }\n      if (current.length) paragraphs.push(current.join(' '));\n      value = paragraphs.join('\\n').trim();\n    } else {\n      value = parts.join('\\n').trim();\n    }\n\n    return {\n      value,\n      nextIndex: index,\n    };\n  }\n\n  function skipEmpty(lines, state) {\n    while (state.index < lines.length && !lines[state.index].trim()) {\n      state.index += 1;\n    }\n  }\n\n  function assignMappingValue(target, keyRaw, valueRaw, lines, state, parentIndent) {\n    const key = parseKey(keyRaw);\n    const valueText = String(valueRaw ?? '').trim();\n\n    if (valueText.startsWith('|')) {\n      const block = readBlockScalar(lines, state.index, parentIndent, '|');\n      target[key] = block.value;\n      state.index = block.nextIndex;\n      return;\n    }\n\n    if (valueText.startsWith('>')) {\n      const block = readBlockScalar(lines, state.index, parentIndent, '>');\n      target[key] = block.value;\n      state.index = block.nextIndex;\n      return;\n    }\n\n    if (!valueText) {\n      const childIndent = nextMeaningfulIndent(lines, state.index);\n      target[key] = childIndent !== null && childIndent > parentIndent\n        ? parseNode(lines, state, childIndent)\n        : {};\n      return;\n    }\n\n    target[key] = parseScalar(valueText);\n  }\n\n  function parseSequence(lines, state, indent) {\n    const output = [];\n\n    while (state.index < lines.length) {\n      skipEmpty(lines, state);\n      if (state.index >= lines.length) break;\n\n      const line = lines[state.index];\n      const lineIndent = countIndent(line);\n      const trimmed = line.slice(lineIndent);\n      if (lineIndent < indent || lineIndent !== indent || !trimmed.startsWith('-')) break;\n\n      const content = trimmed.length === 1 ? '' : trimmed.slice(1).trimStart();\n      state.index += 1;\n\n      if (!content) {\n        const childIndent = nextMeaningfulIndent(lines, state.index);\n        output.push(\n          childIndent !== null && childIndent > lineIndent\n            ? parseNode(lines, state, childIndent)\n            : null,\n        );\n        continue;\n      }\n\n      const mapping = splitKeyValue(content);\n      if (mapping && mapping.key) {\n        const entry = {};\n        assignMappingValue(entry, mapping.key, mapping.value, lines, state, lineIndent);\n        const childIndent = nextMeaningfulIndent(lines, state.index);\n        if (childIndent !== null && childIndent > lineIndent) {\n          Object.assign(entry, parseMapping(lines, state, childIndent));\n        }\n        output.push(entry);\n      } else {\n        output.push(parseScalar(content));\n      }\n    }\n\n    return output;\n  }\n\n  function parseMapping(lines, state, indent) {\n    const output = {};\n\n    while (state.index < lines.length) {\n      skipEmpty(lines, state);\n      if (state.index >= lines.length) break;\n\n      const line = lines[state.index];\n      const lineIndent = countIndent(line);\n      const trimmed = line.slice(lineIndent);\n      if (lineIndent < indent || lineIndent !== indent || trimmed.startsWith('-')) break;\n\n      const mapping = splitKeyValue(trimmed);\n      state.index += 1;\n      if (!mapping || !mapping.key) continue;\n      assignMappingValue(output, mapping.key, mapping.value, lines, state, lineIndent);\n    }\n\n    return output;\n  }\n\n  function parseNode(lines, state, indent) {\n    skipEmpty(lines, state);\n    if (state.index >= lines.length) return null;\n\n    const line = lines[state.index];\n    const lineIndent = countIndent(line);\n    if (lineIndent < indent) return null;\n    const trimmed = line.slice(lineIndent);\n    return trimmed.startsWith('-')\n      ? parseSequence(lines, state, indent)\n      : parseMapping(lines, state, indent);\n  }\n\n  function parseYamlDocument(rawText) {\n    const text = normalizeText(rawText);\n    if (!text) return {};\n    const lines = text.split('\\n');\n    const state = { index: 0 };\n    const initialIndent = nextMeaningfulIndent(lines, 0) ?? 0;\n    const document = parseNode(lines, state, initialIndent);\n    return document && typeof document === 'object' ? document : {};\n  }\n\n  class OpenApiCompactor {\n    constructor(spec, includeDescriptions = false) {\n      this.spec = spec || {};\n      this.includeDescriptions = includeDescriptions;\n      this.resolvedRefs = new Map();\n      this.schemaCache = new Map();\n      this.referencedSchemaNames = new Set();\n    }\n\n    compact() {\n      const output = { ops: this.compactOperations() };\n      const api = this.compactInfo();\n      const defs = this.compactComponentSchemas();\n      if (Object.keys(api).length) output.api = api;\n      if (Object.keys(defs).length) output.defs = defs;\n      return output;\n    }\n\n    compactInfo() {\n      const components = this.spec.components || {};\n      const securitySchemes = components.securitySchemes || {};\n      const output = {};\n\n      const auth = {};\n      for (const [name, scheme] of Object.entries(securitySchemes)) {\n        auth[name] = this.compactSecurityScheme(scheme);\n      }\n      if (Object.keys(auth).length) output.auth = auth;\n\n      const globalSecurity = this.compactSecurity(this.spec.security);\n      if (globalSecurity !== null) output.security = globalSecurity;\n\n      return output;\n    }\n\n    compactSecurityScheme(scheme) {\n      const resolved = this.resolveIfRef(scheme) || {};\n      const type = resolved.type || 'unknown';\n\n      if (type === 'http') {\n        let value = type;\n        if (resolved.scheme) value += ':' + resolved.scheme;\n        if (resolved.bearerFormat) value += ':' + resolved.bearerFormat;\n        return value;\n      }\n\n      if (type === 'apiKey') {\n        return 'apiKey:' + (resolved.in || '?') + ':' + (resolved.name || '?');\n      }\n\n      if (type === 'oauth2') {\n        const flows = resolved.flows || {};\n        return { oauth2: Object.keys(flows).sort() };\n      }\n\n      if (type === 'openIdConnect') return 'openIdConnect';\n      return type;\n    }\n\n    compactSecurity(security) {\n      if (security === undefined || security === null) return null;\n      if (Array.isArray(security) && security.length === 0) return [];\n      if (!Array.isArray(security)) return null;\n\n      return security.map((requirement) => {\n        const item = {};\n        for (const [name, scopes] of Object.entries(requirement || {})) {\n          item[name] = Array.isArray(scopes) ? scopes : [];\n        }\n        return item;\n      });\n    }\n\n    compactOperations() {\n      const operations = {};\n      const paths = this.spec.paths || {};\n      const httpMethods = new Set(['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace']);\n\n      for (const [pathName, pathItem] of Object.entries(paths)) {\n        const resolvedPathItem = this.resolveIfRef(pathItem) || {};\n        const sharedParameters = Array.isArray(resolvedPathItem.parameters)\n          ? resolvedPathItem.parameters\n          : [];\n\n        for (const [method, operation] of Object.entries(resolvedPathItem)) {\n          if (!httpMethods.has(String(method).toLowerCase())) continue;\n\n          const resolvedOperation = this.resolveIfRef(operation) || {};\n          const key = String(method).toUpperCase() + ' ' + pathName;\n          const output = {};\n\n          const security = this.compactSecurity(resolvedOperation.security);\n          if (security !== null) output.security = security;\n\n          const params = this.compactParameters(sharedParameters, resolvedOperation.parameters || []);\n          if (Object.keys(params).length) output.params = params;\n\n          const requestBody = this.compactRequestBody(resolvedOperation.requestBody);\n          if (requestBody) output.body = requestBody;\n\n          const responses = this.compactResponses(resolvedOperation.responses || {});\n          if (Object.keys(responses).length) output.res = responses;\n\n          operations[key] = output;\n        }\n      }\n\n      return operations;\n    }\n\n    compactParameters(sharedParameters, localParameters) {\n      const merged = new Map();\n\n      for (const parameter of [...(sharedParameters || []), ...(localParameters || [])]) {\n        const resolved = this.resolveIfRef(parameter) || {};\n        const name = resolved.name;\n        const location = resolved.in;\n        if (!name || !location) continue;\n        merged.set(location + '::' + name, resolved);\n      }\n\n      const output = {};\n      for (const parameter of merged.values()) {\n        const location = parameter.in;\n        const name = parameter.required ? parameter.name : parameter.name + '?';\n        if (!output[location]) output[location] = {};\n        const summary = parameter.schema ? this.compactSchema(parameter.schema) : 'any';\n\n        if (this.includeDescriptions && parameter.description) {\n          output[location][name] = {\n            t: summary,\n            d: this.cleanText(parameter.description),\n          };\n        } else {\n          output[location][name] = summary;\n        }\n      }\n\n      return output;\n    }\n\n    compactRequestBody(requestBody) {\n      if (!requestBody) return null;\n\n      const resolved = this.resolveIfRef(requestBody) || {};\n      const output = {};\n      if (resolved.required) output.req = true;\n\n      const content = this.compactContent(resolved.content || {});\n      if (Object.keys(content).length) output.content = content;\n\n      if (this.includeDescriptions && resolved.description) {\n        output.d = this.cleanText(resolved.description);\n      }\n\n      return Object.keys(output).length ? output : null;\n    }\n\n    compactResponses(responses) {\n      const output = {};\n\n      for (const [statusCode, response] of Object.entries(responses || {})) {\n        const resolved = this.resolveIfRef(response) || {};\n        const item = {};\n\n        const content = this.compactContent(resolved.content || {});\n        if (Object.keys(content).length) item.content = content;\n\n        const headers = this.compactHeaders(resolved.headers || {});\n        if (Object.keys(headers).length) item.headers = headers;\n\n        output[String(statusCode)] = Object.keys(item).length ? item : 'response';\n      }\n\n      return output;\n    }\n\n    compactHeaders(headers) {\n      const output = {};\n      for (const [name, header] of Object.entries(headers || {})) {\n        const resolved = this.resolveIfRef(header) || {};\n        output[name] = resolved.schema ? this.compactSchema(resolved.schema) : 'any';\n      }\n      return output;\n    }\n\n    compactContent(content) {\n      const output = {};\n      for (const [contentType, mediaType] of Object.entries(content || {})) {\n        const resolved = this.resolveIfRef(mediaType) || {};\n        let entry = resolved.schema ? this.compactSchema(resolved.schema) : 'any';\n\n        if (this.includeDescriptions) {\n          if (resolved.example !== undefined) {\n            entry = { schema: entry, example: resolved.example };\n          } else if (resolved.examples) {\n            entry = { schema: entry, examples: Object.keys(resolved.examples).sort() };\n          }\n        }\n\n        output[contentType] = entry;\n      }\n      return output;\n    }\n\n    compactComponentSchemas() {\n      const schemas = (((this.spec || {}).components || {}).schemas) || {};\n      const output = {};\n      const queue = Array.from(this.referencedSchemaNames);\n      const visited = new Set();\n\n      while (queue.length) {\n        const name = queue.shift();\n        if (!name || visited.has(name) || !schemas[name]) continue;\n        visited.add(name);\n        output[name] = this.compactSchema(schemas[name], name);\n\n        for (const referencedName of this.referencedSchemaNames) {\n          if (!visited.has(referencedName) && !queue.includes(referencedName)) {\n            queue.push(referencedName);\n          }\n        }\n      }\n\n      return output;\n    }\n\n    compactSchema(schema, name = null) {\n      if (schema === undefined || schema === null) return 'any';\n\n      if (schema && typeof schema === 'object' && schema.$ref) {\n        return this.refLabel(schema.$ref);\n      }\n\n      const resolved = this.resolveIfRef(schema);\n      if (!resolved || typeof resolved !== 'object') return 'any';\n\n      if (name && this.schemaCache.has(name)) {\n        return this.schemaCache.get(name);\n      }\n\n      let result;\n      if (Array.isArray(resolved.allOf)) {\n        result = { allOf: resolved.allOf.map((item) => this.compactSchema(item)) };\n      } else if (Array.isArray(resolved.oneOf)) {\n        result = { oneOf: resolved.oneOf.map((item) => this.compactSchema(item)) };\n      } else if (Array.isArray(resolved.anyOf)) {\n        result = { anyOf: resolved.anyOf.map((item) => this.compactSchema(item)) };\n      } else if (resolved.type === 'array' || resolved.items) {\n        result = [this.compactSchema(resolved.items)];\n      } else if (this.looksLikeObjectSchema(resolved)) {\n        result = this.compactObjectSchema(resolved);\n      } else {\n        result = this.compactScalarSchema(resolved);\n      }\n\n      result = this.applyNullable(result, resolved);\n      if (name) this.schemaCache.set(name, result);\n      return result;\n    }\n\n    compactObjectSchema(schema) {\n      const properties = schema.properties || {};\n      const required = new Set(Array.isArray(schema.required) ? schema.required : []);\n      const output = {};\n\n      for (const [propertyName, propertySchema] of Object.entries(properties)) {\n        const key = required.has(propertyName) ? propertyName : propertyName + '?';\n        output[key] = this.compactSchema(propertySchema);\n      }\n\n      if (schema.additionalProperties) {\n        output['*'] = schema.additionalProperties === true\n          ? 'any'\n          : this.compactSchema(schema.additionalProperties);\n      }\n\n      if (!Object.keys(output).length) {\n        return 'object';\n      }\n\n      if (this.includeDescriptions && schema.description) {\n        return {\n          type: output,\n          d: this.cleanText(schema.description),\n        };\n      }\n\n      return output;\n    }\n\n    compactScalarSchema(schema) {\n      let value = schema.type || 'any';\n      if (schema.format) value += ':' + schema.format;\n      if (Array.isArray(schema.enum) && schema.enum.length) {\n        value += '[' + schema.enum.map((item) => JSON.stringify(item)).join(',') + ']';\n      }\n      return value;\n    }\n\n    applyNullable(result, schema) {\n      if (!schema.nullable) return result;\n      if (typeof result === 'string') return result + '|null';\n      return { nullable: result };\n    }\n\n    looksLikeObjectSchema(schema) {\n      return schema.type === 'object' || schema.properties || schema.additionalProperties;\n    }\n\n    resolveIfRef(node) {\n      if (!node || typeof node !== 'object') return node;\n      if (!node.$ref) return node;\n\n      const ref = node.$ref;\n      if (this.resolvedRefs.has(ref)) {\n        return this.resolvedRefs.get(ref);\n      }\n\n      let target = this.spec;\n      for (const rawPart of String(ref).replace(/^#\\//, '').split('/')) {\n        const part = rawPart.replace(/~1/g, '/').replace(/~0/g, '~');\n        target = target ? target[part] : undefined;\n      }\n\n      const resolved = this.resolveIfRef(target);\n      this.resolvedRefs.set(ref, resolved);\n      return resolved;\n    }\n\n    refLabel(ref) {\n      const normalizedRef = String(ref || '');\n      const parts = normalizedRef.split('/');\n      const label = parts[parts.length - 1];\n      if (normalizedRef.startsWith('#/components/schemas/') && label) {\n        this.referencedSchemaNames.add(label);\n      }\n      return '@' + label;\n    }\n\n    cleanText(value) {\n      return String(value || '').split(/\\s+/).filter(Boolean).join(' ');\n    }\n  }\n\n  let requirements = null;\n  let openapi = null;\n\n  for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {\n    if (!requirements) {\n      requirements = await readBinaryText.call(this, itemIndex, 'requirements', 'requirements.md');\n    }\n    if (!openapi) {\n      openapi = await readBinaryText.call(this, itemIndex, 'openapiSpec', 'openapi.yaml');\n    }\n  }\n\n  if (!requirements) {\n    throw new Error('Requirements binary is missing, cannot compact backend context.');\n  }\n  if (!openapi) {\n    throw new Error('OpenAPI binary is missing, cannot compact backend context.');\n  }\n\n  const requirementsText = compactRequirementsText(requirements.text);\n  if (!requirementsText) {\n    throw new Error('Requirements text is empty after compaction.');\n  }\n\n  const openapiRaw = normalizeText(openapi.text || '');\n  if (!openapiRaw) {\n    throw new Error('OpenAPI text is empty, cannot compact specification.');\n  }\n\n  let parsedSpec;\n  if (openapiRaw.startsWith('{')) {\n    try {\n      parsedSpec = JSON.parse(openapiRaw);\n    } catch {\n      parsedSpec = parseYamlDocument(openapiRaw);\n    }\n  } else {\n    parsedSpec = parseYamlDocument(openapiRaw);\n  }\n\n  if (!parsedSpec || typeof parsedSpec !== 'object' || !Object.keys(parsedSpec).length) {\n    throw new Error('Failed to parse OpenAPI document into a compactable object.');\n  }\n\n  const compactedSpec = parsedSpec;\n  const compactedText = JSON.stringify(compactedSpec);\n\n  const baseItem = items[0] ?? { json: {}, binary: {} };\n\n  return [{\n    json: {\n      ...(baseItem.json ?? {}),\n    },\n    binary: {\n      ...(baseItem.binary ?? {}),\n      requirements: {\n        data: Buffer.from(requirementsText, 'utf8').toString('base64'),\n        mimeType: 'text/plain',\n        fileExtension: 'txt',\n        fileName: 'requirements-compact.txt',\n      },\n      openapiSpec: {\n        data: Buffer.from(compactedText, 'utf8').toString('base64'),\n        mimeType: 'application/json',\n        fileExtension: 'json',\n        fileName: 'openapi-compact.json',\n      },\n    },\n  }];\n}\n\nreturn await beCompactContextArtifacts.call(this);\n"
+      },
+      "id": "14873a2a-d1c8-40d2-9755-df9f98626e3e",
+      "name": "BE - Compact Context Artifacts First Iteration",
+      "position": [
+        19920,
+        8288
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "async function beCompactContextArtifacts() {\n  const items = $input.all();\n  if (!items.length) {\n    throw new Error('OpenAPI compactor received no input.');\n  }\n\n  async function readBinaryText(itemIndex, propertyName, fallbackFileName) {\n    const item = items[itemIndex];\n    const binary = item.binary?.[propertyName];\n    if (!binary) return null;\n\n    const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n    return {\n      fileName: binary.fileName || fallbackFileName,\n      text: buffer.toString('utf8'),\n    };\n  }\n\n  function compactRequirementsText(text) {\n    const lines = String(text || '')\n      .replace(/\\u0000/g, '')\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n')\n      .replace(/[ \\t]+/g, ' ')\n      .split('\\n');\n    const compacted = [];\n\n    for (let rawLine of lines) {\n      let line = String(rawLine || '').trim();\n      if (!line) continue;\n      if (/^[-*_]{3,}$/.test(line)) continue;\n\n      line = line.replace(/^#{1,6}\\s*/, '');\n      line = line.replace(/^\\s*>\\s?/, '');\n      line = line.replace(/^\\s*[-*+]\\s+/, '- ');\n      line = line.replace(/^\\s*\\d+[.)]\\s+/, '- ');\n      line = line.replace(/!\\[([^\\]]*)\\]\\([^)]+\\)/g, '$1');\n      line = line.replace(/\\[([^\\]]+)\\]\\([^)]+\\)/g, '$1');\n      line = line.replace(/`([^`]+)`/g, '$1');\n      line = line.replace(/[*_~]+/g, '');\n      line = line.replace(/\\s+/g, ' ').trim();\n\n      if (!line) continue;\n      compacted.push(line);\n    }\n\n    return compacted.join('\\n').trim();\n  }\n\n  function normalizeText(text) {\n    return String(text || '')\n      .replace(/\\u0000/g, '')\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n')\n      .replace(/\\t/g, '  ')\n      .replace(/[ \\t]+$/gm, '')\n      .replace(/\\n{3,}/g, '\\n\\n')\n      .trim();\n  }\n\n  function countIndent(line) {\n    let count = 0;\n    while (count < line.length && line[count] === ' ') count += 1;\n    return count;\n  }\n\n  function nextMeaningfulIndent(lines, startIndex) {\n    for (let index = startIndex; index < lines.length; index += 1) {\n      if (lines[index].trim()) return countIndent(lines[index]);\n    }\n    return null;\n  }\n\n  function splitKeyValue(text) {\n    let inSingle = false;\n    let inDouble = false;\n    let squareDepth = 0;\n    let curlyDepth = 0;\n\n    for (let index = 0; index < text.length; index += 1) {\n      const char = text[index];\n      const prev = index > 0 ? text[index - 1] : '';\n      const next = index + 1 < text.length ? text[index + 1] : '';\n\n      if (char === \"'\" && !inDouble) {\n        if (inSingle && next === \"'\") {\n          index += 1;\n          continue;\n        }\n        inSingle = !inSingle;\n        continue;\n      }\n\n      if (char === '\"' && !inSingle && prev !== '\\\\') {\n        inDouble = !inDouble;\n        continue;\n      }\n\n      if (inSingle || inDouble) continue;\n\n      if (char === '[') squareDepth += 1;\n      else if (char === ']') squareDepth = Math.max(0, squareDepth - 1);\n      else if (char === '{') curlyDepth += 1;\n      else if (char === '}') curlyDepth = Math.max(0, curlyDepth - 1);\n      else if (\n        char === ':' &&\n        squareDepth === 0 &&\n        curlyDepth === 0 &&\n        (next === '' || /\\s/.test(next))\n      ) {\n        return {\n          key: text.slice(0, index).trim(),\n          value: text.slice(index + 1).trimStart(),\n        };\n      }\n    }\n\n    return null;\n  }\n\n  function splitFlowItems(text) {\n    const items = [];\n    let start = 0;\n    let inSingle = false;\n    let inDouble = false;\n    let squareDepth = 0;\n    let curlyDepth = 0;\n\n    for (let index = 0; index < text.length; index += 1) {\n      const char = text[index];\n      const prev = index > 0 ? text[index - 1] : '';\n      const next = index + 1 < text.length ? text[index + 1] : '';\n\n      if (char === \"'\" && !inDouble) {\n        if (inSingle && next === \"'\") {\n          index += 1;\n          continue;\n        }\n        inSingle = !inSingle;\n        continue;\n      }\n\n      if (char === '\"' && !inSingle && prev !== '\\\\') {\n        inDouble = !inDouble;\n        continue;\n      }\n\n      if (inSingle || inDouble) continue;\n\n      if (char === '[') squareDepth += 1;\n      else if (char === ']') squareDepth = Math.max(0, squareDepth - 1);\n      else if (char === '{') curlyDepth += 1;\n      else if (char === '}') curlyDepth = Math.max(0, curlyDepth - 1);\n      else if (char === ',' && squareDepth === 0 && curlyDepth === 0) {\n        const item = text.slice(start, index).trim();\n        if (item) items.push(item);\n        start = index + 1;\n      }\n    }\n\n    const tail = text.slice(start).trim();\n    if (tail) items.push(tail);\n    return items;\n  }\n\n  function parseQuotedString(text) {\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n      try {\n        return JSON.parse(text);\n      } catch {\n        return text.slice(1, -1).replace(/\\\\\"/g, '\"').replace(/\\\\\\\\/g, '\\\\');\n      }\n    }\n\n    if (text.startsWith(\"'\") && text.endsWith(\"'\")) {\n      return text.slice(1, -1).replace(/''/g, \"'\");\n    }\n\n    return text;\n  }\n\n  function parseScalar(raw) {\n    const text = String(raw ?? '').trim();\n    if (!text) return '';\n    if (text === '[]') return [];\n    if (text === '{}') return {};\n    if (\n      (text.startsWith('\"') && text.endsWith('\"')) ||\n      (text.startsWith(\"'\") && text.endsWith(\"'\"))\n    ) {\n      return parseQuotedString(text);\n    }\n    if (text.startsWith('[') && text.endsWith(']')) {\n      return splitFlowItems(text.slice(1, -1)).map((item) => parseScalar(item));\n    }\n    if (text.startsWith('{') && text.endsWith('}')) {\n      const output = {};\n      for (const part of splitFlowItems(text.slice(1, -1))) {\n        const mapping = splitKeyValue(part);\n        if (!mapping) continue;\n        output[String(parseScalar(mapping.key))] = parseScalar(mapping.value);\n      }\n      return output;\n    }\n    if (/^(?:null|Null|NULL|~)$/.test(text)) return null;\n    if (/^(?:true|True|TRUE)$/.test(text)) return true;\n    if (/^(?:false|False|FALSE)$/.test(text)) return false;\n    if (/^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$/.test(text)) return Number(text);\n    return text;\n  }\n\n  function parseKey(raw) {\n    const text = String(raw ?? '').trim();\n    const value = parseScalar(text);\n    return typeof value === 'string' ? value : String(value);\n  }\n\n  function readBlockScalar(lines, startIndex, parentIndent, style) {\n    const parts = [];\n    let blockIndent = null;\n    let index = startIndex;\n\n    while (index < lines.length) {\n      const line = lines[index];\n      if (!line.trim()) {\n        if (blockIndent !== null) parts.push('');\n        index += 1;\n        continue;\n      }\n\n      const indent = countIndent(line);\n      if (indent <= parentIndent) break;\n      if (blockIndent === null) blockIndent = indent;\n      parts.push(line.slice(blockIndent));\n      index += 1;\n    }\n\n    let value = '';\n    if (style === '>') {\n      const paragraphs = [];\n      let current = [];\n      for (const part of parts) {\n        if (part === '') {\n          if (current.length) {\n            paragraphs.push(current.join(' '));\n            current = [];\n          }\n          paragraphs.push('');\n        } else {\n          current.push(part.trim());\n        }\n      }\n      if (current.length) paragraphs.push(current.join(' '));\n      value = paragraphs.join('\\n').trim();\n    } else {\n      value = parts.join('\\n').trim();\n    }\n\n    return {\n      value,\n      nextIndex: index,\n    };\n  }\n\n  function skipEmpty(lines, state) {\n    while (state.index < lines.length && !lines[state.index].trim()) {\n      state.index += 1;\n    }\n  }\n\n  function assignMappingValue(target, keyRaw, valueRaw, lines, state, parentIndent) {\n    const key = parseKey(keyRaw);\n    const valueText = String(valueRaw ?? '').trim();\n\n    if (valueText.startsWith('|')) {\n      const block = readBlockScalar(lines, state.index, parentIndent, '|');\n      target[key] = block.value;\n      state.index = block.nextIndex;\n      return;\n    }\n\n    if (valueText.startsWith('>')) {\n      const block = readBlockScalar(lines, state.index, parentIndent, '>');\n      target[key] = block.value;\n      state.index = block.nextIndex;\n      return;\n    }\n\n    if (!valueText) {\n      const childIndent = nextMeaningfulIndent(lines, state.index);\n      target[key] = childIndent !== null && childIndent > parentIndent\n        ? parseNode(lines, state, childIndent)\n        : {};\n      return;\n    }\n\n    target[key] = parseScalar(valueText);\n  }\n\n  function parseSequence(lines, state, indent) {\n    const output = [];\n\n    while (state.index < lines.length) {\n      skipEmpty(lines, state);\n      if (state.index >= lines.length) break;\n\n      const line = lines[state.index];\n      const lineIndent = countIndent(line);\n      const trimmed = line.slice(lineIndent);\n      if (lineIndent < indent || lineIndent !== indent || !trimmed.startsWith('-')) break;\n\n      const content = trimmed.length === 1 ? '' : trimmed.slice(1).trimStart();\n      state.index += 1;\n\n      if (!content) {\n        const childIndent = nextMeaningfulIndent(lines, state.index);\n        output.push(\n          childIndent !== null && childIndent > lineIndent\n            ? parseNode(lines, state, childIndent)\n            : null,\n        );\n        continue;\n      }\n\n      const mapping = splitKeyValue(content);\n      if (mapping && mapping.key) {\n        const entry = {};\n        assignMappingValue(entry, mapping.key, mapping.value, lines, state, lineIndent);\n        const childIndent = nextMeaningfulIndent(lines, state.index);\n        if (childIndent !== null && childIndent > lineIndent) {\n          Object.assign(entry, parseMapping(lines, state, childIndent));\n        }\n        output.push(entry);\n      } else {\n        output.push(parseScalar(content));\n      }\n    }\n\n    return output;\n  }\n\n  function parseMapping(lines, state, indent) {\n    const output = {};\n\n    while (state.index < lines.length) {\n      skipEmpty(lines, state);\n      if (state.index >= lines.length) break;\n\n      const line = lines[state.index];\n      const lineIndent = countIndent(line);\n      const trimmed = line.slice(lineIndent);\n      if (lineIndent < indent || lineIndent !== indent || trimmed.startsWith('-')) break;\n\n      const mapping = splitKeyValue(trimmed);\n      state.index += 1;\n      if (!mapping || !mapping.key) continue;\n      assignMappingValue(output, mapping.key, mapping.value, lines, state, lineIndent);\n    }\n\n    return output;\n  }\n\n  function parseNode(lines, state, indent) {\n    skipEmpty(lines, state);\n    if (state.index >= lines.length) return null;\n\n    const line = lines[state.index];\n    const lineIndent = countIndent(line);\n    if (lineIndent < indent) return null;\n    const trimmed = line.slice(lineIndent);\n    return trimmed.startsWith('-')\n      ? parseSequence(lines, state, indent)\n      : parseMapping(lines, state, indent);\n  }\n\n  function parseYamlDocument(rawText) {\n    const text = normalizeText(rawText);\n    if (!text) return {};\n    const lines = text.split('\\n');\n    const state = { index: 0 };\n    const initialIndent = nextMeaningfulIndent(lines, 0) ?? 0;\n    const document = parseNode(lines, state, initialIndent);\n    return document && typeof document === 'object' ? document : {};\n  }\n\n  class OpenApiCompactor {\n    constructor(spec, includeDescriptions = false) {\n      this.spec = spec || {};\n      this.includeDescriptions = includeDescriptions;\n      this.resolvedRefs = new Map();\n      this.schemaCache = new Map();\n      this.referencedSchemaNames = new Set();\n    }\n\n    compact() {\n      const output = { ops: this.compactOperations() };\n      const api = this.compactInfo();\n      const defs = this.compactComponentSchemas();\n      if (Object.keys(api).length) output.api = api;\n      if (Object.keys(defs).length) output.defs = defs;\n      return output;\n    }\n\n    compactInfo() {\n      const components = this.spec.components || {};\n      const securitySchemes = components.securitySchemes || {};\n      const output = {};\n\n      const auth = {};\n      for (const [name, scheme] of Object.entries(securitySchemes)) {\n        auth[name] = this.compactSecurityScheme(scheme);\n      }\n      if (Object.keys(auth).length) output.auth = auth;\n\n      const globalSecurity = this.compactSecurity(this.spec.security);\n      if (globalSecurity !== null) output.security = globalSecurity;\n\n      return output;\n    }\n\n    compactSecurityScheme(scheme) {\n      const resolved = this.resolveIfRef(scheme) || {};\n      const type = resolved.type || 'unknown';\n\n      if (type === 'http') {\n        let value = type;\n        if (resolved.scheme) value += ':' + resolved.scheme;\n        if (resolved.bearerFormat) value += ':' + resolved.bearerFormat;\n        return value;\n      }\n\n      if (type === 'apiKey') {\n        return 'apiKey:' + (resolved.in || '?') + ':' + (resolved.name || '?');\n      }\n\n      if (type === 'oauth2') {\n        const flows = resolved.flows || {};\n        return { oauth2: Object.keys(flows).sort() };\n      }\n\n      if (type === 'openIdConnect') return 'openIdConnect';\n      return type;\n    }\n\n    compactSecurity(security) {\n      if (security === undefined || security === null) return null;\n      if (Array.isArray(security) && security.length === 0) return [];\n      if (!Array.isArray(security)) return null;\n\n      return security.map((requirement) => {\n        const item = {};\n        for (const [name, scopes] of Object.entries(requirement || {})) {\n          item[name] = Array.isArray(scopes) ? scopes : [];\n        }\n        return item;\n      });\n    }\n\n    compactOperations() {\n      const operations = {};\n      const paths = this.spec.paths || {};\n      const httpMethods = new Set(['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace']);\n\n      for (const [pathName, pathItem] of Object.entries(paths)) {\n        const resolvedPathItem = this.resolveIfRef(pathItem) || {};\n        const sharedParameters = Array.isArray(resolvedPathItem.parameters)\n          ? resolvedPathItem.parameters\n          : [];\n\n        for (const [method, operation] of Object.entries(resolvedPathItem)) {\n          if (!httpMethods.has(String(method).toLowerCase())) continue;\n\n          const resolvedOperation = this.resolveIfRef(operation) || {};\n          const key = String(method).toUpperCase() + ' ' + pathName;\n          const output = {};\n\n          const security = this.compactSecurity(resolvedOperation.security);\n          if (security !== null) output.security = security;\n\n          const params = this.compactParameters(sharedParameters, resolvedOperation.parameters || []);\n          if (Object.keys(params).length) output.params = params;\n\n          const requestBody = this.compactRequestBody(resolvedOperation.requestBody);\n          if (requestBody) output.body = requestBody;\n\n          const responses = this.compactResponses(resolvedOperation.responses || {});\n          if (Object.keys(responses).length) output.res = responses;\n\n          operations[key] = output;\n        }\n      }\n\n      return operations;\n    }\n\n    compactParameters(sharedParameters, localParameters) {\n      const merged = new Map();\n\n      for (const parameter of [...(sharedParameters || []), ...(localParameters || [])]) {\n        const resolved = this.resolveIfRef(parameter) || {};\n        const name = resolved.name;\n        const location = resolved.in;\n        if (!name || !location) continue;\n        merged.set(location + '::' + name, resolved);\n      }\n\n      const output = {};\n      for (const parameter of merged.values()) {\n        const location = parameter.in;\n        const name = parameter.required ? parameter.name : parameter.name + '?';\n        if (!output[location]) output[location] = {};\n        const summary = parameter.schema ? this.compactSchema(parameter.schema) : 'any';\n\n        if (this.includeDescriptions && parameter.description) {\n          output[location][name] = {\n            t: summary,\n            d: this.cleanText(parameter.description),\n          };\n        } else {\n          output[location][name] = summary;\n        }\n      }\n\n      return output;\n    }\n\n    compactRequestBody(requestBody) {\n      if (!requestBody) return null;\n\n      const resolved = this.resolveIfRef(requestBody) || {};\n      const output = {};\n      if (resolved.required) output.req = true;\n\n      const content = this.compactContent(resolved.content || {});\n      if (Object.keys(content).length) output.content = content;\n\n      if (this.includeDescriptions && resolved.description) {\n        output.d = this.cleanText(resolved.description);\n      }\n\n      return Object.keys(output).length ? output : null;\n    }\n\n    compactResponses(responses) {\n      const output = {};\n\n      for (const [statusCode, response] of Object.entries(responses || {})) {\n        const resolved = this.resolveIfRef(response) || {};\n        const item = {};\n\n        const content = this.compactContent(resolved.content || {});\n        if (Object.keys(content).length) item.content = content;\n\n        const headers = this.compactHeaders(resolved.headers || {});\n        if (Object.keys(headers).length) item.headers = headers;\n\n        output[String(statusCode)] = Object.keys(item).length ? item : 'response';\n      }\n\n      return output;\n    }\n\n    compactHeaders(headers) {\n      const output = {};\n      for (const [name, header] of Object.entries(headers || {})) {\n        const resolved = this.resolveIfRef(header) || {};\n        output[name] = resolved.schema ? this.compactSchema(resolved.schema) : 'any';\n      }\n      return output;\n    }\n\n    compactContent(content) {\n      const output = {};\n      for (const [contentType, mediaType] of Object.entries(content || {})) {\n        const resolved = this.resolveIfRef(mediaType) || {};\n        let entry = resolved.schema ? this.compactSchema(resolved.schema) : 'any';\n\n        if (this.includeDescriptions) {\n          if (resolved.example !== undefined) {\n            entry = { schema: entry, example: resolved.example };\n          } else if (resolved.examples) {\n            entry = { schema: entry, examples: Object.keys(resolved.examples).sort() };\n          }\n        }\n\n        output[contentType] = entry;\n      }\n      return output;\n    }\n\n    compactComponentSchemas() {\n      const schemas = (((this.spec || {}).components || {}).schemas) || {};\n      const output = {};\n      const queue = Array.from(this.referencedSchemaNames);\n      const visited = new Set();\n\n      while (queue.length) {\n        const name = queue.shift();\n        if (!name || visited.has(name) || !schemas[name]) continue;\n        visited.add(name);\n        output[name] = this.compactSchema(schemas[name], name);\n\n        for (const referencedName of this.referencedSchemaNames) {\n          if (!visited.has(referencedName) && !queue.includes(referencedName)) {\n            queue.push(referencedName);\n          }\n        }\n      }\n\n      return output;\n    }\n\n    compactSchema(schema, name = null) {\n      if (schema === undefined || schema === null) return 'any';\n\n      if (schema && typeof schema === 'object' && schema.$ref) {\n        return this.refLabel(schema.$ref);\n      }\n\n      const resolved = this.resolveIfRef(schema);\n      if (!resolved || typeof resolved !== 'object') return 'any';\n\n      if (name && this.schemaCache.has(name)) {\n        return this.schemaCache.get(name);\n      }\n\n      let result;\n      if (Array.isArray(resolved.allOf)) {\n        result = { allOf: resolved.allOf.map((item) => this.compactSchema(item)) };\n      } else if (Array.isArray(resolved.oneOf)) {\n        result = { oneOf: resolved.oneOf.map((item) => this.compactSchema(item)) };\n      } else if (Array.isArray(resolved.anyOf)) {\n        result = { anyOf: resolved.anyOf.map((item) => this.compactSchema(item)) };\n      } else if (resolved.type === 'array' || resolved.items) {\n        result = [this.compactSchema(resolved.items)];\n      } else if (this.looksLikeObjectSchema(resolved)) {\n        result = this.compactObjectSchema(resolved);\n      } else {\n        result = this.compactScalarSchema(resolved);\n      }\n\n      result = this.applyNullable(result, resolved);\n      if (name) this.schemaCache.set(name, result);\n      return result;\n    }\n\n    compactObjectSchema(schema) {\n      const properties = schema.properties || {};\n      const required = new Set(Array.isArray(schema.required) ? schema.required : []);\n      const output = {};\n\n      for (const [propertyName, propertySchema] of Object.entries(properties)) {\n        const key = required.has(propertyName) ? propertyName : propertyName + '?';\n        output[key] = this.compactSchema(propertySchema);\n      }\n\n      if (schema.additionalProperties) {\n        output['*'] = schema.additionalProperties === true\n          ? 'any'\n          : this.compactSchema(schema.additionalProperties);\n      }\n\n      if (!Object.keys(output).length) {\n        return 'object';\n      }\n\n      if (this.includeDescriptions && schema.description) {\n        return {\n          type: output,\n          d: this.cleanText(schema.description),\n        };\n      }\n\n      return output;\n    }\n\n    compactScalarSchema(schema) {\n      let value = schema.type || 'any';\n      if (schema.format) value += ':' + schema.format;\n      if (Array.isArray(schema.enum) && schema.enum.length) {\n        value += '[' + schema.enum.map((item) => JSON.stringify(item)).join(',') + ']';\n      }\n      return value;\n    }\n\n    applyNullable(result, schema) {\n      if (!schema.nullable) return result;\n      if (typeof result === 'string') return result + '|null';\n      return { nullable: result };\n    }\n\n    looksLikeObjectSchema(schema) {\n      return schema.type === 'object' || schema.properties || schema.additionalProperties;\n    }\n\n    resolveIfRef(node) {\n      if (!node || typeof node !== 'object') return node;\n      if (!node.$ref) return node;\n\n      const ref = node.$ref;\n      if (this.resolvedRefs.has(ref)) {\n        return this.resolvedRefs.get(ref);\n      }\n\n      let target = this.spec;\n      for (const rawPart of String(ref).replace(/^#\\//, '').split('/')) {\n        const part = rawPart.replace(/~1/g, '/').replace(/~0/g, '~');\n        target = target ? target[part] : undefined;\n      }\n\n      const resolved = this.resolveIfRef(target);\n      this.resolvedRefs.set(ref, resolved);\n      return resolved;\n    }\n\n    refLabel(ref) {\n      const normalizedRef = String(ref || '');\n      const parts = normalizedRef.split('/');\n      const label = parts[parts.length - 1];\n      if (normalizedRef.startsWith('#/components/schemas/') && label) {\n        this.referencedSchemaNames.add(label);\n      }\n      return '@' + label;\n    }\n\n    cleanText(value) {\n      return String(value || '').split(/\\s+/).filter(Boolean).join(' ');\n    }\n  }\n\n  let requirements = null;\n  let openapi = null;\n\n  for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {\n    if (!requirements) {\n      requirements = await readBinaryText.call(this, itemIndex, 'requirements', 'requirements.md');\n    }\n    if (!openapi) {\n      openapi = await readBinaryText.call(this, itemIndex, 'openapiSpec', 'openapi.yaml');\n    }\n  }\n\n  if (!requirements) {\n    throw new Error('Requirements binary is missing, cannot compact backend context.');\n  }\n  if (!openapi) {\n    throw new Error('OpenAPI binary is missing, cannot compact backend context.');\n  }\n\n  const requirementsText = compactRequirementsText(requirements.text);\n  if (!requirementsText) {\n    throw new Error('Requirements text is empty after compaction.');\n  }\n\n  const openapiRaw = normalizeText(openapi.text || '');\n  if (!openapiRaw) {\n    throw new Error('OpenAPI text is empty, cannot compact specification.');\n  }\n\n  let parsedSpec;\n  if (openapiRaw.startsWith('{')) {\n    try {\n      parsedSpec = JSON.parse(openapiRaw);\n    } catch {\n      parsedSpec = parseYamlDocument(openapiRaw);\n    }\n  } else {\n    parsedSpec = parseYamlDocument(openapiRaw);\n  }\n\n  if (!parsedSpec || typeof parsedSpec !== 'object' || !Object.keys(parsedSpec).length) {\n    throw new Error('Failed to parse OpenAPI document into a compactable object.');\n  }\n\n  const compactedSpec = parsedSpec;\n  const compactedText = JSON.stringify(compactedSpec);\n\n  const baseItem = items[0] ?? { json: {}, binary: {} };\n\n  return [{\n    json: {\n      ...(baseItem.json ?? {}),\n    },\n    binary: {\n      ...(baseItem.binary ?? {}),\n      requirements: {\n        data: Buffer.from(requirementsText, 'utf8').toString('base64'),\n        mimeType: 'text/plain',\n        fileExtension: 'txt',\n        fileName: 'requirements-compact.txt',\n      },\n      openapiSpec: {\n        data: Buffer.from(compactedText, 'utf8').toString('base64'),\n        mimeType: 'application/json',\n        fileExtension: 'json',\n        fileName: 'openapi-compact.json',\n      },\n    },\n  }];\n}\n\nreturn await beCompactContextArtifacts.call(this);\n"
+      },
+      "id": "fa65d56c-a55d-4e70-af5f-06c7170b7560",
+      "name": "BE - Compact Context Artifacts Refinement",
+      "position": [
+        19952,
+        7984
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "async function getTextBinary(itemIndex, item, propertyName, expectedFileName) {\n  const binary = item.binary?.[propertyName];\n  if (!binary) {\n    throw new Error(`Missing binary property '${propertyName}'.`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n  return {\n    fileName: binary.fileName || expectedFileName,\n    content: buffer.toString('utf8'),\n  };\n}\n\nconst items = $input.all();\n\nreturn await Promise.all(items.map(async (item, itemIndex) => {\n  const requirements = await getTextBinary.call(this, itemIndex, item, 'requirements', 'requirements-compact.txt');\n  const openapiSpec = await getTextBinary.call(this, itemIndex, item, 'openapiSpec', 'openapi-compact.json');\n\n  const userPrompt = [\n    'Approved artefacts (compacted for token efficiency):',\n    '',\n    requirements.fileName,\n    '```text',\n    requirements.content,\n    '```',\n    '',\n    openapiSpec.fileName,\n    '```json',\n    openapiSpec.content,\n    '```',\n  ].join('\\n');\n\n  return {\n    json: {\n      ...item.json,\n      userPrompt,\n    },\n    binary: item.binary,\n  };\n}));"
+      },
+      "id": "7fd4316c-d051-41cb-b9ba-06438d0579a2",
+      "name": "BE - Build Prompt",
+      "position": [
+        20272,
+        8288
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer OR0sxOaBgUkWjAz8g5Ib6LXJwMwAIGSc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"mistral-large-latest\",\n  messages: [\n    {\n      role: \"system\",\n      content: `\n------------------------------------------------\nROLE\n------------------------------------------------\nYou generate a complete backend implementation.\n\nYou operate inside an API-first automated backend generation pipeline.\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\nYou will receive:\n\n- FULL REQUIREMENTS\n- COMPACT OPENAPI JSON\n\nThe OpenAPI specification is the absolute source of truth for the API.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\nGenerate a COMPLETE backend project.\n\nThe backend must:\n\n- be compilable with Maven\n- be fully runnable\n- implement the OpenAPI contract\n- follow a strict layered architecture\n- be internally consistent across all layers\n- include basic automated tests\n\nYou must generate ALL required backend files.\n\n------------------------------------------------\nARCHITECTURE (MANDATORY)\n------------------------------------------------\nUse strict layered MVC:\n\n- domain -> entities\n- domain.enumeration -> enums\n- repository -> persistence\n- service -> service interfaces and business contracts\n- service.impl -> service implementations and business logic\n- service.dto -> DTOs (OpenAPI-generated only)\n- service.mapper -> mapping\n- web.rest -> controllers\n- config -> configuration/security\n\nRules:\n\n- Controllers must remain thin\n- Controllers must not contain business logic\n- Entities must never be exposed at API boundaries\n- DTOs must be used at API boundaries\n- Service interfaces define business contracts\n- Service implementations under service.impl contain business logic\n- Repositories handle persistence only\n- Enums MUST be implemented as separate classes under domain.enumeration\n- Enums MUST NOT be declared inside entity classes\n\n------------------------------------------------\nAPI CONTRACT RULE (STRICT)\n------------------------------------------------\nThe OpenAPI specification is the absolute source of truth.\n\nNEVER change:\n\n- endpoint paths\n- HTTP methods\n- request schemas\n- response schemas\n- field names\n- identifier types\n\n------------------------------------------------\nOPENAPI FILE GENERATION (CRITICAL)\n------------------------------------------------\nYou MUST generate the OpenAPI file at:\n\nbackend/src/main/resources/swagger/api.yaml\n\nRules:\n\n- The file MUST be a valid OpenAPI 3 specification\n- The file MUST preserve 100% of the provided COMPACT OPENAPI JSON\n- You MAY convert JSON to YAML\n- You MUST NOT change paths, methods, schemas, field names, identifier types, or status semantics\n- Do NOT add prefixes such as /api\n- This file is mandatory because Maven generate-sources depends on it\n\n------------------------------------------------\nOPENAPI GENERATOR MAVEN CONFIGURATION (CRITICAL)\n------------------------------------------------\nbackend/pom.xml MUST be configured so that this command generates sources:\n\nmvn clean generate-sources\n\nRules:\n\n- pom.xml MUST include openapi-generator-maven-plugin\n- The plugin MUST have an execution bound to the generate-sources phase\n- The execution MUST include the generate goal\n- inputSpec MUST point to:\n  \\${project.basedir}/src/main/resources/swagger/api.yaml\n\nRequired plugin configuration:\n\n- generatorName = spring\n- interfaceOnly = true\n- useSpringBoot3 = true\n- apiPackage must match the backend Java base package + .web.rest\n- modelPackage must match the backend Java base package + .service.dto\n\nThe generated sources must be created under target/generated-sources by Maven.\n\nDo NOT rely on manual DTO/API interface generation instead of this plugin.\n\n------------------------------------------------\nDTO OWNERSHIP RULE (CRITICAL)\n------------------------------------------------\nDTOs generated from OpenAPI are owned exclusively by OpenAPI Generator.\nRules:\n\n- DO NOT manually generate DTO classes under:\n  backend/src/main/java/**/service/dto\n- DO NOT create classes in the package:\n  *.service.dto\n- DO NOT duplicate OpenAPI schema DTOs manually\n- OpenAPI-generated DTOs MUST be used at API boundaries (controllers)\n- All DTOs inside service.dto MUST come exclusively from:\n  target/generated-sources/openapi\n\nCustom DTOs are allowed ONLY if strictly required for internal logic.\nRules for custom DTOs:\n\n- MUST be placed outside service.dto, for example:\n  service.internal.dto or service.vm\n- MUST NOT duplicate OpenAPI DTO names\n- MUST NOT be exposed directly at API boundaries\n\nservice.dto is reserved strictly for OpenAPI-generated models.\n\n------------------------------------------------\nPOM XML VALIDITY (CRITICAL)\n------------------------------------------------\npom.xml MUST be valid XML.\n\nRules:\n\n- Do NOT write plain text separators inside pom.xml\n- If comments are needed inside pom.xml, use valid XML comments only:\n  <!-- comment -->\n- The generated pom.xml must be parseable by Maven with zero XML syntax errors\n\n------------------------------------------------\nDOCKER / PORT CONFIGURATION (CRITICAL)\n------------------------------------------------\n- MUST use port: 25001\n- server.port MUST be set to 25001\n- Docker must expose port 25001\n- NEVER use 8080 or other common ports\n\n------------------------------------------------\nTECH STACK (MANDATORY)\n------------------------------------------------\n- Java 21\n- Spring Boot\n- Maven\n- PostgreSQL\n- Liquibase\n\n------------------------------------------------\nTEST GENERATION (MANDATORY)\n------------------------------------------------\nYou MUST generate automated tests.\n\nTypes of tests:\n\n1. Unit tests:\n   - For service layer\n   - Validate business logic\n   - Use JUnit 5\n   - Use Mockito where appropriate\n\n2. Integration tests:\n   - For REST controllers\n   - Use Spring Boot Test\n   - Use MockMvc or TestRestTemplate\n   - Validate endpoints defined in OpenAPI\n\nRules:\n\n- Tests must compile and run with Maven\n- Tests must not reference missing classes\n- Tests must align with DTOs and API contract\n- Tests must cover main success flows (happy paths)\n- Avoid overly complex or brittle test logic\n- Place tests under src/test/java with matching package structure\n\n------------------------------------------------\nREADME GENERATION (MANDATORY)\n------------------------------------------------\nYou MUST generate:\n\nbackend/README.md\n\nThe README MUST include:\n\n- Project overview\n- Project structure\n- Explanation of the API-first approach\n- Location of the OpenAPI file:\n  src/main/resources/swagger/api.yaml\n- Exact commands:\n  mvn clean generate-sources\n  mvn clean compile\n  mvn test\n  mvn spring-boot:run\n- Application port: 25001\n- Testing explanation\n\n------------------------------------------------\nPROJECT STRUCTURE\n------------------------------------------------\nGenerate a complete project including:\n\n- pom.xml\n- main application class\n- entities\n- repositories\n- service interfaces\n- service implementations under service.impl\n- DTOs (generated via OpenAPI only)\n- mappers\n- controllers\n- configuration\n- resources (application.yml, Liquibase changelogs, swagger/api.yaml)\n- test classes (unit + integration)\n- README.md\n\n------------------------------------------------\nQUALITY RULES\n------------------------------------------------\n- Code must compile\n- Imports must resolve\n- No missing classes\n- No partial implementations\n- All layers must be consistent\n- Test code must compile and be runnable\n- mvn clean generate-sources must generate OpenAPI-based sources successfully\n\n------------------------------------------------\nJAVA SOURCE VALIDITY (CRITICAL)\n------------------------------------------------\nGenerate only valid Java source code.\n\nRules:\n\n- Do NOT output escaped Java code\n- Do NOT output JSON-style escaped source\n- Do NOT write escaped quotes in imports, annotations, package declarations, or normal Java syntax\n- Use escaped quotes (\\\") only inside Java string literals when required\n- Package declarations MUST match the file path\n- Public type names MUST match the filename exactly\n\n------------------------------------------------\nTOP-LEVEL TYPE RULE (CRITICAL)\n------------------------------------------------\nEach .java file MUST contain exactly one public top-level class or interface or enum.\n\nRules:\n\n- Exactly one public top-level type per file\n- Public type name MUST match filename\n- Do NOT generate multiple public types per file\n\n------------------------------------------------\nENTITY / DTO / MAPPER / SERVICE COHERENCE (CRITICAL)\n------------------------------------------------\nAll layers must be fully coherent.\n\nRules:\n\n- Entity fields, DTOs, mappers, services, controllers must align\n- DTOs must match API contract\n- Repositories must match entity + ID types\n- Services must use correct DTO/entity types\n- Controllers must use correct request/response DTOs\n- No broken layer chains\n\n------------------------------------------------\nMAPSTRUCT / LOMBOK / ANNOTATION PROCESSING (CRITICAL)\n------------------------------------------------\nCode must compile with MapStruct and Lombok.\n\nRules:\n\n- All mappers must exist and resolve\n- No missing DTO/entity references\n- Mapper imports must resolve\n- Lombok usage must be consistent\n\n------------------------------------------------\nPOM.XML GENERATION RULES (CRITICAL)\n------------------------------------------------\n- Use Java 21\n- Use maven-compiler-plugin with <release>21</release>\n- Include dependencies required for:\n  - Spring Boot\n  - JPA\n  - PostgreSQL\n  - Liquibase\n  - MapStruct\n  - Lombok\n  - OpenAPI Generator generated Spring code\n  - Testing (JUnit 5, Spring Boot Test, Mockito)\n\n- Plugin order:\n  1. maven-compiler-plugin\n  2. annotation processing config\n  3. openapi-generator-maven-plugin\n  4. spring-boot-maven-plugin\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\nReturn ONLY valid JSON:\n\n{\n  \"files\": [\n    {\n      \"path\": \"backend/...\",\n      \"content\": \"complete file content\"\n    }\n  ]\n}\n\n------------------------------------------------\nOUTPUT RULES\n------------------------------------------------\n- Output COMPLETE files\n- No partial snippets\n- No duplicate paths\n- No explanations\n- No comments outside file contents\n- No text outside JSON\n`\n    },\n    {\n      role: \"user\",\n      content: $json.userPrompt\n    }\n  ],\n  temperature: 0.2,\n  max_tokens: 100000,\n  stream: true,\n}) }}",
+        "options": {
+          "timeout": 7200000
+        }
+      },
+      "id": "99fe5efc-9ae8-431d-8bc0-6a679695985b",
+      "name": "BE - Model",
+      "position": [
+        20496,
+        8288
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "jsCode": "﻿function joinContentBlocks(value) {\n  if (!Array.isArray(value)) return '';\n  const parts = value\n    .map((entry) => {\n      if (typeof entry === 'string') return entry;\n      if (entry && typeof entry.text === 'string') return entry.text;\n      if (entry && typeof entry.content === 'string') return entry.content;\n      return '';\n    })\n    .filter((entry) => entry && entry.trim());\n  return parts.join('\\n').trim();\n}\n\nfunction toTokenCount(value) {\n  const parsed = Number(value);\n  if (!Number.isFinite(parsed) || parsed < 0) return null;\n  return Math.trunc(parsed);\n}\n\nfunction extractUsageTokensObject(obj) {\n  if (!obj || typeof obj !== 'object') return null;\n  const candidates = [\n    obj.usage?.completion_tokens,\n    obj.usage?.output_tokens,\n    obj.usage?.completionTokens,\n    obj.usage?.outputTokens,\n    obj.completion_tokens,\n    obj.output_tokens,\n    obj.data?.usage?.completion_tokens,\n    obj.data?.usage?.output_tokens,\n    obj.choices?.[0]?.usage?.completion_tokens,\n    obj.choices?.[0]?.usage?.output_tokens,\n  ];\n  for (const candidate of candidates) {\n    const count = toTokenCount(candidate);\n    if (count !== null) return count;\n  }\n  return null;\n}\n\nfunction extractTextFromChunk(chunk) {\n  const candidates = [\n    chunk?.choices?.[0]?.delta?.content,\n    chunk?.choices?.[0]?.message?.content,\n    chunk?.choices?.[0]?.text,\n    chunk?.message?.content,\n    chunk?.response,\n    chunk?.output,\n    chunk?.result,\n    chunk?.data?.choices?.[0]?.delta?.content,\n    chunk?.data?.choices?.[0]?.message?.content,\n    chunk?.data?.choices?.[0]?.text,\n    chunk?.data?.response,\n    chunk?.data?.output,\n    chunk?.data?.result,\n  ];\n\n  for (const value of candidates) {\n    if (typeof value === 'string' && value.length) return value;\n    if (Array.isArray(value)) {\n      const joined = joinContentBlocks(value);\n      if (joined) return joined;\n    }\n  }\n  return '';\n}\n\nfunction parseStreamChunks(value) {\n  if (typeof value !== 'string') {\n    return { text: '', tokenCount: null, parsedAny: false, lastChunk: null };\n  }\n\n  const raw = value.trim();\n  if (!raw) {\n    return { text: '', tokenCount: null, parsedAny: false, lastChunk: null };\n  }\n\n  const lines = raw.split(/\\r?\\n/);\n  const textParts = [];\n  let parsedAny = false;\n  let lastChunk = null;\n  let lastTokenCount = null;\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (!line) continue;\n\n    let payload = line;\n    if (line.startsWith('data:')) payload = line.slice(5).trim();\n    if (!payload || payload === '[DONE]') continue;\n\n    try {\n      const chunk = JSON.parse(payload);\n      parsedAny = true;\n      if (chunk && typeof chunk === 'object') lastChunk = chunk;\n      const tokens = extractUsageTokensObject(chunk);\n      if (tokens !== null) lastTokenCount = tokens;\n      const text = extractTextFromChunk(chunk);\n      if (text) textParts.push(text);\n    } catch {\n      // ignore non-json lines\n    }\n  }\n\n  return {\n    text: textParts.join(''),\n    tokenCount: lastTokenCount,\n    parsedAny,\n    lastChunk,\n  };\n}\n\nfunction extractUsageTokensFromAny(value, seen = new Set(), depth = 0) {\n  if (value === null || typeof value === 'undefined') return null;\n  if (depth > 6) return null;\n\n  if (typeof value === 'string') {\n    const stream = parseStreamChunks(value);\n    if (stream.tokenCount !== null) return stream.tokenCount;\n    try {\n      const parsed = JSON.parse(value);\n      return extractUsageTokensFromAny(parsed, seen, depth + 1);\n    } catch {\n      return null;\n    }\n  }\n\n  if (Array.isArray(value)) {\n    let last = null;\n    for (const entry of value) {\n      const token = extractUsageTokensFromAny(entry, seen, depth + 1);\n      if (token !== null) last = token;\n    }\n    return last;\n  }\n\n  if (typeof value === 'object') {\n    if (seen.has(value)) return null;\n    seen.add(value);\n\n    const direct = extractUsageTokensObject(value);\n    if (direct !== null) return direct;\n\n    const candidates = [\n      value.data,\n      value.response,\n      value.output,\n      value.result,\n      value.text,\n      value.choices,\n    ];\n\n    for (const candidate of candidates) {\n      const token = extractUsageTokensFromAny(candidate, seen, depth + 1);\n      if (token !== null) return token;\n    }\n  }\n\n  return null;\n}\n\nfunction normalizeStreamingText(value) {\n  if (typeof value !== 'string') return '';\n  const text = value.trim();\n  if (!text) return '';\n\n  const parsed = parseStreamChunks(text);\n  if (parsed.text && parsed.text.trim()) return parsed.text;\n\n  if (parsed.parsedAny && parsed.lastChunk && typeof parsed.lastChunk === 'object') {\n    const fallback = extractTextFromChunk(parsed.lastChunk);\n    if (fallback && fallback.trim()) return fallback;\n  }\n\n  return text;\n}\n\nfunction firstText(...values) {\n  for (const value of values) {\n    if (typeof value === 'string' && value.trim()) {\n      const normalized = normalizeStreamingText(value);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n\n    const joined = joinContentBlocks(value);\n    if (joined) {\n      const normalized = normalizeStreamingText(joined);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n  }\n  return '';\n}\n\nfunction parseMaybeJson(value) {\n  if (typeof value !== 'string') return null;\n  const trimmed = value.trim();\n  if (!trimmed.startsWith('{') && !trimmed.startsWith('[') && !trimmed.startsWith('\"')) return null;\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return null;\n  }\n}\n\nfunction decodeEscapedText(text) {\n  const value = String(text ?? '');\n  const trimmed = value.trim();\n  if (!trimmed) return '';\n\n  // Only decode when the whole payload is itself a quoted JSON string.\n  if (trimmed.startsWith('\"') && trimmed.endsWith('\"')) {\n    try {\n      const parsed = JSON.parse(trimmed);\n      if (typeof parsed === 'string') return parsed;\n    } catch {\n      // fall through\n    }\n  }\n\n  return value;\n}\n\nfunction stripCodeFence(text) {\n  const value = String(text ?? '').trim();\n  if (!value) return '';\n  const fenced = value.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);\n  if (fenced) return fenced[1].trim();\n  return value;\n}\n\nfunction extractModelText(json) {\n  if (!json || typeof json !== 'object') return '';\n\n  const direct = firstText(\n    json.text,\n    json.response,\n    json.output,\n    json.result,\n    json.answer,\n    json.completion,\n    json.generated_text,\n    json.message?.content,\n    json.choices?.[0]?.message?.content,\n    json.choices?.[0]?.text,\n    json.data?.text,\n    json.data?.response,\n    json.data?.output,\n    json.data?.result,\n    json.data?.choices?.[0]?.message?.content,\n    json.data?.choices?.[0]?.text,\n    json.content,\n    json.data?.content,\n    json.data,\n  );\n\n  if (direct) return direct;\n\n  const parsedFromStrings = [json.response, json.text, json.output, json.result, json.data]\n    .map((value) => parseMaybeJson(value))\n    .filter((value) => value && typeof value === 'object');\n\n  for (const parsed of parsedFromStrings) {\n    const parsedText = extractModelText(parsed);\n    if (parsedText) return parsedText;\n  }\n\n  return '';\n}\n\nfunction extractOutputTokens(json, rawModelText) {\n  const direct = extractUsageTokensObject(json);\n  if (direct !== null) {\n    return { outputTokens: direct, outputTokensSource: 'usage.completion_tokens' };\n  }\n\n  const fromNested = extractUsageTokensFromAny([json.data, json.response, json.output, json.result, json.text]);\n  if (fromNested !== null) {\n    return { outputTokens: fromNested, outputTokensSource: 'stream.usage.completion_tokens' };\n  }\n\n  const estimated = Math.max(1, Math.round(String(rawModelText ?? '').length / 4));\n  return { outputTokens: estimated, outputTokensSource: 'estimated_char_div4' };\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  const normalized = [];\n\n  for (const entry of files) {\n    if (!entry || typeof entry !== 'object') continue;\n    const rawPath = String(entry.path ?? '').trim().replace(/\\\\/g, '/');\n    if (!rawPath) continue;\n\n    const prefixedPath = rawPath.startsWith('backend/')\n      ? rawPath\n      : `backend/${rawPath.replace(/^\\/+/, '')}`;\n    const path = prefixedPath.replace(/\\/+/g, '/');\n\n    const hasTraversal = (\n      path.includes('/../')\n      || path.startsWith('../')\n      || path.endsWith('/..')\n      || path.includes('/./')\n      || path.startsWith('backend/../')\n      || path.includes(':')\n      || path.endsWith('/')\n    );\n    if (hasTraversal) continue;\n\n    const blockedPrefixes = [\n      'backend/main/',\n      'backend/target/',\n      'backend/node_modules/',\n      'backend/.git/',\n      'backend/.idea/',\n      'backend/.vscode/',\n      'backend/.DS_Store',\n    ];\n    if (blockedPrefixes.some((prefix) => path.startsWith(prefix) || path === prefix.replace(/\\/$/, ''))) {\n      continue;\n    }\n\n    if (!path.startsWith('backend/')) continue;\n\n    let content = '';\n    if (typeof entry.content === 'string') content = entry.content;\n    else if (entry.content === null || typeof entry.content === 'undefined') content = '';\n    else if (typeof entry.content === 'object') content = JSON.stringify(entry.content, null, 2);\n    else content = String(entry.content);\n\n    normalized.push({ path, content });\n  }\n\n  if (!normalized.length) {\n    throw new Error('Backend files JSON does not contain any valid files under backend/ after path sanitization.');\n  }\n\n  const hasReadme = normalized.some((entry) => entry.path === 'backend/README.md');\n  if (!hasReadme) {\n    // Best effort: continue even when README entry is missing/truncated in model output.\n    // Upstream prompt still requests README generation.\n  }\n\n  return normalized;\n}\n\nfunction findMatchingBracket(text, startIndex, openChar, closeChar) {\n  let depth = 0;\n  let inString = false;\n  let quote = '';\n  let escaped = false;\n\n  for (let i = startIndex; i < text.length; i += 1) {\n    const ch = text[i];\n\n    if (inString) {\n      if (escaped) {\n        escaped = false;\n      } else if (ch === '\\\\') {\n        escaped = true;\n      } else if (ch === quote) {\n        inString = false;\n        quote = '';\n      }\n      continue;\n    }\n\n    if (ch === '\"' || ch === \"'\") {\n      inString = true;\n      quote = ch;\n      continue;\n    }\n\n    if (ch === openChar) depth += 1;\n    else if (ch === closeChar) {\n      depth -= 1;\n      if (depth === 0) return i;\n    }\n  }\n\n  return -1;\n}\n\nfunction splitTopLevelObjectsInArray(arrayText) {\n  const objects = [];\n  let inString = false;\n  let quote = '';\n  let escaped = false;\n  let depth = 0;\n  let start = -1;\n\n  for (let i = 0; i < arrayText.length; i += 1) {\n    const ch = arrayText[i];\n\n    if (inString) {\n      if (escaped) escaped = false;\n      else if (ch === '\\\\') escaped = true;\n      else if (ch === quote) { inString = false; quote = ''; }\n      continue;\n    }\n\n    if (ch === '\"' || ch === \"'\") {\n      inString = true;\n      quote = ch;\n      continue;\n    }\n\n    if (ch === '{') {\n      if (depth === 0) start = i;\n      depth += 1;\n      continue;\n    }\n\n    if (ch === '}') {\n      if (depth <= 0) {\n        depth = 0;\n        start = -1;\n        continue;\n      }\n\n      depth -= 1;\n      if (depth === 0 && start >= 0) {\n        objects.push(arrayText.slice(start, i + 1));\n        start = -1;\n      }\n    }\n  }\n\n  return objects;\n}\n\nfunction extractFieldExpression(objectText, fieldName) {\n  const keyRegex = new RegExp(`\"${fieldName}\"\\\\s*:`);\n  const match = keyRegex.exec(objectText);\n  if (!match) return null;\n\n  let i = match.index + match[0].length;\n  while (i < objectText.length && /\\s/.test(objectText[i])) i += 1;\n\n  const start = i;\n  let inString = false;\n  let quote = '';\n  let escaped = false;\n  let curly = 0;\n  let square = 0;\n  let paren = 0;\n\n  for (; i < objectText.length; i += 1) {\n    const ch = objectText[i];\n\n    if (inString) {\n      if (escaped) escaped = false;\n      else if (ch === '\\\\') escaped = true;\n      else if (ch === quote) { inString = false; quote = ''; }\n      continue;\n    }\n\n    if (ch === '\"' || ch === \"'\") {\n      inString = true;\n      quote = ch;\n      continue;\n    }\n\n    if (ch === '{') curly += 1;\n    else if (ch === '}') {\n      if (curly === 0 && square === 0 && paren === 0) break;\n      curly = Math.max(0, curly - 1);\n    } else if (ch === '[') square += 1;\n    else if (ch === ']') square = Math.max(0, square - 1);\n    else if (ch === '(') paren += 1;\n    else if (ch === ')') paren = Math.max(0, paren - 1);\n    else if (ch === ',' && curly === 0 && square === 0 && paren === 0) break;\n  }\n\n  return objectText.slice(start, i).trim();\n}\n\nfunction unescapeLiteralText(value) {\n  return String(value ?? '')\n    .replace(/\\\\r\\\\n/g, '\\n')\n    .replace(/\\\\n/g, '\\n')\n    .replace(/\\\\r/g, '\\r')\n    .replace(/\\\\t/g, '\\t')\n    .replace(/\\\\\"/g, '\"')\n    .replace(/\\\\'/g, \"'\")\n    .replace(/\\\\\\\\/g, '\\\\');\n}\n\nfunction parseConcatenatedStringExpression(expr) {\n  const text = String(expr ?? '').trim();\n  if (!text) return '';\n\n  const literals = [];\n  let i = 0;\n  while (i < text.length) {\n    const ch = text[i];\n    if (ch !== '\"' && ch !== \"'\") {\n      i += 1;\n      continue;\n    }\n\n    const quote = ch;\n    i += 1;\n    let current = '';\n    let escaped = false;\n\n    while (i < text.length) {\n      const c = text[i];\n      i += 1;\n\n      if (escaped) {\n        current += '\\\\' + c;\n        escaped = false;\n        continue;\n      }\n\n      if (c === '\\\\') {\n        escaped = true;\n        continue;\n      }\n\n      if (c === quote) break;\n      current += c;\n    }\n\n    literals.push(unescapeLiteralText(current));\n  }\n\n  if (!literals.length) return text;\n\n  const merged = literals.join('');\n  return merged.replace(/\"n\"/g, '\\n');\n}\n\nfunction extractFilesFromJsLikeText(rawText) {\n  const stripped = stripCodeFence(decodeEscapedText(rawText));\n  if (!stripped) return null;\n\n  const filesKeyIndex = stripped.indexOf('\"files\"');\n  if (filesKeyIndex < 0) return null;\n\n  const arrayStart = stripped.indexOf('[', filesKeyIndex);\n  if (arrayStart < 0) return null;\n\n  const arrayEnd = findMatchingBracket(stripped, arrayStart, '[', ']');\n  const arrayText = arrayEnd >= 0\n    ? stripped.slice(arrayStart, arrayEnd + 1)\n    : stripped.slice(arrayStart);\n\n  if (!arrayText.trim()) return null;\n  const objectTexts = splitTopLevelObjectsInArray(arrayText);\n  if (!objectTexts.length) return null;\n\n  const files = [];\n  for (const objectText of objectTexts) {\n    const pathExpr = extractFieldExpression(objectText, 'path');\n    const contentExpr = extractFieldExpression(objectText, 'content');\n    if (!pathExpr || !contentExpr) continue;\n\n    const path = parseConcatenatedStringExpression(pathExpr).trim();\n    if (!path) continue;\n\n    let content = '';\n    const trimmedContentExpr = contentExpr.trim();\n    if (trimmedContentExpr.startsWith('{') || trimmedContentExpr.startsWith('[')) {\n      try {\n        content = JSON.stringify(JSON.parse(trimmedContentExpr), null, 2);\n      } catch {\n        content = trimmedContentExpr;\n      }\n    } else {\n      content = parseConcatenatedStringExpression(trimmedContentExpr);\n    }\n\n    files.push({ path, content });\n  }\n\n  if (!files.length) return null;\n  return normalizeFiles(files);\n}\n\nfunction parseJsonObjectFromText(text) {\n  const normalized = stripCodeFence(decodeEscapedText(text));\n\n  const direct = parseMaybeJson(normalized);\n  if (direct && typeof direct === 'object') return direct;\n  if (typeof direct === 'string') {\n    const nested = parseMaybeJson(direct);\n    if (nested && typeof nested === 'object') return nested;\n  }\n\n  const objectStart = normalized.indexOf('{');\n  const objectEnd = normalized.lastIndexOf('}');\n  if (objectStart >= 0 && objectEnd > objectStart) {\n    const candidate = normalized.slice(objectStart, objectEnd + 1);\n    const parsed = parseMaybeJson(candidate);\n    if (parsed && typeof parsed === 'object') return parsed;\n  }\n\n  const arrayStart = normalized.indexOf('[');\n  const arrayEnd = normalized.lastIndexOf(']');\n  if (arrayStart >= 0 && arrayEnd > arrayStart) {\n    const candidate = normalized.slice(arrayStart, arrayEnd + 1);\n    const parsed = parseMaybeJson(candidate);\n    if (Array.isArray(parsed)) return { files: parsed };\n  }\n\n  return null;\n}\n\nfunction tryExtractFiles(value, seen = new Set(), depth = 0) {\n  if (value === null || typeof value === 'undefined') return null;\n  if (depth > 8) return null;\n\n  if (Array.isArray(value)) {\n    try {\n      return normalizeFiles(value);\n    } catch {\n      const chunkText = value\n        .map((entry) => (entry && typeof entry === 'object') ? extractTextFromChunk(entry) : String(entry ?? ''))\n        .join('');\n      if (chunkText.trim()) {\n        const nested = tryExtractFiles(chunkText, seen, depth + 1);\n        if (nested) return nested;\n      }\n      for (const entry of value) {\n        const nested = tryExtractFiles(entry, seen, depth + 1);\n        if (nested) return nested;\n      }\n      return null;\n    }\n  }\n\n  if (typeof value === 'string') {\n    const parsedObj = parseJsonObjectFromText(value);\n    if (parsedObj) {\n      const nested = tryExtractFiles(parsedObj, seen, depth + 1);\n      if (nested) return nested;\n    }\n\n    const jsLike = extractFilesFromJsLikeText(value);\n    if (jsLike) return jsLike;\n\n    const normalized = normalizeStreamingText(value);\n    if (normalized && normalized !== value) {\n      const nested = tryExtractFiles(normalized, seen, depth + 1);\n      if (nested) return nested;\n    }\n\n    return null;\n  }\n\n  if (typeof value === 'object') {\n    if (seen.has(value)) return null;\n    seen.add(value);\n\n    if (Array.isArray(value.files)) {\n      try {\n        return normalizeFiles(value.files);\n      } catch {\n        const fallback = tryExtractFiles(value.files, seen, depth + 1);\n        if (fallback) return fallback;\n      }\n    }\n\n    if (Array.isArray(value.backendFiles)) {\n      try {\n        return normalizeFiles(value.backendFiles);\n      } catch {\n        const fallback = tryExtractFiles(value.backendFiles, seen, depth + 1);\n        if (fallback) return fallback;\n      }\n    }\n\n    const nestedCandidates = [\n      value.response,\n      value.output,\n      value.result,\n      value.text,\n      value.data,\n      value.message?.content,\n      value.choices?.[0]?.message?.content,\n      value.choices?.[0]?.text,\n    ];\n\n    for (const candidate of nestedCandidates) {\n      const nested = tryExtractFiles(candidate, seen, depth + 1);\n      if (nested) return nested;\n    }\n  }\n\n  return null;\n}\n\nfunction recoverReadmeFileOnly(files, rawModelText) {\n  const current = Array.isArray(files) ? files.slice() : [];\n  if (current.some((entry) => entry && entry.path === 'backend/README.md')) {\n    return current;\n  }\n\n  function extractReadmeContentFromText(sourceText) {\n    const text = String(sourceText || '');\n    if (!text) return '';\n\n    const markerRegex = /\"path\"\\s*:\\s*\"backend\\/README\\.md\"\\s*,\\s*\"content\"\\s*:\\s*\"/g;\n    const markerMatch = markerRegex.exec(text);\n    if (!markerMatch) return '';\n\n    let index = markerMatch.index + markerMatch[0].length;\n    let escaped = false;\n    let content = '';\n\n    while (index < text.length) {\n      const ch = text[index];\n\n      if (escaped) {\n        content += '\\\\' + ch;\n        escaped = false;\n        index += 1;\n        continue;\n      }\n\n      if (ch === '\\\\') {\n        escaped = true;\n        index += 1;\n        continue;\n      }\n\n      if (ch === '\"') {\n        const tail = text.slice(index + 1);\n        if (/^\\s*[,}]/.test(tail)) {\n          break;\n        }\n      }\n\n      content += ch;\n      index += 1;\n    }\n\n    const normalized = unescapeLiteralText(content)\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n')\n      .replace(/^\\s+/, '')\n      .trimEnd();\n\n    if (!normalized) return '';\n    if (!normalized.startsWith('#')) return '';\n    if (normalized.length < 40) return '';\n    return normalized;\n  }\n\n  const candidates = [];\n  if (typeof rawModelText === 'string' && rawModelText.trim()) {\n    candidates.push(rawModelText);\n    const normalized = normalizeStreamingText(rawModelText);\n    if (normalized && normalized !== rawModelText) {\n      candidates.push(normalized);\n    }\n  }\n\n  for (const candidate of candidates) {\n    const readmeContent = extractReadmeContentFromText(candidate);\n    if (!readmeContent) continue;\n    current.push({ path: 'backend/README.md', content: readmeContent });\n    break;\n  }\n\n  return current;\n}\r\nfunction extractBackendFiles(rawModelText, rootJson) {\n  const orderedCandidates = [\n    rawModelText,\n    rootJson,\n    rootJson?.data,\n    rootJson?.response,\n    rootJson?.output,\n    rootJson?.result,\n    rootJson?.text,\n  ];\n\n  for (const candidate of orderedCandidates) {\n    const files = tryExtractFiles(candidate);\n    if (files && files.length) return recoverReadmeFileOnly(files, rawModelText);\n  }\n\n  throw new Error('Could not extract backend files from model output.');\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\nconst rawModelText = extractModelText(json);\nconst tokenInfo = extractOutputTokens(json, rawModelText);\nconst files = extractBackendFiles(rawModelText, json);\n\nreturn [{\n  json: {\n    response: JSON.stringify({ files }),\n    files,\n    fileCount: files.length,\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    outputTokens: tokenInfo.outputTokens,\n    outputTokensSource: tokenInfo.outputTokensSource,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];\r\n\r\n\r\n"
+      },
+      "id": "53656747-1469-4f91-895b-5dd6d551cd34",
+      "name": "BE - Clean Response",
+      "position": [
+        20752,
+        8288
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "async function getTextBinary(itemIndex, item, propertyName, expectedFileName) {\n  const binary = item.binary?.[propertyName];\n  if (!binary) {\n    throw new Error(`Missing binary property '${propertyName}' for backend refinement.`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n  return {\n    fileName: binary.fileName || expectedFileName,\n    content: buffer.toString('utf8').trim(),\n  };\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  const normalized = [];\n\n  for (const entry of files) {\n    if (!entry || typeof entry !== 'object') continue;\n    const rawPath = String(entry.path ?? '').trim().replace(/\\\\/g, '/');\n    if (!rawPath) continue;\n\n    const prefixedPath = rawPath.startsWith('backend/')\n      ? rawPath\n      : `backend/${rawPath.replace(/^\\/+/, '')}`;\n    const path = prefixedPath.replace(/\\/+/g, '/');\n\n    const hasTraversal = (\n      path.includes('/../')\n      || path.startsWith('../')\n      || path.endsWith('/..')\n      || path.includes('/./')\n      || path.startsWith('backend/../')\n      || path.includes(':')\n      || path.endsWith('/')\n    );\n    if (hasTraversal) continue;\n\n    const blockedPrefixes = [\n      'backend/main/',\n      'backend/target/',\n      'backend/node_modules/',\n      'backend/.git/',\n      'backend/.idea/',\n      'backend/.vscode/',\n      'backend/.DS_Store',\n    ];\n    if (blockedPrefixes.some((prefix) => path.startsWith(prefix) || path === prefix.replace(/\\/$/, ''))) {\n      continue;\n    }\n\n    if (!path.startsWith('backend/')) continue;\n\n    let content = '';\n    if (typeof entry.content === 'string') content = entry.content;\n    else if (entry.content === null || typeof entry.content === 'undefined') content = '';\n    else if (typeof entry.content === 'object') content = JSON.stringify(entry.content, null, 2);\n    else content = String(entry.content);\n\n    normalized.push({ path, content });\n  }\n\n  return normalized;\n}\n\nfunction parseMaybeJson(value) {\n  if (typeof value !== 'string') return null;\n  const trimmed = value.trim();\n  if (!trimmed) return null;\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return null;\n  }\n}\n\nfunction extractFilesFromAny(value) {\n  if (!value) return [];\n  if (Array.isArray(value)) return normalizeFiles(value);\n  if (typeof value === 'object') {\n    if (Array.isArray(value.files)) return normalizeFiles(value.files);\n    if (Array.isArray(value.backendFiles)) return normalizeFiles(value.backendFiles);\n  }\n  if (typeof value === 'string') {\n    const parsed = parseMaybeJson(value);\n    if (parsed) return extractFilesFromAny(parsed);\n  }\n  return [];\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\n\nconst requirements = await getTextBinary.call(this, 0, item, 'requirements', 'requirements-compact.txt');\nconst openapiSpec = await getTextBinary.call(this, 0, item, 'openapiSpec', 'openapi-compact.json');\n\nconst reviewerFeedback = [\n  json.feedback,\n  json.Feedback,\n  json.feedbackForRefinement,\n  json.reviewerFeedback,\n  json.reviewFeedback,\n  json.comment,\n  json.comments,\n].map((value) => String(value ?? '').trim()).find((value) => value.length > 0)\n  || 'Reviewer requested backend changes without additional details.';\n\nconst currentFiles = [\n  extractFilesFromAny(json.files),\n  extractFilesFromAny(json.backendFiles),\n  extractFilesFromAny(json.response),\n].find((files) => files.length > 0) || [];\n\nif (!currentFiles.length) {\n  throw new Error('Current backend package files are missing for refinement.');\n}\n\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0)) + 1;\n\nconst patchPrompt = [\n  'Approved artefacts (compacted for token efficiency):',\n  '',\n  requirements.fileName,\n  '```text',\n  requirements.content,\n  '```',\n  '',\n  openapiSpec.fileName,\n  '```json',\n  openapiSpec.content,\n  '```',\n  '',\n  'Reviewer feedback:',\n  reviewerFeedback,\n  '',\n  'Current backend package:',\n  '```json',\n  JSON.stringify({ files: currentFiles }, null, 2),\n  '```',\n].join('\\n');\n\nreturn [{\n  json: {\n    ...json,\n    reviewerFeedback,\n    revisionNumber,\n    patchPrompt,\n    files: currentFiles,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "ba36b72e-4bfd-403a-af7d-c5ed3ee73bd5",
+      "name": "BE - Build Refinement Prompt",
+      "position": [
+        20272,
+        7984
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer OR0sxOaBgUkWjAz8g5Ib6LXJwMwAIGSc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"mistral-large-latest\",\n  messages: [\n    {\n      role: \"system\",\n      content: `\n------------------------------------------------\nROLE\n------------------------------------------------\nYou refine a complete backend implementation.\n\nYou operate inside a controlled refinement loop.\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\nYou will receive:\n\n- FULL REQUIREMENTS\n- COMPACT OPENAPI JSON\n- CURRENT_IMPLEMENTATION\n- FEEDBACK\n\n------------------------------------------------\nMISSION\n------------------------------------------------\nRefine the backend.\n\nGoals:\n\n- Apply FEEDBACK precisely\n- Preserve API contract\n- Keep project compilable\n- Improve correctness WITHOUT breaking existing correct behavior\n\n------------------------------------------------\nSTRICT CHANGE SCOPE (CRITICAL)\n------------------------------------------------\nYou MUST follow strict change control:\n\n- ONLY modify code that is REQUIRED to address FEEDBACK\n- DO NOT modify code that is not related to FEEDBACK\n- DO NOT refactor working code unless it is necessary to fix an issue\n- DO NOT introduce changes for improvement unless explicitly required by FEEDBACK\n\nRules:\n\n- If something is NOT mentioned in FEEDBACK ? it MUST remain unchanged\n- If something is already correct ? DO NOT modify it\n- Prefer the MINIMAL possible change set\n\n------------------------------------------------\nSCOPE RULE\n------------------------------------------------\nYou may modify ANY file in CURRENT_IMPLEMENTATION ONLY if required by FEEDBACK.\n\nRules:\n\n- Do NOT create unrelated files\n- Do NOT remove necessary files\n- Do NOT rename files unless required\n- Keep project structure stable\n\n------------------------------------------------\nSTRICT OPENAPI RULE (CRITICAL)\n------------------------------------------------\nThe OpenAPI file MUST exist at:\n\nsrc/main/resources/swagger/api.yaml\n\nRules:\n\n- MUST remain valid\n- MUST match EXACTLY the provided OpenAPI input\n- MUST NOT change endpoints, schemas, or field names\n\nIf CURRENT_IMPLEMENTATION violates this ? FIX IT only if FEEDBACK indicates an OpenAPI file/API contract problem.\n\n------------------------------------------------\nOPENAPI GENERATOR MAVEN CONFIGURATION (CRITICAL)\n------------------------------------------------\nIf FEEDBACK indicates that mvn generate-sources does not generate OpenAPI sources, or indicates a pom.xml/OpenAPI Generator configuration issue, fix backend/pom.xml.\n\nbackend/pom.xml MUST be configured so that this command generates sources:\n\nmvn clean generate-sources\n\nRules:\n\n- pom.xml MUST include openapi-generator-maven-plugin\n- The plugin MUST have an execution bound to the generate-sources phase\n- The execution MUST include the generate goal\n- inputSpec MUST point to:\n  \\${project.basedir}/src/main/resources/swagger/api.yaml\n\nRequired plugin configuration:\n\n- generatorName = spring\n- interfaceOnly = true\n- useSpringBoot3 = true\n- apiPackage must match the backend Java base package + .web.rest\n- modelPackage must match the backend Java base package + .service.dto\n\nThe generated sources must be created under target/generated-sources by Maven.\n\nDo NOT change this configuration unless FEEDBACK requires it.\n\n------------------------------------------------\nDTO OWNERSHIP RULE (CRITICAL)\n------------------------------------------------\nDTOs generated from OpenAPI are owned exclusively by OpenAPI Generator.\nRules:\n\n- DO NOT manually generate DTO classes under:\n  backend/src/main/java/**/service/dto\n- DO NOT create classes in the package:\n  *.service.dto\n- DO NOT duplicate OpenAPI schema DTOs manually\n- OpenAPI-generated DTOs MUST be used at API boundaries (controllers)\n- All DTOs inside service.dto MUST come exclusively from:\n  target/generated-sources/openapi\n\nCustom DTOs are allowed ONLY if strictly required for internal logic.\nRules for custom DTOs:\n\n- MUST be placed outside service.dto, for example:\n  service.internal.dto or service.vm\n- MUST NOT duplicate OpenAPI DTO names\n- MUST NOT be exposed directly at API boundaries\n\nservice.dto is reserved strictly for OpenAPI-generated models.\n\n------------------------------------------------\nPOM XML VALIDITY (CRITICAL)\n------------------------------------------------\nIf pom.xml is modified, it MUST remain valid XML.\n\nRules:\n\n- Do NOT write plain text separators inside pom.xml\n- If comments are needed inside pom.xml, use valid XML comments only:\n  <!-- comment -->\n- The generated pom.xml must be parseable by Maven with zero XML syntax errors\n\n------------------------------------------------\nARCHITECTURE (MANDATORY)\n------------------------------------------------\nStrict layered MVC:\n\n- domain\n- repository\n- service\n- service.impl\n- DTOs (generated via OpenAPI only)\n- service.mapper\n- controller\n- config\n\n------------------------------------------------\nAPI CONTRACT RULE (STRICT)\n------------------------------------------------\nOpenAPI is source of truth.\n\nDo NOT change:\n\n- endpoints\n- schemas\n- field names\n\n------------------------------------------------\nDOCKER / PORT CONFIGURATION (CRITICAL)\n------------------------------------------------\n- MUST use port: 25001\n- server.port = 25001\n- Docker must expose 25001\n- NEVER use 8080\n\nFix ONLY if FEEDBACK indicates a problem.\n\n------------------------------------------------\nREFINEMENT STRATEGY\n------------------------------------------------\nApply FEEDBACK in a controlled manner:\n\n1. Identify the exact issues described in FEEDBACK\n2. Locate affected files and code regions\n3. Apply the minimal required fixes\n4. Ensure no unrelated changes are introduced\n\n------------------------------------------------\nCOMPILATION SAFETY\n------------------------------------------------\nMust:\n\n- compile\n- run\n- not break existing logic\n\nIf FEEDBACK reveals compilation issues ? fix them.\n\n------------------------------------------------\nQUALITY RULES\n------------------------------------------------\n- Keep consistency across layers\n- Fix broken mappings ONLY if required\n- Ensure DTO/entity alignment ONLY if required\n- Never resolve issues by creating handwritten DTOs inside service.dto\n\n------------------------------------------------\nREADME CONSISTENCY (MANDATORY)\n------------------------------------------------\nEnsure README.md exists and is correct.\n\nUpdate README ONLY IF:\n\n- commands are incorrect\n- structure described is incorrect\n- port is incorrect\n- FEEDBACK requires documentation updates\n\nOtherwise ? DO NOT modify README.\n\n------------------------------------------------\nFINAL CONSISTENCY RULE\n------------------------------------------------\nAfter applying changes:\n\n- Everything unrelated to FEEDBACK must remain unchanged\n- The system must remain coherent\n- No regressions are allowed\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\nReturn ONLY JSON:\n\n{\n  \"files\": [\n    {\n      \"path\": \"backend/...\",\n      \"content\": \"...\"\n    }\n  ]\n}\n\n------------------------------------------------\nOUTPUT RULES\n------------------------------------------------\n- Output ONLY files that were modified\n- Do NOT output unchanged files\n- No partial snippets\n- No duplicate paths\n- No explanations\n- No comments outside file contents\n- No text outside JSON\n`\n    },\n    {\n      role: \"user\",\n      content: $json.patchPrompt\n    }\n  ],\n  temperature: 0.2,\n  max_tokens: 100000,\n  stream: true,\n}) }}",
+        "options": {
+          "timeout": 7200000
+        }
+      },
+      "id": "4c2ea3c6-2ab1-41a8-91e5-aa3c4cd36177",
+      "name": "BE - Refinement Model",
+      "position": [
+        20496,
+        8064
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "acab024a-e6ac-46c4-aed0-4fa588b3f895",
+      "name": "BE - Previous and New Response",
+      "position": [
+        20720,
+        8000
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "jsCode": "﻿function joinContentBlocks(value) {\n  if (!Array.isArray(value)) return '';\n  const parts = value\n    .map((entry) => {\n      if (typeof entry === 'string') return entry;\n      if (entry && typeof entry.text === 'string') return entry.text;\n      if (entry && typeof entry.content === 'string') return entry.content;\n      return '';\n    })\n    .filter((entry) => entry && entry.trim());\n  return parts.join('\\n').trim();\n}\n\nfunction toTokenCount(value) {\n  const parsed = Number(value);\n  if (!Number.isFinite(parsed) || parsed < 0) return null;\n  return Math.trunc(parsed);\n}\n\nfunction extractUsageTokensObject(obj) {\n  if (!obj || typeof obj !== 'object') return null;\n  const candidates = [\n    obj.usage?.completion_tokens,\n    obj.usage?.output_tokens,\n    obj.usage?.completionTokens,\n    obj.usage?.outputTokens,\n    obj.completion_tokens,\n    obj.output_tokens,\n    obj.data?.usage?.completion_tokens,\n    obj.data?.usage?.output_tokens,\n    obj.choices?.[0]?.usage?.completion_tokens,\n    obj.choices?.[0]?.usage?.output_tokens,\n  ];\n  for (const candidate of candidates) {\n    const count = toTokenCount(candidate);\n    if (count !== null) return count;\n  }\n  return null;\n}\n\nfunction extractTextFromChunk(chunk) {\n  const candidates = [\n    chunk?.choices?.[0]?.delta?.content,\n    chunk?.choices?.[0]?.message?.content,\n    chunk?.choices?.[0]?.text,\n    chunk?.message?.content,\n    chunk?.response,\n    chunk?.output,\n    chunk?.result,\n    chunk?.data?.choices?.[0]?.delta?.content,\n    chunk?.data?.choices?.[0]?.message?.content,\n    chunk?.data?.choices?.[0]?.text,\n    chunk?.data?.response,\n    chunk?.data?.output,\n    chunk?.data?.result,\n  ];\n\n  for (const value of candidates) {\n    if (typeof value === 'string' && value.length) return value;\n    if (Array.isArray(value)) {\n      const joined = joinContentBlocks(value);\n      if (joined) return joined;\n    }\n  }\n  return '';\n}\n\nfunction parseStreamChunks(value) {\n  if (typeof value !== 'string') {\n    return { text: '', tokenCount: null, parsedAny: false, lastChunk: null };\n  }\n\n  const raw = value.trim();\n  if (!raw) {\n    return { text: '', tokenCount: null, parsedAny: false, lastChunk: null };\n  }\n\n  const lines = raw.split(/\\r?\\n/);\n  const textParts = [];\n  let parsedAny = false;\n  let lastChunk = null;\n  let lastTokenCount = null;\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (!line) continue;\n\n    let payload = line;\n    if (line.startsWith('data:')) payload = line.slice(5).trim();\n    if (!payload || payload === '[DONE]') continue;\n\n    try {\n      const chunk = JSON.parse(payload);\n      parsedAny = true;\n      if (chunk && typeof chunk === 'object') lastChunk = chunk;\n      const tokens = extractUsageTokensObject(chunk);\n      if (tokens !== null) lastTokenCount = tokens;\n      const text = extractTextFromChunk(chunk);\n      if (text) textParts.push(text);\n    } catch {\n      // ignore non-json lines\n    }\n  }\n\n  return {\n    text: textParts.join(''),\n    tokenCount: lastTokenCount,\n    parsedAny,\n    lastChunk,\n  };\n}\n\nfunction extractUsageTokensFromAny(value, seen = new Set(), depth = 0) {\n  if (value === null || typeof value === 'undefined') return null;\n  if (depth > 6) return null;\n\n  if (typeof value === 'string') {\n    const stream = parseStreamChunks(value);\n    if (stream.tokenCount !== null) return stream.tokenCount;\n    try {\n      const parsed = JSON.parse(value);\n      return extractUsageTokensFromAny(parsed, seen, depth + 1);\n    } catch {\n      return null;\n    }\n  }\n\n  if (Array.isArray(value)) {\n    let last = null;\n    for (const entry of value) {\n      const token = extractUsageTokensFromAny(entry, seen, depth + 1);\n      if (token !== null) last = token;\n    }\n    return last;\n  }\n\n  if (typeof value === 'object') {\n    if (seen.has(value)) return null;\n    seen.add(value);\n\n    const direct = extractUsageTokensObject(value);\n    if (direct !== null) return direct;\n\n    const candidates = [\n      value.data,\n      value.response,\n      value.output,\n      value.result,\n      value.text,\n      value.choices,\n    ];\n\n    for (const candidate of candidates) {\n      const token = extractUsageTokensFromAny(candidate, seen, depth + 1);\n      if (token !== null) return token;\n    }\n  }\n\n  return null;\n}\n\nfunction normalizeStreamingText(value) {\n  if (typeof value !== 'string') return '';\n  const text = value.trim();\n  if (!text) return '';\n\n  const parsed = parseStreamChunks(text);\n  if (parsed.text && parsed.text.trim()) return parsed.text;\n\n  if (parsed.parsedAny && parsed.lastChunk && typeof parsed.lastChunk === 'object') {\n    const fallback = extractTextFromChunk(parsed.lastChunk);\n    if (fallback && fallback.trim()) return fallback;\n  }\n\n  return text;\n}\n\nfunction firstText(...values) {\n  for (const value of values) {\n    if (typeof value === 'string' && value.trim()) {\n      const normalized = normalizeStreamingText(value);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n\n    const joined = joinContentBlocks(value);\n    if (joined) {\n      const normalized = normalizeStreamingText(joined);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n  }\n  return '';\n}\n\nfunction parseMaybeJson(value) {\n  if (typeof value !== 'string') return null;\n  const trimmed = value.trim();\n  if (!trimmed.startsWith('{') && !trimmed.startsWith('[') && !trimmed.startsWith('\"')) return null;\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return null;\n  }\n}\n\nfunction decodeEscapedText(text) {\n  const value = String(text ?? '');\n  const trimmed = value.trim();\n  if (!trimmed) return '';\n\n  // Only decode when the whole payload is itself a quoted JSON string.\n  if (trimmed.startsWith('\"') && trimmed.endsWith('\"')) {\n    try {\n      const parsed = JSON.parse(trimmed);\n      if (typeof parsed === 'string') return parsed;\n    } catch {\n      // fall through\n    }\n  }\n\n  return value;\n}\n\nfunction stripCodeFence(text) {\n  const value = String(text ?? '').trim();\n  if (!value) return '';\n  const fenced = value.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);\n  if (fenced) return fenced[1].trim();\n  return value;\n}\n\nfunction extractModelText(json) {\n  if (!json || typeof json !== 'object') return '';\n\n  const direct = firstText(\n    json.text,\n    json.response,\n    json.output,\n    json.result,\n    json.answer,\n    json.completion,\n    json.generated_text,\n    json.message?.content,\n    json.choices?.[0]?.message?.content,\n    json.choices?.[0]?.text,\n    json.data?.text,\n    json.data?.response,\n    json.data?.output,\n    json.data?.result,\n    json.data?.choices?.[0]?.message?.content,\n    json.data?.choices?.[0]?.text,\n    json.content,\n    json.data?.content,\n    json.data,\n  );\n\n  if (direct) return direct;\n\n  const parsedFromStrings = [json.response, json.text, json.output, json.result, json.data]\n    .map((value) => parseMaybeJson(value))\n    .filter((value) => value && typeof value === 'object');\n\n  for (const parsed of parsedFromStrings) {\n    const parsedText = extractModelText(parsed);\n    if (parsedText) return parsedText;\n  }\n\n  return '';\n}\n\nfunction extractOutputTokens(json, rawModelText) {\n  const direct = extractUsageTokensObject(json);\n  if (direct !== null) {\n    return { outputTokens: direct, outputTokensSource: 'usage.completion_tokens' };\n  }\n\n  const fromNested = extractUsageTokensFromAny([json.data, json.response, json.output, json.result, json.text]);\n  if (fromNested !== null) {\n    return { outputTokens: fromNested, outputTokensSource: 'stream.usage.completion_tokens' };\n  }\n\n  const estimated = Math.max(1, Math.round(String(rawModelText ?? '').length / 4));\n  return { outputTokens: estimated, outputTokensSource: 'estimated_char_div4' };\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  const normalized = [];\n\n  for (const entry of files) {\n    if (!entry || typeof entry !== 'object') continue;\n    const rawPath = String(entry.path ?? '').trim().replace(/\\\\/g, '/');\n    if (!rawPath) continue;\n\n    const prefixedPath = rawPath.startsWith('backend/')\n      ? rawPath\n      : `backend/${rawPath.replace(/^\\/+/, '')}`;\n    const path = prefixedPath.replace(/\\/+/g, '/');\n\n    const hasTraversal = (\n      path.includes('/../')\n      || path.startsWith('../')\n      || path.endsWith('/..')\n      || path.includes('/./')\n      || path.startsWith('backend/../')\n      || path.includes(':')\n      || path.endsWith('/')\n    );\n    if (hasTraversal) continue;\n\n    const blockedPrefixes = [\n      'backend/main/',\n      'backend/target/',\n      'backend/node_modules/',\n      'backend/.git/',\n      'backend/.idea/',\n      'backend/.vscode/',\n      'backend/.DS_Store',\n    ];\n    if (blockedPrefixes.some((prefix) => path.startsWith(prefix) || path === prefix.replace(/\\/$/, ''))) {\n      continue;\n    }\n\n    if (!path.startsWith('backend/')) continue;\n\n    let content = '';\n    if (typeof entry.content === 'string') content = entry.content;\n    else if (entry.content === null || typeof entry.content === 'undefined') content = '';\n    else if (typeof entry.content === 'object') content = JSON.stringify(entry.content, null, 2);\n    else content = String(entry.content);\n\n    normalized.push({ path, content });\n  }\n\n  if (!normalized.length) {\n    throw new Error('Backend files JSON does not contain any valid files under backend/ after path sanitization.');\n  }\n\n  const hasReadme = normalized.some((entry) => entry.path === 'backend/README.md');\n  if (!hasReadme) {\n    // Best effort: continue even when README entry is missing/truncated in model output.\n    // Upstream prompt still requests README generation.\n  }\n\n  return normalized;\n}\n\nfunction findMatchingBracket(text, startIndex, openChar, closeChar) {\n  let depth = 0;\n  let inString = false;\n  let quote = '';\n  let escaped = false;\n\n  for (let i = startIndex; i < text.length; i += 1) {\n    const ch = text[i];\n\n    if (inString) {\n      if (escaped) {\n        escaped = false;\n      } else if (ch === '\\\\') {\n        escaped = true;\n      } else if (ch === quote) {\n        inString = false;\n        quote = '';\n      }\n      continue;\n    }\n\n    if (ch === '\"' || ch === \"'\") {\n      inString = true;\n      quote = ch;\n      continue;\n    }\n\n    if (ch === openChar) depth += 1;\n    else if (ch === closeChar) {\n      depth -= 1;\n      if (depth === 0) return i;\n    }\n  }\n\n  return -1;\n}\n\nfunction splitTopLevelObjectsInArray(arrayText) {\n  const objects = [];\n  let inString = false;\n  let quote = '';\n  let escaped = false;\n  let depth = 0;\n  let start = -1;\n\n  for (let i = 0; i < arrayText.length; i += 1) {\n    const ch = arrayText[i];\n\n    if (inString) {\n      if (escaped) escaped = false;\n      else if (ch === '\\\\') escaped = true;\n      else if (ch === quote) { inString = false; quote = ''; }\n      continue;\n    }\n\n    if (ch === '\"' || ch === \"'\") {\n      inString = true;\n      quote = ch;\n      continue;\n    }\n\n    if (ch === '{') {\n      if (depth === 0) start = i;\n      depth += 1;\n      continue;\n    }\n\n    if (ch === '}') {\n      if (depth <= 0) {\n        depth = 0;\n        start = -1;\n        continue;\n      }\n\n      depth -= 1;\n      if (depth === 0 && start >= 0) {\n        objects.push(arrayText.slice(start, i + 1));\n        start = -1;\n      }\n    }\n  }\n\n  return objects;\n}\n\nfunction extractFieldExpression(objectText, fieldName) {\n  const keyRegex = new RegExp(`\"${fieldName}\"\\\\s*:`);\n  const match = keyRegex.exec(objectText);\n  if (!match) return null;\n\n  let i = match.index + match[0].length;\n  while (i < objectText.length && /\\s/.test(objectText[i])) i += 1;\n\n  const start = i;\n  let inString = false;\n  let quote = '';\n  let escaped = false;\n  let curly = 0;\n  let square = 0;\n  let paren = 0;\n\n  for (; i < objectText.length; i += 1) {\n    const ch = objectText[i];\n\n    if (inString) {\n      if (escaped) escaped = false;\n      else if (ch === '\\\\') escaped = true;\n      else if (ch === quote) { inString = false; quote = ''; }\n      continue;\n    }\n\n    if (ch === '\"' || ch === \"'\") {\n      inString = true;\n      quote = ch;\n      continue;\n    }\n\n    if (ch === '{') curly += 1;\n    else if (ch === '}') {\n      if (curly === 0 && square === 0 && paren === 0) break;\n      curly = Math.max(0, curly - 1);\n    } else if (ch === '[') square += 1;\n    else if (ch === ']') square = Math.max(0, square - 1);\n    else if (ch === '(') paren += 1;\n    else if (ch === ')') paren = Math.max(0, paren - 1);\n    else if (ch === ',' && curly === 0 && square === 0 && paren === 0) break;\n  }\n\n  return objectText.slice(start, i).trim();\n}\n\nfunction unescapeLiteralText(value) {\n  return String(value ?? '')\n    .replace(/\\\\r\\\\n/g, '\\n')\n    .replace(/\\\\n/g, '\\n')\n    .replace(/\\\\r/g, '\\r')\n    .replace(/\\\\t/g, '\\t')\n    .replace(/\\\\\"/g, '\"')\n    .replace(/\\\\'/g, \"'\")\n    .replace(/\\\\\\\\/g, '\\\\');\n}\n\nfunction parseConcatenatedStringExpression(expr) {\n  const text = String(expr ?? '').trim();\n  if (!text) return '';\n\n  const literals = [];\n  let i = 0;\n  while (i < text.length) {\n    const ch = text[i];\n    if (ch !== '\"' && ch !== \"'\") {\n      i += 1;\n      continue;\n    }\n\n    const quote = ch;\n    i += 1;\n    let current = '';\n    let escaped = false;\n\n    while (i < text.length) {\n      const c = text[i];\n      i += 1;\n\n      if (escaped) {\n        current += '\\\\' + c;\n        escaped = false;\n        continue;\n      }\n\n      if (c === '\\\\') {\n        escaped = true;\n        continue;\n      }\n\n      if (c === quote) break;\n      current += c;\n    }\n\n    literals.push(unescapeLiteralText(current));\n  }\n\n  if (!literals.length) return text;\n\n  const merged = literals.join('');\n  return merged.replace(/\"n\"/g, '\\n');\n}\n\nfunction extractFilesFromJsLikeText(rawText) {\n  const stripped = stripCodeFence(decodeEscapedText(rawText));\n  if (!stripped) return null;\n\n  const filesKeyIndex = stripped.indexOf('\"files\"');\n  if (filesKeyIndex < 0) return null;\n\n  const arrayStart = stripped.indexOf('[', filesKeyIndex);\n  if (arrayStart < 0) return null;\n\n  const arrayEnd = findMatchingBracket(stripped, arrayStart, '[', ']');\n  const arrayText = arrayEnd >= 0\n    ? stripped.slice(arrayStart, arrayEnd + 1)\n    : stripped.slice(arrayStart);\n\n  if (!arrayText.trim()) return null;\n  const objectTexts = splitTopLevelObjectsInArray(arrayText);\n  if (!objectTexts.length) return null;\n\n  const files = [];\n  for (const objectText of objectTexts) {\n    const pathExpr = extractFieldExpression(objectText, 'path');\n    const contentExpr = extractFieldExpression(objectText, 'content');\n    if (!pathExpr || !contentExpr) continue;\n\n    const path = parseConcatenatedStringExpression(pathExpr).trim();\n    if (!path) continue;\n\n    let content = '';\n    const trimmedContentExpr = contentExpr.trim();\n    if (trimmedContentExpr.startsWith('{') || trimmedContentExpr.startsWith('[')) {\n      try {\n        content = JSON.stringify(JSON.parse(trimmedContentExpr), null, 2);\n      } catch {\n        content = trimmedContentExpr;\n      }\n    } else {\n      content = parseConcatenatedStringExpression(trimmedContentExpr);\n    }\n\n    files.push({ path, content });\n  }\n\n  if (!files.length) return null;\n  return normalizeFiles(files);\n}\n\nfunction parseJsonObjectFromText(text) {\n  const normalized = stripCodeFence(decodeEscapedText(text));\n\n  const direct = parseMaybeJson(normalized);\n  if (direct && typeof direct === 'object') return direct;\n  if (typeof direct === 'string') {\n    const nested = parseMaybeJson(direct);\n    if (nested && typeof nested === 'object') return nested;\n  }\n\n  const objectStart = normalized.indexOf('{');\n  const objectEnd = normalized.lastIndexOf('}');\n  if (objectStart >= 0 && objectEnd > objectStart) {\n    const candidate = normalized.slice(objectStart, objectEnd + 1);\n    const parsed = parseMaybeJson(candidate);\n    if (parsed && typeof parsed === 'object') return parsed;\n  }\n\n  const arrayStart = normalized.indexOf('[');\n  const arrayEnd = normalized.lastIndexOf(']');\n  if (arrayStart >= 0 && arrayEnd > arrayStart) {\n    const candidate = normalized.slice(arrayStart, arrayEnd + 1);\n    const parsed = parseMaybeJson(candidate);\n    if (Array.isArray(parsed)) return { files: parsed };\n  }\n\n  return null;\n}\n\nfunction tryExtractFiles(value, seen = new Set(), depth = 0) {\n  if (value === null || typeof value === 'undefined') return null;\n  if (depth > 8) return null;\n\n  if (Array.isArray(value)) {\n    try {\n      return normalizeFiles(value);\n    } catch {\n      const chunkText = value\n        .map((entry) => (entry && typeof entry === 'object') ? extractTextFromChunk(entry) : String(entry ?? ''))\n        .join('');\n      if (chunkText.trim()) {\n        const nested = tryExtractFiles(chunkText, seen, depth + 1);\n        if (nested) return nested;\n      }\n      for (const entry of value) {\n        const nested = tryExtractFiles(entry, seen, depth + 1);\n        if (nested) return nested;\n      }\n      return null;\n    }\n  }\n\n  if (typeof value === 'string') {\n    const parsedObj = parseJsonObjectFromText(value);\n    if (parsedObj) {\n      const nested = tryExtractFiles(parsedObj, seen, depth + 1);\n      if (nested) return nested;\n    }\n\n    const jsLike = extractFilesFromJsLikeText(value);\n    if (jsLike) return jsLike;\n\n    const normalized = normalizeStreamingText(value);\n    if (normalized && normalized !== value) {\n      const nested = tryExtractFiles(normalized, seen, depth + 1);\n      if (nested) return nested;\n    }\n\n    return null;\n  }\n\n  if (typeof value === 'object') {\n    if (seen.has(value)) return null;\n    seen.add(value);\n\n    if (Array.isArray(value.files)) {\n      try {\n        return normalizeFiles(value.files);\n      } catch {\n        const fallback = tryExtractFiles(value.files, seen, depth + 1);\n        if (fallback) return fallback;\n      }\n    }\n\n    if (Array.isArray(value.backendFiles)) {\n      try {\n        return normalizeFiles(value.backendFiles);\n      } catch {\n        const fallback = tryExtractFiles(value.backendFiles, seen, depth + 1);\n        if (fallback) return fallback;\n      }\n    }\n\n    const nestedCandidates = [\n      value.response,\n      value.output,\n      value.result,\n      value.text,\n      value.data,\n      value.message?.content,\n      value.choices?.[0]?.message?.content,\n      value.choices?.[0]?.text,\n    ];\n\n    for (const candidate of nestedCandidates) {\n      const nested = tryExtractFiles(candidate, seen, depth + 1);\n      if (nested) return nested;\n    }\n  }\n\n  return null;\n}\n\nfunction recoverReadmeFileOnly(files, rawModelText) {\n  const current = Array.isArray(files) ? files.slice() : [];\n  if (current.some((entry) => entry && entry.path === 'backend/README.md')) {\n    return current;\n  }\n\n  function extractReadmeContentFromText(sourceText) {\n    const text = String(sourceText || '');\n    if (!text) return '';\n\n    const markerRegex = /\"path\"\\s*:\\s*\"backend\\/README\\.md\"\\s*,\\s*\"content\"\\s*:\\s*\"/g;\n    const markerMatch = markerRegex.exec(text);\n    if (!markerMatch) return '';\n\n    let index = markerMatch.index + markerMatch[0].length;\n    let escaped = false;\n    let content = '';\n\n    while (index < text.length) {\n      const ch = text[index];\n\n      if (escaped) {\n        content += '\\\\' + ch;\n        escaped = false;\n        index += 1;\n        continue;\n      }\n\n      if (ch === '\\\\') {\n        escaped = true;\n        index += 1;\n        continue;\n      }\n\n      if (ch === '\"') {\n        const tail = text.slice(index + 1);\n        if (/^\\s*[,}]/.test(tail)) {\n          break;\n        }\n      }\n\n      content += ch;\n      index += 1;\n    }\n\n    const normalized = unescapeLiteralText(content)\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n')\n      .replace(/^\\s+/, '')\n      .trimEnd();\n\n    if (!normalized) return '';\n    if (!normalized.startsWith('#')) return '';\n    if (normalized.length < 40) return '';\n    return normalized;\n  }\n\n  const candidates = [];\n  if (typeof rawModelText === 'string' && rawModelText.trim()) {\n    candidates.push(rawModelText);\n    const normalized = normalizeStreamingText(rawModelText);\n    if (normalized && normalized !== rawModelText) {\n      candidates.push(normalized);\n    }\n  }\n\n  for (const candidate of candidates) {\n    const readmeContent = extractReadmeContentFromText(candidate);\n    if (!readmeContent) continue;\n    current.push({ path: 'backend/README.md', content: readmeContent });\n    break;\n  }\n\n  return current;\n}\r\nfunction extractBackendFiles(rawModelText, rootJson) {\n  const orderedCandidates = [\n    rawModelText,\n    rootJson,\n    rootJson?.data,\n    rootJson?.response,\n    rootJson?.output,\n    rootJson?.result,\n    rootJson?.text,\n  ];\n\n  for (const candidate of orderedCandidates) {\n    const files = tryExtractFiles(candidate);\n    if (files && files.length) return recoverReadmeFileOnly(files, rawModelText);\n  }\n\n  throw new Error('Could not extract backend files from model output.');\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\nconst rawModelText = extractModelText(json);\nconst tokenInfo = extractOutputTokens(json, rawModelText);\nconst files = extractBackendFiles(rawModelText, json);\n\nreturn [{\n  json: {\n    response: JSON.stringify({ files }),\n    files,\n    fileCount: files.length,\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    outputTokens: tokenInfo.outputTokens,\n    outputTokensSource: tokenInfo.outputTokensSource,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];\r\n\r\n\r\n"
+      },
+      "id": "ac073f67-d075-48ec-b469-22212119e971",
+      "name": "BE - Clean Refinement Response",
+      "position": [
+        20928,
+        8000
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {},
+      "id": "0f926a07-5ab3-4a9e-89fb-6552260350e2",
+      "name": "BE - Start Validation",
+      "position": [
+        21120,
+        8128
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ $json.zipBinaryFields }}",
+        "fileName": "backend.zip",
+        "binaryPropertyOutput": "reviewZip"
+      },
+      "id": "3858c240-2122-4276-a6db-ef1210982418",
+      "name": "BE - Zip to Validate",
+      "position": [
+        21472,
+        8128
+      ],
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pQM23J0BoE8iVhNc",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pQM23J0BoE8iVhNc",
+          "cachedResultName": "zip link"
+        },
+        "workflowInputs": {
+          "value": {
+            "archiveData": "={{ $binary.reviewZip ? ($binary.reviewZip.data || ($binary.reviewZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.reviewZip ? $binary.reviewZip.mimeType : \"application/zip\" }}",
+            "response": "={{ $json.response }}",
+            "archiveFileName": "={{ $binary.reviewZip ? $binary.reviewZip.fileName : \"backend.zip\" }}",
+            "archiveId": "={{ $binary.reviewZip ? ($binary.reviewZip.id || \"\") : \"\" }}"
+          },
+          "mappingMode": "defineBelow",
+          "schema": [
+            {
+              "id": "archiveMimeType",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveMimeType",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveFileName",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveFileName",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "revisionNumber",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "revisionNumber",
+              "type": "number",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "response",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "response",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveData",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveData",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveId",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveId",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "archiveBinaryProperty",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveBinaryProperty",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "matchingColumns": [],
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "e379b890-70e7-4a34-b37c-72ef19356a55",
+      "name": "BE - Create Zip Link",
+      "position": [
+        21856,
+        8128
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst fileCount = Math.max(0, Math.trunc(Number(json.fileCount ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Backend ZIP</a></p>';\nconst output = {\n  json: { ...json, revisionNumber, fileCount, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary && Object.keys(item.binary).length > 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+      },
+      "id": "08e8ba57-6e65-4461-82a9-2019afb9abc3",
+      "name": "BE - Prepare Information",
+      "position": [
+        22064,
+        8128
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json['Start Again'];\n  delete json.reviewMode;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) => !String(key).endsWith('_firstIteration')),\n  );\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  const normalized = [];\n  const seen = new Set();\n\n  for (const entry of files) {\n    const candidatePath = typeof entry === 'string'\n      ? entry\n      : (entry && typeof entry === 'object' ? String(entry.path ?? '') : '');\n\n    const rawPath = String(candidatePath || '').trim().replace(/\\\\/g, '/');\n    if (!rawPath) continue;\n\n    const prefixedPath = rawPath.startsWith('backend/')\n      ? rawPath\n      : `backend/${rawPath.replace(/^\\/+/, '')}`;\n    const path = prefixedPath.replace(/\\/+/g, '/');\n\n    const hasTraversal = (\n      path.includes('/../')\n      || path.startsWith('../')\n      || path.endsWith('/..')\n      || path.includes('/./')\n      || path.startsWith('backend/../')\n      || path.includes(':')\n      || path.endsWith('/')\n    );\n    if (hasTraversal) continue;\n\n    const blockedPrefixes = [\n      'backend/main/',\n      'backend/target/',\n      'backend/node_modules/',\n      'backend/.git/',\n      'backend/.idea/',\n      'backend/.vscode/',\n      'backend/.DS_Store',\n    ];\n    if (blockedPrefixes.some((prefix) => path.startsWith(prefix) || path === prefix.replace(/\\/$/, ''))) {\n      continue;\n    }\n\n    if (!path.startsWith('backend/')) continue;\n\n    if (seen.has(path)) continue;\n    seen.add(path);\n    normalized.push({ path });\n  }\n\n  return normalized;\n}\n\nconst firstNode = getNodeItemSafe('BE - Prepare Information for First Iteration');\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst firstFiles = normalizeFiles(firstJson.files).length\n  ? normalizeFiles(firstJson.files)\n  : normalizeFiles(baseJson.firstIterationFiles);\nconst reviewerFeedback = [\n  currentJson.reviewerFeedback,\n  currentJson.feedback,\n  currentJson.Feedback,\n  baseJson.reviewerFeedback,\n].map((value) => String(value ?? '').trim()).find((value) => value.length > 0) || '';\n\nconst outputJson = {\n  ...baseJson,\n  reviewerFeedback,\n  reviewMode: '',\n  firstIterationFiles: firstFiles,\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? '').trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? '').trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? '').trim(),\n};\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+      },
+      "id": "a4bacf31-0402-4a1b-aeb0-c4b5ca74f075",
+      "name": "BE - Review Output",
+      "position": [
+        22256,
+        8128
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "c4512eee-380c-4e71-9421-eb728257e27f",
+      "name": "BE - Workflow Output",
+      "position": [
+        22256,
+        8560
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nconst contextItem = getNodeItemSafe('BE - Sanitize Output Context') ?? { json: {}, binary: {} };\nconst reviewItem = getNodeItemSafe('BE - Review Output') ?? { json: {}, binary: {} };\n\nconst contextJson = contextItem.json ?? {};\nconst reviewJson = reviewItem.json ?? {};\n\nconst contextBinary = contextItem.binary ?? {};\nconst reviewBinary = reviewItem.binary ?? {};\n\nconst mergedJson = {\n  ...contextJson,\n  ...reviewJson,\n};\n\nconst forceFromReview = [\n  'response',\n  'files',\n  'fileCount',\n  'revisionNumber',\n  'zipDownloadUrl',\n  'zipDownloadToken',\n  'downloadLinkHtml',\n  'outputTokens',\n  'outputTokensSource',\n  'firstIterationFiles',\n  'firstIterationReviewRevisionNumber',\n  'firstIterationReviewZipDownloadUrl',\n  'firstIterationReviewZipDownloadToken',\n  'firstIterationReviewDownloadLinkHtml',\n];\n\nfor (const key of forceFromReview) {\n  if (Object.prototype.hasOwnProperty.call(reviewJson, key)) {\n    mergedJson[key] = reviewJson[key];\n  }\n}\n\nconst mergedBinary = {\n  ...contextBinary,\n  ...reviewBinary,\n};\n\nif (!mergedBinary.reviewZip) {\n  const zipItem = getNodeItemSafe('BE - Zip to Validate');\n  if (zipItem?.binary?.reviewZip) {\n    mergedBinary.reviewZip = zipItem.binary.reviewZip;\n  }\n}\n\nconst filteredBinary = Object.fromEntries(\n  Object.entries(mergedBinary).filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n);\n\nreturn [{\n  json: mergedJson,\n  ...(Object.keys(filteredBinary).length ? { binary: filteredBinary } : {}),\n}];"
+      },
+      "id": "00a16a46-a465-47be-a29a-a065591b278e",
+      "name": "BE - Normalize Final Output",
+      "position": [
+        22608,
+        8560
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "function getExtension(filePath) {\n  const fileName = String(filePath || '').split('/').pop() || '';\n  if (fileName === 'pom.xml') return 'xml';\n  if (fileName === '.gitignore') return 'gitignore';\n  const match = fileName.match(/\\.([A-Za-z0-9]+)$/);\n  return match ? match[1].toLowerCase() : 'txt';\n}\n\nfunction getMimeType(filePath) {\n  const ext = getExtension(filePath);\n  const mimeByExtension = {\n    java: 'text/x-java-source',\n    xml: 'application/xml',\n    yaml: 'text/yaml',\n    yml: 'text/yaml',\n    json: 'application/json',\n    properties: 'text/plain',\n    md: 'text/markdown',\n    txt: 'text/plain',\n    sql: 'application/sql',\n    csv: 'text/csv',\n    js: 'text/javascript',\n    ts: 'text/plain',\n    html: 'text/html',\n    css: 'text/css',\n    gitignore: 'text/plain',\n  };\n  return mimeByExtension[ext] || 'text/plain';\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  const normalized = [];\n\n  for (const entry of files) {\n    if (!entry || typeof entry !== 'object') continue;\n    const rawPath = String(entry.path ?? '').trim().replace(/\\\\/g, '/');\n    if (!rawPath) continue;\n\n    const prefixedPath = rawPath.startsWith('backend/')\n      ? rawPath\n      : `backend/${rawPath.replace(/^\\/+/, '')}`;\n    const path = prefixedPath.replace(/\\/+/g, '/');\n\n    const hasTraversal = (\n      path.includes('/../')\n      || path.startsWith('../')\n      || path.endsWith('/..')\n      || path.includes('/./')\n      || path.startsWith('backend/../')\n      || path.includes(':')\n      || path.endsWith('/')\n    );\n    if (hasTraversal) continue;\n\n    const blockedPrefixes = [\n      'backend/main/',\n      'backend/target/',\n      'backend/node_modules/',\n      'backend/.git/',\n      'backend/.idea/',\n      'backend/.vscode/',\n      'backend/.DS_Store',\n    ];\n    if (blockedPrefixes.some((prefix) => path.startsWith(prefix) || path === prefix.replace(/\\/$/, ''))) {\n      continue;\n    }\n\n    if (!path.startsWith('backend/')) continue;\n\n    let content = '';\n    if (typeof entry.content === 'string') content = entry.content;\n    else if (entry.content === null || typeof entry.content === 'undefined') content = '';\n    else if (typeof entry.content === 'object') content = JSON.stringify(entry.content, null, 2);\n    else content = String(entry.content);\n\n    normalized.push({ path, content });\n  }\n\n  return normalized;\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\nconst baseBinary = { ...(item.binary ?? {}) };\nconst files = normalizeFiles(json.files);\n\nif (!files.length) {\n  throw new Error('No backend files are available to build the review ZIP.');\n}\n\nconst binary = { ...baseBinary };\nconst manifest = [];\n\nfiles.forEach((file, index) => {\n  const key = `file_${index}`;\n  binary[key] = {\n    data: Buffer.from(file.content, 'utf8').toString('base64'),\n    mimeType: getMimeType(file.path),\n    fileExtension: getExtension(file.path),\n    fileName: file.path,\n  };\n  manifest.push({ path: file.path });\n});\n\nconst parsedTokens = Number(json.outputTokens);\nconst outputTokens = Number.isFinite(parsedTokens) && parsedTokens >= 0\n  ? Math.trunc(parsedTokens)\n  : Math.max(1, Math.round(String(json.response ?? JSON.stringify({ files })).length / 4));\n\nconst outputTokensSource = String(json.outputTokensSource ?? 'estimated_char_div4').trim() || 'estimated_char_div4';\n\nbinary.outTokens = {\n  data: Buffer.from(`${outputTokens}\\n`, 'utf8').toString('base64'),\n  mimeType: 'text/plain',\n  fileExtension: 'txt',\n  fileName: 'out_tokens.txt',\n};\n\nconst zipBinaryFields = [...Object.keys(binary).filter((key) => /^file_\\d+$/.test(key)), 'outTokens'];\n\nreturn [{\n  json: {\n    ...json,\n    files: manifest,\n    fileCount: manifest.length,\n    outputTokens,\n    outputTokensSource,\n    zipBinaryFields: zipBinaryFields.join(','),\n    response: String(json.response ?? JSON.stringify({ files })),\n  },\n  binary,\n}];"
+      },
+      "id": "7aa95767-6acd-4af9-bbf1-9ba3c2202372",
+      "name": "BE - Files to Review",
+      "position": [
+        21296,
+        8128
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "formTitle": "Backend-v3 Workflow Intake",
+        "formDescription": "Upload requirements and API contract for backend generation. Use refinement mode to revise an existing backend package.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Requirements File",
+              "fieldType": "file",
+              "fieldName": "requirements",
+              "multipleFiles": false,
+              "acceptFileTypes": ".md,.txt"
+            },
+            {
+              "fieldLabel": "API File",
+              "fieldType": "file",
+              "fieldName": "openapiSpec",
+              "multipleFiles": false,
+              "acceptFileTypes": ".yaml,.yml,.json"
+            },
+            {
+              "fieldLabel": "Is this a refinement interaction?",
+              "fieldType": "dropdown",
+              "fieldName": "isRefinementInteraction",
+              "defaultValue": "No",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "No"
+                  },
+                  {
+                    "option": "Yes"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Current Backend ZIP (required if refinement)",
+              "fieldType": "file",
+              "fieldName": "backendZip",
+              "multipleFiles": false,
+              "acceptFileTypes": ".zip"
+            },
+            {
+              "fieldLabel": "Feedback (required if refinement)",
+              "fieldType": "textarea",
+              "fieldName": "Feedback",
+              "placeholder": "Describe exactly what should change in the backend package."
+            },
+            {
+              "fieldLabel": "Attachments (optional)",
+              "fieldType": "file",
+              "fieldName": "attachments"
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Start Backend-v3 Workflow",
+          "path": "07718a1b-3c75-47d6-afce-001e00ea397b",
+          "useWorkflowTimezone": true
+        }
+      },
+      "id": "1bd75117-fe93-4fcc-a547-8584f83eb500",
+      "name": "BE - Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        18752,
+        8384
+      ],
+      "webhookId": "07718a1b-3c75-47d6-afce-001e00ea397b"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "sQYqTOmjLLInpknf",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/sQYqTOmjLLInpknf",
+          "cachedResultName": "backend-validation"
+        },
+        "options": {}
+      },
+      "id": "232bb94c-f4e0-49e6-8a97-555d73805907",
+      "name": "BE - Validate Backend ZIP",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        21648,
+        8128
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "BE - Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "BE - Sanitize Output Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Sanitize Output Context": {
+      "main": [
+        [
+          {
+            "node": "BE - Workflow Output",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "BE - Execute Refinement?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Execute Refinement?": {
+      "main": [
+        [
+          {
+            "node": "BE - Requirements and API for Refinement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BE - Requirements and API First Iteration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Requirements and API First Iteration": {
+      "main": [
+        [
+          {
+            "node": "BE - Compact Context Artifacts First Iteration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Compact Context Artifacts First Iteration": {
+      "main": [
+        [
+          {
+            "node": "BE - Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "BE - Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Model": {
+      "main": [
+        [
+          {
+            "node": "BE - Clean Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Clean Response": {
+      "main": [
+        [
+          {
+            "node": "BE - Start Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Requirements and API for Refinement": {
+      "main": [
+        [
+          {
+            "node": "BE - Compact Context Artifacts Refinement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Compact Context Artifacts Refinement": {
+      "main": [
+        [
+          {
+            "node": "BE - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Build Refinement Prompt": {
+      "main": [
+        [
+          {
+            "node": "BE - Refinement Model",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "BE - Previous and New Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Refinement Model": {
+      "main": [
+        [
+          {
+            "node": "BE - Previous and New Response",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "BE - Previous and New Response": {
+      "main": [
+        [
+          {
+            "node": "BE - Clean Refinement Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Clean Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "BE - Start Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "BE - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "BE - Review Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Review Output": {
+      "main": [
+        [
+          {
+            "node": "BE - Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Workflow Output": {
+      "main": [
+        [
+          {
+            "node": "BE - Normalize Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Files to Review": {
+      "main": [
+        [
+          {
+            "node": "BE - Zip to Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "BE - Sanitize Output Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Start Validation": {
+      "main": [
+        [
+          {
+            "node": "BE - Files to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Zip to Validate": {
+      "main": [
+        [
+          {
+            "node": "BE - Validate Backend ZIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BE - Validate Backend ZIP": {
+      "main": [
+        [
+          {
+            "node": "BE - Create Zip Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "c97fd347-e6d8-4c7a-8877-020ce2fb1538",
+  "meta": {
+    "instanceId": "b8db71e6cd806cd646e3036d735235b01787ac6bf74adc87afc57bddf23e92c7"
+  },
+  "id": "t9cy5EiDROMEjsUg",
+  "tags": []
+}

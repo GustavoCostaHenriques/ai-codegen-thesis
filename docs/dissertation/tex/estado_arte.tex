@@ -5,8 +5,6 @@
 
 Esta secção serve como base teórica para clarificar alguns conceitos importantes para o projeto, permitindo uma melhor compreensão das secções que se seguem.\\\par
 
-%%In this section, you should describe the scientific or technological context of your project. Provide enough information so that a reader unfamiliar with the topic can understand the problem you are addressing and the rationale for your project. This may include relevant concepts and definitions in the area, particularly those that will be used throughout this document.
-
 \subsection{Geração automática de código}
 \noindent{A} geração automática de código consiste na produção de código fonte a partir de descrições de alto nível, como requisitos em linguagem natural, modelos formais ou representações estruturadas, com o objetivo de acelerar o desenvolvimento e reduzir tarefas repetitivas.\par
 
@@ -41,7 +39,7 @@ Esta secção serve como base teórica para clarificar alguns conceitos importan
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[height=0.2\textheight, width=0.45\textwidth]{../img/waterfall_agille.png}
+    \includegraphics[height=0.2\textheight, width=0.45\textwidth]{pic/cap-2/waterfall_agille.png}
     \caption{Comparação entre os modelos Waterfall e modelos Iterativos}
     \label{fig:waterfall_agile}
 \end{figure}
@@ -63,19 +61,11 @@ No contexto deste trabalho, a automatização de etapas do processo de desenvolv
 
 \noindent{Estas} plataformas funcionam como camada de controlo central da pipeline, permitindo estruturar o processo em componentes independentes e reutilizáveis. Cada componente pode encapsular uma tarefa específica, como a invocação de um modelo, o processamento de uma resposta ou a aplicação de uma regra de validação, sendo depois interligado com os restantes de forma a produzir um fluxo coerente e rastreável. Esta natureza modular facilita não só o desenvolvimento iterativo da solução, como também a sua manutenção e evolução ao longo do tempo.
 
-\noindent{Uma} característica comum a estas plataformas é a sua capacidade de integração com múltiplos fornecedores de modelos de linguagem, o que permite selecionar o modelo mais adequado para cada tarefa específica sem alterar a arquitetura global da pipeline. No panorama atual, o Dify\footnote{\href{https://dify.ai}{https://dify.ai}}, o LangFlow\footnote{\href{https://www.langflow.org}{https://www.langflow.org}}, o Flowise\footnote{\href{https://flowiseai.com}{https://flowiseai.com}} e o n8n\footnote{\href{https://n8n.io}{https://n8n.io}} são exemplos representativos destas plataformas. Todas disponibilizam ambientes visuais e programáticos para a composição modular de pipelines baseadas em LLMs, suportam integração com múltiplos fornecedores de modelos e permitem incorporar lógica personalizada e mecanismos de validação ao longo do fluxo de geração.
+\noindent{Uma} característica comum a estas plataformas é a sua capacidade de integração com múltiplos fornecedores de modelos de linguagem, o que permite selecionar o modelo mais adequado para cada tarefa específica sem alterar a arquitetura global da pipeline. No panorama atual, o Dify\footnote{\href{https://dify.ai}{https://dify.ai}}, o LangFlow\footnote{\href{https://www.langflow.org}{https://www.langflow.org}}, o Flowise\footnote{\href{https://flowiseai.com}{https://flowiseai.com}} e o N8N\footnote{\href{https://n8n.io}{https://n8n.io}} são exemplos representativos destas plataformas. Todas disponibilizam ambientes visuais e programáticos para a composição modular de pipelines baseadas em LLMs, suportam integração com múltiplos fornecedores de modelos e permitem incorporar lógica personalizada e mecanismos de validação ao longo do fluxo de geração.
 
 \section{Trabalho Relacionado} \label{sec:relatedwork}
 
 A presente secção reúne o estado da arte relevante para esta tese, apresentando trabalhos, modelos e ferramentas que abordam problemas relacionados com a aplicação de métodos de inteligência artificial ao desenvolvimento de software e a utilização de técnicas de prompting.\\\par
-
-%%This section should present the state of the art on the topic of your project. It should discuss relevant related work and existing solutions, highlighting their main contributions as well as their limitations, and identifying the gaps or opportunities that motivate your project.
-
-%%Preparing this section will require you to include references to academic papers, books, and possibly online resources. The next paragraph exemplifies how to do it.
-
-%%\medskip
-
-%%In this work, you are expected to follow the guidelines on document preparation presented in Lamport’s book on \LaTeX~\cite{lamport1994latex}. For editing, you may use tools such as the online platform Overleaf~\cite{overleaf}. There is also a good chance that your project will build upon some of Lamport’s many scientific contributions, such as the concept of logical clocks~\cite{lamport1978clocks}.
 
 \subsection{Geração Automática de Código}
 \label{CODE_GENERATION_TR}
@@ -84,21 +74,16 @@ A presente secção reúne o estado da arte relevante para esta tese, apresentan
 
 \begin{figure*}[!ht]
     \centering
-    \includegraphics[width=0.85\textwidth]{../img/codellama_family.pdf}
+    \includegraphics[width=0.85\textwidth]{pic/cap-2/codellama_family.pdf}
     \caption{Pipeline de especialização do Code Llama\cite{CodeLlama}.}
     \label{fig:codellama-pipeline}
 \end{figure*}
 
 \noindent{Hoje} em dia já existem vários modelos generativos com a finalidade de desenvolvimento de código, ou seja, modelos que foram construídos com o objetivo principal de gerar como resposta um excerto de código que cumpre os requisitos solicitados pelo ser humano. Codex\cite{Codex}, uma variante do GPT-3\cite{GPT-3} especializada em código, foi um dos primeiros modelos amplamente conhecidos para transformar descrições textuais em código executável, suportando múltiplas linguagens e tarefas como geração de funções, preenchimento e tradução entre linguagens. Este modelo serviu ainda de base ao GitHub Copilot (que será abordado mais adiante), estabelecendo um marco na utilização prática de LLMs para auxiliar o desenvolvimento de software.\par
 
-\noindent{Dando} seguimento a esta ideia, surgiu o CodeLlama\cite{CodeLlama}, uma família de modelos orientados para tarefas de programação como geração, explicação e preenchimento de código. Estes modelos, que foram desenvolvidos com base no modelo Llama2\cite{Llama2}, são disponibilizados em três variantes distintas especificadas abaixo e na Figura \ref{fig:codellama-pipeline}:
+\noindent{Dando} seguimento a esta evolução, surgiram modelos especializados na geração de código, como o CodeLlama \cite{CodeLlama}, uma família de modelos baseada no Llama2 \cite{Llama2}, orientada para tarefas como geração, explicação e completamento de código. Estes modelos incluem variantes adaptadas a diferentes contextos de utilização, nomeadamente para suporte a linguagens específicas ou para melhor seguimento de instruções.
 
-\begin{itemize}
-    \item \textbf{Code Llama}, a versão base, implementada para tarefas mais gerais de compreensão e transformação de código;
-    \item \textbf{Code Llama - Python}, uma versão treinada adicionalmente com grandes bases de dados de código python, fornecendo um auxílio com mais qualidade em requisitos para esta linguagem em específico;
-    \item \textbf{Code Llama - Instruct}, uma variante ajustada para seguir melhor as instruções humanas, oferecendo uma interação conversacional mais aprimorada.
-\end{itemize}
-\noindent{Treinados} para processar sintaxe estruturada e múltiplos paradigmas de programação, os modelos CodeLlama representam uma alternativa moderna e de acesso aberto (\textit{open-source}), ideal para cenários que exigem a conversão de requisitos em linguagem natural diretamente para código.\par
+\noindent{Treinados} para processar sintaxe estruturada e múltiplos paradigmas de programação, os modelos CodeLlama representam uma alternativa moderna e de acesso aberto (\textit{open-source}), ideal para cenários que exigem a conversão de requisitos em linguagem natural diretamente para código.A Figura \ref{fig:codellama-pipeline} ilustra o processo de especialização destes modelos.\par
 
 \noindent{Adicionalmente}, o StarCoder\cite{StarCoder} e a sua evolução, o StarCoder2\cite{StarCoder2}, foram treinados em larga escala no dataset The Stack, destacando-se pelo suporte multilinguagem, janelas de contexto alargadas e mecanismos de treino orientados para segurança e transparência. Estas características tornam-nos referências relevantes para compreender boas práticas na construção de LLMs orientados para código e na conversão fiável de descrições em implementações executáveis.\\\par
 
@@ -118,7 +103,7 @@ A presente secção reúne o estado da arte relevante para esta tese, apresentan
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[height=0.3\textheight, width=0.2\textwidth]{../img/code_generation_tineline.png}
+    \includegraphics[height=0.3\textheight, width=0.2\textwidth]{pic/cap-2/code_generation_tineline.png}
     \caption{Linha temporal de alguns dos modelos e ferramentas de geração de código analisados nesta secção.}
     \label{fig:timeline-modelos}
 \end{figure}

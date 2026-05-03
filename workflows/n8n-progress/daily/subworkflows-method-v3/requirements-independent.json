@@ -1,0 +1,454 @@
+{
+  "name": "requirements-independent",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Requirements Module - Standalone",
+        "formDescription": "Upload instructions ZIP, then run requirements generation with a human validation loop.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Instructions ZIP",
+              "fieldType": "file",
+              "fieldName": "requirementsZip",
+              "multipleFiles": false,
+              "acceptFileTypes": ".zip",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Generate Requirements",
+          "path": "ba8b2e99-888a-4a6d-8a88-bd2670a731e1",
+          "useWorkflowTimezone": true
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        2128,
+        624
+      ],
+      "id": "fb9988bc-8233-4712-95d5-0d3dd65eb30c",
+      "name": "REQ - Start",
+      "webhookId": "ba8b2e99-888a-4a6d-8a88-bd2670a731e1",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "F1rwZMAaUyr0aYq5",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/F1rwZMAaUyr0aYq5",
+          "cachedResultName": "requirements-v2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reviewMode": "={{ $json.reviewMode ?? \"\" }}",
+            "refinement": "={{ $json.refinement ?? false }}",
+            "feedback": "={{ $json.feedback ?? $json.Feedback ?? \"\" }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "reviewMode",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "reviewMode",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "refinement",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "refinement",
+              "type": "boolean",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "feedback",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "feedback",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "29b81265-cb30-41ce-a2be-415a383183e4",
+      "name": "REQ - Create Requirements",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2352,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = {};\nif (Array.isArray(item.json?.requirementsHistory)) {\n  json.requirementsHistory = item.json.requirementsHistory;\n}\nif (Number.isFinite(Number(item.json?.currentRequirementsIterationNumber))) {\n  json.currentRequirementsIterationNumber = Number(item.json.currentRequirementsIterationNumber) || 0;\n}\n\nconst binary = {};\nfor (const [name, value] of Object.entries(item.binary ?? {})) {\n  if (\n    name === 'requirementsZip' ||\n    name === 'requirements' ||\n    name === 'reviewZip' ||\n    name === 'requirements_firstIteration' ||\n    /^requirements_iteration_\\d+$/.test(name) ||\n    /^requirements_zip_iteration_\\d+$/.test(name)\n  ) {\n    binary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        752
+      ],
+      "id": "f698b609-0c8a-4252-b044-e7cc5d4ba790",
+      "name": "REQ - History Context"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "ded877e8-3e45-4590-bbba-5861bbd0b1e6",
+      "name": "REQ - History Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2592,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\n\nfunction buildApiReviewAssets({ history, currentIterationNumber, currentZipDownloadUrl, restoreError }) {\n  const currentDownloadUrl = String(currentZipDownloadUrl ?? '').trim();\n  const currentDownloadHtml = currentDownloadUrl\n    ? `<p><a href=\"${escapeHtml(currentDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Requirements ZIP</a></p>`\n    : '';\n\n  const historyItemsHtml = history.map((entry) => {\n    const iterationNumber = Number(entry.iterationNumber ?? 0) || 0;\n    const revisionNumber = Number(entry.revisionNumber ?? 0) || 0;\n    const currentTag = iterationNumber === currentIterationNumber ? ' <strong>(current)</strong>' : '';\n    const entryDownloadUrl = String(entry.zipDownloadUrl ?? '').trim();\n    const entryDownloadHtml = entryDownloadUrl\n      ? `<a href=\"${escapeHtml(entryDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download ZIP</a>`\n      : '';\n    return `<li><strong>Iteration ${iterationNumber}</strong> - Revision ${escapeHtml(revisionNumber)}${currentTag}${entryDownloadHtml ? ` - ${entryDownloadHtml}` : ''}</li>`;\n  }).join('');\n\n  const restoreChoices = history\n    .filter((entry) => Number(entry.iterationNumber ?? 0) !== currentIterationNumber)\n    .map((entry) => ({\n      option: `Iteration ${Number(entry.iterationNumber ?? 0) || 0} (rev ${Number(entry.revisionNumber ?? 0) || 0})`,\n    }));\n\n  const formFields = [\n    {\n      fieldLabel: 'Approved',\n      fieldName: 'Approved',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [\n          { option: 'approved' },\n          { option: 'rejected' },\n        ],\n      },\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Restore older iteration',\n      fieldName: 'Restore older iteration',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [\n          { option: 'Yes' },\n          { option: 'No' },\n        ],\n      },\n      defaultValue: 'No',\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Iteration to restore',\n      fieldName: 'Iteration to restore',\n      fieldType: 'dropdown',\n      fieldOptions: { values: restoreChoices },\n    },\n    {\n      fieldLabel: 'Attachments (optional)',\n      fieldName: 'Attachments',\n      fieldType: 'file',\n    },\n    {\n      fieldLabel: 'Feedback',\n      fieldName: 'Feedback',\n      fieldType: 'textarea',\n      placeholder: 'Describe exactly what should change in the requirements output.',\n    },\n  ];\n\n  const descriptionHtml = [\n    '<p>Review the current Requirements ZIP, then approve it or request changes.</p>',\n    currentDownloadHtml,\n    restoreError ? `<p><strong>${escapeHtml(restoreError)}</strong></p>` : '',\n    '<p>If you want to return to a previously generated version, choose Yes in Restore older iteration. You can also download any generated iteration below.</p>',\n    historyItemsHtml ? `<p>Generated iterations:</p><ol>${historyItemsHtml}</ol>` : '<p>No generated iterations are available yet.</p>',\n  ].filter(Boolean).join('');\n\n  return {\n    descriptionHtml,\n    formJson: JSON.stringify(formFields),\n  };\n}\n\nconst existingHistory = Array.isArray(json.requirementsHistory)\n  ? json.requirementsHistory.filter((entry) => entry && typeof entry === 'object')\n  : [];\n\nconst normalizedHistory = existingHistory.map((entry, index) => ({\n  iterationNumber: Number(entry.iterationNumber ?? index + 1) || (index + 1),\n  revisionNumber: Number(entry.revisionNumber ?? 0) || 0,\n  requirements: String(entry.requirements ?? entry.response ?? '').trim(),\n  zipDownloadUrl: String(entry.zipDownloadUrl ?? '').trim(),\n  zipDownloadToken: String(entry.zipDownloadToken ?? '').trim(),\n  downloadLinkHtml: String(entry.downloadLinkHtml ?? '').trim(),\n  outputTokens: Number(entry.outputTokens ?? 0) || 0,\n  binaryPropertyName: String(entry.binaryPropertyName ?? '').trim(),\n  zipBinaryPropertyName: String(entry.zipBinaryPropertyName ?? '').trim(),\n}));\n\nconst currentEntry = {\n  revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n  requirements: String(json.requirements ?? json.response ?? '').trim(),\n  zipDownloadUrl: String(json.zipDownloadUrl ?? '').trim(),\n  zipDownloadToken: String(json.zipDownloadToken ?? '').trim(),\n  downloadLinkHtml: String(json.downloadLinkHtml ?? '').trim(),\n  outputTokens: Number(json.outputTokens ?? 0) || 0,\n};\n\nconst isSameEntry = (entry) =>\n  entry.revisionNumber === currentEntry.revisionNumber &&\n  entry.zipDownloadToken === currentEntry.zipDownloadToken &&\n  entry.zipDownloadUrl === currentEntry.zipDownloadUrl &&\n  entry.requirements === currentEntry.requirements;\n\nlet storedEntry = normalizedHistory.find(isSameEntry);\n\nconst usedBinaryPropertyNames = new Set(\n  normalizedHistory\n    .map((entry) => String(entry.binaryPropertyName ?? '').trim())\n    .filter(Boolean),\n);\nconst usedZipBinaryPropertyNames = new Set(\n  normalizedHistory\n    .map((entry) => String(entry.zipBinaryPropertyName ?? '').trim())\n    .filter(Boolean),\n);\n\nif (!storedEntry) {\n  const nextIterationNumber = normalizedHistory.reduce(\n    (maxValue, entry) => Math.max(maxValue, Number(entry.iterationNumber ?? 0) || 0),\n    0,\n  ) + 1;\n\n  let binaryPropertyName = '';\n  if (binary.requirements) {\n    let suffix = nextIterationNumber;\n    do {\n      binaryPropertyName = `requirements_iteration_${suffix}`;\n      suffix += 1;\n    } while (usedBinaryPropertyNames.has(binaryPropertyName) || binary[binaryPropertyName]);\n    binary[binaryPropertyName] = binary.requirements;\n  }\n\n  let zipBinaryPropertyName = '';\n  if (binary.reviewZip) {\n    let suffix = nextIterationNumber;\n    do {\n      zipBinaryPropertyName = `requirements_zip_iteration_${suffix}`;\n      suffix += 1;\n    } while (usedZipBinaryPropertyNames.has(zipBinaryPropertyName) || binary[zipBinaryPropertyName]);\n    binary[zipBinaryPropertyName] = binary.reviewZip;\n  }\n\n  storedEntry = {\n    iterationNumber: nextIterationNumber,\n    ...currentEntry,\n    binaryPropertyName,\n    zipBinaryPropertyName,\n  };\n  normalizedHistory.push(storedEntry);\n} else if (!storedEntry.binaryPropertyName && binary.requirements) {\n  let suffix = Number(storedEntry.iterationNumber ?? normalizedHistory.length + 1) || (normalizedHistory.length + 1);\n  let binaryPropertyName = '';\n  do {\n    binaryPropertyName = `requirements_iteration_${suffix}`;\n    suffix += 1;\n  } while (usedBinaryPropertyNames.has(binaryPropertyName) || binary[binaryPropertyName]);\n  binary[binaryPropertyName] = binary.requirements;\n  storedEntry.binaryPropertyName = binaryPropertyName;\n}\nif (!storedEntry.zipBinaryPropertyName && binary.reviewZip) {\n  let suffix = Number(storedEntry.iterationNumber ?? normalizedHistory.length + 1) || (normalizedHistory.length + 1);\n  let zipBinaryPropertyName = '';\n  do {\n    zipBinaryPropertyName = `requirements_zip_iteration_${suffix}`;\n    suffix += 1;\n  } while (usedZipBinaryPropertyNames.has(zipBinaryPropertyName) || binary[zipBinaryPropertyName]);\n  binary[zipBinaryPropertyName] = binary.reviewZip;\n  storedEntry.zipBinaryPropertyName = zipBinaryPropertyName;\n}\n\njson.requirementsHistory = normalizedHistory;\njson.currentRequirementsIterationNumber = Number(storedEntry.iterationNumber ?? 0) || 0;\n\nconst reviewAssets = buildApiReviewAssets({\n  history: normalizedHistory,\n  currentIterationNumber: json.currentRequirementsIterationNumber,\n  currentZipDownloadUrl: json.zipDownloadUrl,\n  restoreError: '',\n});\njson.requirementsReviewDescriptionHtml = reviewAssets.descriptionHtml;\njson.requirementsReviewFormJson = reviewAssets.formJson;\n\ndelete json.requirementsHistoryHtml;\n\nconst preservedBinary = {};\nfor (const [name, value] of Object.entries(binary)) {\n  if (\n    name === 'requirementsZip' ||\n    name === 'requirements' ||\n    name === 'reviewZip' ||\n    name === 'requirements_firstIteration' ||\n    /^requirements_iteration_\\d+$/.test(name) ||\n    /^requirements_zip_iteration_\\d+$/.test(name)\n  ) {\n    preservedBinary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(preservedBinary).length ? { binary: preservedBinary } : {}),\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        624
+      ],
+      "id": "5d1f267f-e2f8-4050-8277-ce52dd5b831c",
+      "name": "REQ - Store Iterations",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ $json.requirementsReviewFormJson }}",
+        "options": {
+          "formTitle": "Human Review: Requirements Draft",
+          "formDescription": "={{ $json.requirementsReviewDescriptionHtml }}",
+          "buttonLabel": "Submit"
+        }
+      },
+      "id": "1567c8d2-a655-4a7f-ac1b-6e74dc2b527a",
+      "name": "REQ - Review",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        3024,
+        720
+      ],
+      "webhookId": "84ef2b9b-1e91-4181-98a8-9e63d64c2f7c"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "59953134-4f6e-4694-8701-8127e5dedb5d",
+      "name": "REQ - Review Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3216,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "restore-older-api",
+              "leftValue": "={{ $json[\"Restore older iteration\"] }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "743c09b0-ac75-4539-92e0-51134f9b2f0b",
+      "name": "REQ - Restore Older Iteration?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3408,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\nconst history = Array.isArray(json.requirementsHistory)\n  ? json.requirementsHistory.filter((entry) => entry && typeof entry === 'object')\n  : [];\n\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\n\nfunction buildApiReviewAssets({ history, currentIterationNumber, currentZipDownloadUrl, restoreError }) {\n  const currentDownloadUrl = String(currentZipDownloadUrl ?? '').trim();\n  const currentDownloadHtml = currentDownloadUrl\n    ? `<p><a href=\"${escapeHtml(currentDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Requirements ZIP</a></p>`\n    : '';\n\n  const historyItemsHtml = history.map((entry) => {\n    const iterationNumber = Number(entry.iterationNumber ?? 0) || 0;\n    const revisionNumber = Number(entry.revisionNumber ?? 0) || 0;\n    const currentTag = iterationNumber === currentIterationNumber ? ' <strong>(current)</strong>' : '';\n    const entryDownloadUrl = String(entry.zipDownloadUrl ?? '').trim();\n    const entryDownloadHtml = entryDownloadUrl\n      ? `<a href=\"${escapeHtml(entryDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download ZIP</a>`\n      : '';\n    return `<li><strong>Iteration ${iterationNumber}</strong> - Revision ${escapeHtml(revisionNumber)}${currentTag}${entryDownloadHtml ? ` - ${entryDownloadHtml}` : ''}</li>`;\n  }).join('');\n\n  const restoreChoices = history\n    .filter((entry) => Number(entry.iterationNumber ?? 0) !== currentIterationNumber)\n    .map((entry) => ({\n      option: `Iteration ${Number(entry.iterationNumber ?? 0) || 0} (rev ${Number(entry.revisionNumber ?? 0) || 0})`,\n    }));\n\n  const formFields = [\n    {\n      fieldLabel: 'Approved',\n      fieldName: 'Approved',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [{ option: 'approved' }, { option: 'rejected' }],\n      },\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Restore older iteration',\n      fieldName: 'Restore older iteration',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [{ option: 'Yes' }, { option: 'No' }],\n      },\n      defaultValue: 'No',\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Iteration to restore',\n      fieldName: 'Iteration to restore',\n      fieldType: 'dropdown',\n      fieldOptions: { values: restoreChoices },\n    },\n    {\n      fieldLabel: 'Attachments (optional)',\n      fieldName: 'Attachments',\n      fieldType: 'file',\n    },\n    {\n      fieldLabel: 'Feedback',\n      fieldName: 'Feedback',\n      fieldType: 'textarea',\n      placeholder: 'Describe exactly what should change in the requirements output.',\n    },\n  ];\n\n  const descriptionHtml = [\n    '<p>Review the current Requirements ZIP, then approve it or request changes.</p>',\n    currentDownloadHtml,\n    restoreError ? `<p><strong>${escapeHtml(restoreError)}</strong></p>` : '',\n    '<p>If you want to return to a previously generated version, choose Yes in Restore older iteration. You can also download any generated iteration below.</p>',\n    historyItemsHtml ? `<p>Generated iterations:</p><ol>${historyItemsHtml}</ol>` : '<p>No generated iterations are available yet.</p>',\n  ].filter(Boolean).join('');\n\n  return { descriptionHtml, formJson: JSON.stringify(formFields) };\n}\n\nconst selectionLabel = String(json['Iteration to restore'] ?? '').trim();\nconst selectionMatch = selectionLabel.match(/Iteration\\s+(\\d+)/i);\nconst selectedIterationNumber = selectionMatch ? Number.parseInt(selectionMatch[1], 10) : Number.NaN;\nconst currentIterationNumber = Number(json.currentRequirementsIterationNumber ?? 0) || 0;\nconst selectedEntry = history.find((entry) => Number(entry.iterationNumber ?? 0) === selectedIterationNumber);\n\nif (selectedEntry && Number(selectedEntry.iterationNumber ?? 0) !== currentIterationNumber) {\n  json.requirements = String(selectedEntry.requirements ?? selectedEntry.response ?? json.requirements ?? json.response ?? '').trim();\n  json.response = json.requirements;\n  json.revisionNumber = Number(selectedEntry.revisionNumber ?? json.revisionNumber ?? 0) || 0;\n  json.zipDownloadUrl = String(selectedEntry.zipDownloadUrl ?? json.zipDownloadUrl ?? '').trim();\n  json.zipDownloadToken = String(selectedEntry.zipDownloadToken ?? json.zipDownloadToken ?? '').trim();\n  json.downloadLinkHtml = String(selectedEntry.downloadLinkHtml ?? json.downloadLinkHtml ?? '').trim();\n  json.outputTokens = Number(selectedEntry.outputTokens ?? json.outputTokens ?? 0) || 0;\n  json.currentRequirementsIterationNumber = Number(selectedEntry.iterationNumber ?? json.currentRequirementsIterationNumber ?? 0) || 0;\n\n  const binaryPropertyName = String(selectedEntry.binaryPropertyName ?? '').trim();\n  if (binaryPropertyName && binary[binaryPropertyName]) {\n    binary.requirements = binary[binaryPropertyName];\n  }\n  const zipBinaryPropertyName = String(selectedEntry.zipBinaryPropertyName ?? '').trim();\n  if (zipBinaryPropertyName && binary[zipBinaryPropertyName]) {\n    binary.reviewZip = binary[zipBinaryPropertyName];\n  }\n\n  delete json.restoreSelectionError;\n} else {\n  json.restoreSelectionError = 'Select one of the previously generated iterations to restore it.';\n}\n\nconst reviewAssets = buildApiReviewAssets({\n  history,\n  currentIterationNumber: Number(json.currentRequirementsIterationNumber ?? 0) || 0,\n  currentZipDownloadUrl: json.zipDownloadUrl,\n  restoreError: String(json.restoreSelectionError ?? '').trim(),\n});\njson.requirementsReviewDescriptionHtml = reviewAssets.descriptionHtml;\njson.requirementsReviewFormJson = reviewAssets.formJson;\n\ndelete json.reviewMode;\ndelete json.feedback;\ndelete json.Feedback;\ndelete json.Approved;\ndelete json.Attachments;\ndelete json['Restore older iteration'];\ndelete json['Iteration to restore'];\n\nconst preservedBinary = {};\nfor (const [name, value] of Object.entries(binary)) {\n  if (\n    name === 'requirementsZip' ||\n    name === 'requirements' ||\n    name === 'reviewZip' ||\n    name === 'requirements_firstIteration' ||\n    /^requirements_iteration_\\d+$/.test(name) ||\n    /^requirements_zip_iteration_\\d+$/.test(name)\n  ) {\n    preservedBinary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(preservedBinary).length ? { binary: preservedBinary } : {}),\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3328,
+        848
+      ],
+      "id": "55a13d44-0a76-419c-92f6-d959aab1f966",
+      "name": "REQ - Restore Selected Iteration"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "approved-api",
+              "leftValue": "={{ $json.Approved }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "534ef1ef-effd-4261-b46a-510ebd46d5d2",
+      "name": "REQ - Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3616,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\n\njson.reviewMode = 'refine';\njson.refinement = true;\n\nconst feedback = String(json.Feedback ?? json.feedback ?? '').trim();\nif (feedback) {\n  json.feedbackForRefinement = feedback;\n  json.feedback = feedback;\n}\n\nreturn [{\n  json,\n  ...(item.binary && Object.keys(item.binary).length ? { binary: item.binary } : {}),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3536,
+        864
+      ],
+      "id": "8e87fae7-9fa8-4312-bd5e-1c0bb9bdd679",
+      "name": "REQ - Prepare Refine Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\n\nconst reviewZip = item.binary?.reviewZip;\nif (!reviewZip) {\n  throw new Error('Approved Requirements ZIP artifact is missing.');\n}\n\nreturn [{\n  json: {},\n  binary: {\n    reviewZip,\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3856,
+        640
+      ],
+      "id": "ad1192b8-80ee-40ab-9f10-89c10f911d57",
+      "name": "REQ - End"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "REQ - Start": {
+      "main": [
+        [
+          {
+            "node": "REQ - Create Requirements",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - History Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - History Context": {
+      "main": [
+        [
+          {
+            "node": "REQ - History Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - History Merge": {
+      "main": [
+        [
+          {
+            "node": "REQ - Store Iterations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Store Iterations": {
+      "main": [
+        [
+          {
+            "node": "REQ - Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Review Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Review": {
+      "main": [
+        [
+          {
+            "node": "REQ - Review Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Review Context": {
+      "main": [
+        [
+          {
+            "node": "REQ - Restore Older Iteration?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Restore Older Iteration?": {
+      "main": [
+        [
+          {
+            "node": "REQ - Restore Selected Iteration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Restore Selected Iteration": {
+      "main": [
+        [
+          {
+            "node": "REQ - Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Review Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Approved?": {
+      "main": [
+        [
+          {
+            "node": "REQ - End",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Prepare Refine Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Prepare Refine Input": {
+      "main": [
+        [
+          {
+            "node": "REQ - Create Requirements",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - History Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Create Requirements": {
+      "main": [
+        [
+          {
+            "node": "REQ - History Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "3720ddc2-1013-4f69-9db2-5dc5fbb42182",
+  "meta": {
+    "instanceId": "b8db71e6cd806cd646e3036d735235b01787ac6bf74adc87afc57bddf23e92c7"
+  },
+  "id": "icl4AhzKCnDojZ36",
+  "tags": []
+}

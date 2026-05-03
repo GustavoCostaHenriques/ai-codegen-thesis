@@ -1,11 +1,174 @@
-\chapter{Vis\~ao Geral e Abordagem \`a Solu\c{c}\~ao}
+\chapter{Abordagem à Solução e Contextualização do Sistema}
 \label{chap:visao-geral}
 
-\section{Arquitetura e Design da Solu\c{c}\~ao}
-\label{sec:visao-arquitetura}
+\noindent{O} presente capítulo descreve a abordagem adotada para a conceção da solução desenvolvida, bem como o contexto que suportou as principais decisões tomadas ao longo do seu desenvolvimento.
 
-\section{Fases de Desenvolvimento}
-\label{sec:visao-fases}
+\noindent{Inicialmente}, é caracterizado o processo atual de desenvolvimento de software da Trust Systems, identificando as principais fases, artefactos e práticas relevantes para o enquadramento da solução proposta.
 
-\section{Desafios e Decis\~oes de Implementa\c{c}\~ao}
-\label{sec:visao-desafios}
+\noindent{De} seguida, é apresentada uma fase experimental centrada na utilização de técnicas de \textit{prompt engineering}, baseada na execução de prompts independentes. Esta fase teve como objetivo avaliar as capacidades dos modelos de linguagem na geração de diferentes tipos de artefactos, bem como desenvolver e refinar prompts adequados para utilização posterior.
+
+\noindent{Posteriormente}, é discutida a seleção da ferramenta de orquestração utilizada na implementação da solução, sendo apresentados os critérios considerados e a justificação para a escolha do N8N.
+
+\noindent{Por fim}, é introduzida a arquitetura geral da solução, descrita de forma abstrata enquanto pipeline modular, evidenciando a sua estrutura e organização.
+
+
+\section{Processo Atual de Desenvolvimento de Software}
+
+\noindent{O} processo de desenvolvimento de software adotado na Trust Systems encontra-se estruturado em várias fases sequenciais, que abrangem desde a análise inicial do problema até à validação final da solução implementada. Este processo define os principais artefactos produzidos e as responsabilidades associadas a cada etapa, servindo de base para o enquadramento da solução proposta nesta dissertação.
+
+\subsection{Análise de Negócio}
+
+\noindent{A} fase de análise de negócio constitui o ponto de partida do processo de desenvolvimento de software na Trust Systems. Antes de qualquer atividade técnica, a empresa conduz uma avaliação estratégica destinada a determinar se existe uma necessidade real no mercado e se a solução proposta tem viabilidade comercial. Esta etapa envolve a análise do contexto competitivo, da oferta existente, dos modelos de pricing e das oportunidades identificadas, permitindo enquadrar o problema com precisão e estabelecer a relevância da futura solução.\\
+
+\noindent{O} resultado desta avaliação é consolidado num \textit{business case}, que reúne as evidências necessárias para suportar a decisão de avançar ou não com o projeto. Esta análise permite ainda caracterizar três elementos fundamentais que orientam a decisão estratégica, sendo eles os fatores essenciais que a solução deve satisfazer (\textit{Key Success Factors}), as limitações e condicionantes relevantes que podem restringir o seu desenvolvimento (\textit{Key Constraints}) e os ativos estratégicos necessários para suportar a execução do projeto (\textit{Key Assets}).
+
+\noindent{Com} base no \textit{business case}, a empresa conduz uma avaliação de viabilidade que culmina numa decisão final para avançar ou não com o projeto. Apenas as iniciativas consideradas exequíveis e alinhadas com os objetivos estratégicos da organização avançam para a fase seguinte. A sequência destas etapas encontra-se sintetizada na Figura \ref{fig:analise-negocio}, que representa o fluxo de análise de negócio adotado na Trust Systems.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.15\textheight, width=0.4\textwidth]{pic/cap-3/market_analysis.png}
+    \caption{Processo de análise de negócio na Trust Systems.}
+    \label{fig:analise-negocio}
+\end{figure}
+
+\subsection{Requisitos, Design e Arquitetura}
+
+Após a decisão formal de avançar com o projeto e a aceitação do mesmo, a responsabilidade transita para o \textit{Product Owner}, que conduz a definição tecnofuncional da solução em articulação contínua com o cliente. O objetivo é transformar necessidades de negócio em descrições funcionais claras e validadas.
+
+\noindent{A} definição de requisitos abrange vários níveis de detalhe, desde requisitos de alto nível e de utilizador até requisitos funcionais, não funcionais e tecnológicos. Estes últimos estabelecem orientações relacionadas com plataformas, linguagens, integrações e outros constrangimentos técnicos. Todo o processo evolui de forma iterativa, sendo ajustado e validado com o cliente até atingir um estado adequado de maturidade.
+
+\noindent{Com} esta base de entendimento são elaborados os \textit{Mockups \& Design}, que representam visualmente a estrutura, os fluxos de interação e a experiência prevista para o sistema. Estes artefactos tornam explícita a interpretação dos requisitos e são essenciais para assegurar alinhamento antes da continuação do trabalho.\\
+
+\noindent{Nesta} fase inclui-se também a definição da arquitetura do sistema, onde são estabelecidos os padrões estruturais, as camadas funcionais, os modelos de comunicação, os mecanismos de segurança e os requisitos técnicos necessários para garantir consistência, escalabilidade e facilidade de manutenção. É igualmente aqui que se formalizam as normas, políticas e limitações aplicáveis ao projeto, que variam consoante o domínio e podem incluir referências como normas IEEE, ISO/IEC 27001, recomendações OWASP para proteção de aplicações web ou diretrizes de acessibilidade baseadas nos níveis A, AA e AAA das WCAG, alinhadas com o enquadramento europeu do EAA.
+
+\medskip\noindent{Importa} também salientar que os produtos desenvolvidos pela Trust Systems inserem-se, maioritariamente, no domínio de sistemas empresariais, caracterizados por uma arquitetura distribuída e modular, com separação clara entre componentes de frontend, backend e camadas de integração. Dependendo da complexidade do sistema e dos requisitos do projeto, estas soluções podem assumir a forma de monólitos modulares ou arquiteturas baseadas em serviços, privilegiando a escalabilidade, a facilidade de manutenção e a integração com sistemas externos. A Figura \ref{fig:architectural_views} ilustra, de forma simplificada, estas duas abordagens arquiteturais.
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.3\textheight, width=0.5\textwidth]{pic/cap-3/architectural_views.png}
+    \caption{Vistas arquiteturais de um monólito modular e de uma arquitetura baseada em serviços.}
+    \label{fig:architectural_views}
+\end{figure}
+
+\subsection{Especificação da API (OpenAPI)}
+
+\noindent{Após} a validação dos \textit{Mockups} e a estabilização dos requisitos funcionais, é definida a especificação da API em formato OpenAPI. Este documento descreve os endpoints, modelos de dados, parâmetros e regras de validação, funcionando como contrato técnico entre as diferentes componentes do sistema.
+
+\noindent{Por} representar de forma estruturada todas as operações previstas, a API serve como base para o desenvolvimento backend e para a implementação frontend, assegurando consistência entre o comportamento esperado e a lógica construída nas fases seguintes.
+
+\subsection{Desenvolvimento Backend}
+
+\noindent{O} desenvolvimento backend na Trust Systems assenta numa estrutura organizacional bem definida, refletida nos projetos gerados com recurso ao JHipster\footnote{\url{https://www.jhipster.tech/}}. Esta ferramenta automatiza a criação da arquitetura base e origina uma separação clara por camadas, com diretórios dedicados a \textit{domain}, \textit{repository}, \textit{service} e \textit{web}, garantindo uma organização consistente e alinhada com boas práticas de engenharia de software. Cada camada assume responsabilidades distintas, onde o domínio modela as entidades da aplicação, os repositórios tratam da persistência de dados, os serviços concentram a lógica de negócio e a camada web expõe os controladores responsáveis pela comunicação com a API.
+
+\noindent{O} backend é construído a partir da especificação OpenAPI previamente validada, que define os endpoints, os modelos de dados e os contratos de comunicação. Com base nessa descrição são implementados os controladores, serviços e repositórios necessários ao funcionamento da aplicação, assegurando correspondência direta entre a API definida e a lógica do sistema. Esta abordagem reduz ambiguidades, promove a rastreabilidade entre requisitos e implementação e facilita a evolução posterior do sistema.\\
+
+\noindent{A} componente de persistência utiliza habitualmente bases de dados relacionais, sendo o PostgreSQL\footnote{\url{https://www.postgresql.org/}} uma das tecnologias mais frequentes nos projetos da empresa. A modelação e inspeção da base de dados é frequentemente apoiada pelo DBeaver\footnote{\url{https://dbeaver.io/}}, que facilita o acompanhamento do esquema e das operações realizadas durante o desenvolvimento.
+
+\noindent{O} processo de execução é suportado pelos mecanismos habituais do ecossistema Java, recorrendo ao Maven\footnote{\url{https://maven.apache.org/}} para compilar, gerar artefactos e executar a aplicação localmente. Para complementar esta explicação, a Figura \ref{fig:endpoint-flow} ilustra o percurso típico de um endpoint, começando na especificação OpenAPI e terminando na camada de repositório. Esta representação visual evidencia a separação de responsabilidades entre as várias camadas e o modo como o backend materializa o contrato definido na especificação.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.15\textheight, width=0.35\textwidth]{pic/cap-3/backend_endpoint.pdf}
+    \caption{Fluxo típico de implementação de um endpoint no backend.}
+    \label{fig:endpoint-flow}
+\end{figure}
+
+\subsection{Desenvolvimento Frontend}
+
+\noindent{O} desenvolvimento frontend na Trust Systems segue práticas que asseguram organização, consistência e facilidade de manutenção. Os projetos são geralmente desenvolvidos em Angular\footnote{\url{https://angular.io/}} e estruturados de forma modular em diretórios \textit{core}, \textit{development} e \textit{shared}. O \textit{core} reúne elementos essenciais da aplicação, como serviços globais e configurações. O \textit{development} organiza as funcionalidades específicas do produto em desenvolvimento. O \textit{shared} agrega componentes, modelos e utilitários reutilizáveis em vários projetos, garantindo consistência e evitando duplicação de código.\\
+
+\noindent{A} comunicação com o backend é realizada através de serviços Angular dedicados, responsáveis por encapsular as chamadas à API definida na especificação OpenAPI. Estes serviços centralizam o acesso a dados e fornecem métodos bem definidos para consumo pela interface, garantindo separação entre lógica de apresentação e lógica de comunicação.
+
+\noindent{Cada} página da aplicação corresponde a um componente Angular, que solicita a informação necessária ao serviço respetivo. O serviço estabelece a comunicação com a API, interpreta a resposta recebida e devolve os dados ao componente, sendo que este irá prepará-los para serem apresentados. Esta abordagem reduz acoplamento, facilita testes e contribui para a evolução sustentada da aplicação.
+
+\noindent{A} Figura \ref{fig:frontend-flow} ilustra o fluxo típico seguido no frontend entre componentes, serviços e a API.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.18\textheight, width=0.3\textwidth]{pic/cap-3/frontend_process.png}
+    \caption{Fluxo de interação entre componente, serviço e API no frontend.}
+    \label{fig:frontend-flow}
+\end{figure}
+
+\subsection{Testes, Qualidade e Conformidade}
+
+Os testes constituem a etapa final do processo de desenvolvimento e garantem que a solução implementada corresponde ao comportamento definido nas fases anteriores. Na Trust Systems, esta validação serve para assegurar que cada componente cumpre os requisitos funcionais, tecnológicos e de experiência definidos em colaboração com o cliente.
+
+\noindent{No} backend, a verificação centra-se na API gerada a partir da especificação OpenAPI. O Postman\footnote{\url{https://www.postman.com/}} é utilizado para testar os endpoints, validar códigos de resposta, conteúdos devolvidos e comportamento em diferentes cenários. Esta validação permite confirmar que os controladores, serviços e repositórios implementados materializam corretamente o contrato definido pela API.
+
+\noindent{No} frontend, os testes incidem sobretudo na interação com a API e na verificação dos fluxos principais da interface. São validados o consumo dos serviços, o tratamento de respostas e a exibição correta da informação, garantindo que os componentes Angular permanecem alinhados com o comportamento esperado do sistema. Além desta validação funcional, é também utilizado o SonarLint\footnote{\url{https://www.sonarlint.org/}}/ESLint\footnote{\url{https://eslint.org/}} em ambiente local para detetar problemas de qualidade de código, como duplicação, uso de elementos obsoletos ou \textit{code smells}. A aplicação é compilada e testada localmente com \texttt{ng build} e \texttt{npm test}\footnote{\url{https://www.npmjs.com/}}, sendo analisados avisos e erros produzidos durante este processo. Por fim, a solução é testada em ambiente de desenvolvimento, onde são realizados testes manuais adicionais para confirmar o comportamento final do frontend.
+
+\section{Fase Experimental de Prompt Engineering}
+
+\section{Seleção da Ferramenta de Orquestração}
+
+\newcommand{\okicon}{\textcolor{green!60!black}{\Large$\checkmark$}}
+\newcommand{\warnicon}{\textcolor{red!75!black}{\Large$\times$}}
+\newcommand{\staricon}{\textcolor{yellow!80!orange}{\large$\star$}}
+
+\begin{table}[p]
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{|p{0.17\textwidth}|p{0.2\textwidth}|p{0.2\textwidth}|p{0.2\textwidth}|p{0.2\textwidth}|}
+        \rowcolor{gray!20}
+        \hline
+        \textbf{Critérios} & \textbf{Dify} & \textbf{Flowise} & \textbf{LangFlow} & \textbf{N8N} \\
+        \hline
+        \rowcolors{2}{gray!10}{white}
+        \textbf{Foco principal da ferramenta} & Mais adequado para aplicações conversacionais / LLM apps (chatbots, RAG empresarial) & Mais adequado para orquestração de fluxos e automações complexas baseadas em LLMs & Desenvolvimento visual no ecossistema LangChain/Python & Automação de workflows e integração entre sistemas \\
+        \hline
+        \textbf{BYOK (Bring Your Own Key)} & \warnicon\ Híbrido (créditos + BYOK) & \okicon\ Sim & \okicon\ Sim & \okicon\ Sim \\
+        \hline
+        \textbf{Suporte a Human-in-the-Loop} & \warnicon\ Não existe nó dedicado & \okicon\ Nativo (Human Input node) & \warnicon\ Não existe nó dedicado & \okicon\ Nativo (Human Review) \\
+        \hline
+        \textbf{Suporte a múltiplos fornecedores de LLMs} & \okicon\ Sim & \okicon\ Sim & \okicon\ Sim & \okicon\ Sim \\
+        \hline
+        \textbf{Tipo de licença} & Open source & Apache-2.0 & MIT & Sustainable Use License \\
+        \hline
+        \textbf{Data de criação} & Maio 2023 & Abril 2023 & Março 2023 & Outubro 2019 \\
+        \hline
+        \textbf{Data da última atualização} & Fevereiro 2026 & Fevereiro 2026 & Fevereiro 2026 & Fevereiro 2026 \\
+        \hline
+        \textbf{Número de estrelas no GitHub} & ~130k \staricon & ~49k \staricon & ~145k \staricon & ~176k \staricon \\
+        \hline
+        \textbf{Número de forks no GitHub} & ~20k & ~23k & ~8k & ~55k \\
+        \hline
+        \textbf{Número de contribuidores} & 1148 & 301 & 339 & 613 \\
+        \hline
+        \textbf{Comunidade ativa} & Grande & Média & Grande & Grande \\
+        \hline
+        \textbf{Self-hosted disponível (Docker oficial)} & \okicon\ Sim, com docker image (~5M+ pulls) & \okicon\ Sim, com docker image (~5M+ pulls) & \okicon\ Sim, com docker image (~1M+ pulls) & \okicon\ Sim, com docker image (~100M+ pulls) \\
+        \hline
+        \textbf{Open Source} & \okicon\ Sim & \okicon\ Sim & \okicon\ Sim & \warnicon\ Fair-code \\
+        \hline
+        \textbf{Planos e custos} & Self-hosted: Gratuito \newline Cloud: Sandbox -> 0 USD (200 créditos) / Professional -> 59 USD (5000 créditos/mês) / Team -> 159 USD (10000 créditos/mês) & Self-hosted: Gratuito \newline Cloud: Free -> 0 USD (100 execuções/mês) / Starter -> 35 USD (10000 execuções/mês) / Pro -> 65 USD (50000 execuções/mês) & Self-hosted: Gratuito & Self-hosted: Gratuito \newline Cloud: Starter -> 20 EUR (2500 execuções/mês) / Pro -> 50 EUR (10000 execuções/mês) / Business -> 667 EUR (40000 execuções/mês) \\
+        \hline
+        \textbf{Origem} & Estados Unidos & Estados Unidos & Brasil & Alemanha \\
+        \hline
+    \end{tabular}
+    \caption{Comparação entre ferramentas de orquestração avaliadas.}
+    \label{tab:orchestration-tools-comparison}
+\end{table}
+
+\noindent{A} implementação da solução proposta requer a utilização de uma ferramenta de orquestração capaz de coordenar diferentes etapas do processo de geração de artefactos, bem como integrar múltiplos modelos de linguagem e serviços externos. Neste contexto, foram analisadas várias ferramentas disponíveis, nomeadamente Dify, Flowise, LangFlow e N8N, com base num conjunto de critérios técnicos e operacionais relevantes para o projeto.
+
+\noindent{A} Tabela~\ref{tab:orchestration-tools-comparison} apresenta uma comparação entre estas ferramentas, considerando aspetos como suporte a múltiplos fornecedores de modelos, capacidade de integração, suporte a mecanismos de \textit{human-in-the-loop}, modelo de licenciamento e custos associados.
+
+\noindent{Com} base nesta análise, a escolha da ferramenta recaiu sobre o N8N, tendo em consideração um conjunto de fatores que se revelaram particularmente relevantes no contexto deste trabalho.
+
+\noindent{Em} primeiro lugar, a origem europeia da ferramenta constituiu um requisito definido no contexto organizacional em que o projeto se insere, condicionando a seleção das alternativas consideradas.
+
+\noindent{Adicionalmente}, apesar de não ser uma ferramenta originalmente concebida de forma exclusiva para o desenvolvimento de aplicações baseadas em modelos de linguagem, o N8N apresenta suporte para um conjunto alargado de fornecedores de LLMs, permitindo alcançar um nível de flexibilidade comparável ao das restantes ferramentas analisadas. Esta característica revelou-se suficiente para suportar os requisitos da solução proposta, sem introduzir limitações significativas ao nível da integração com diferentes modelos.
+
+\noindent{O} N8N apresenta ainda um elevado nível de adoção e uma comunidade ativa e alargada, refletida em indicadores como o número de utilizadores, contribuidores e atividade no repositório oficial. A existência de uma comunidade consolidada facilita o acesso a documentação, exemplos de utilização e suporte informal, contribuindo para um processo de desenvolvimento mais eficiente.
+
+\noindent{Relativamente} ao modelo de licenciamento, apesar de o N8N adotar uma abordagem mais restritiva quando comparada com algumas das alternativas analisadas, esta limitação não se revelou impeditiva no contexto do presente trabalho, tendo em conta o tipo de utilização previsto.
+
+\noindent{Por} fim, a maturidade da ferramenta e a sua ampla utilização em cenários de automação e integração de sistemas constituíram fatores relevantes, uma vez que aumentam a previsibilidade do seu comportamento e reduzem o risco associado à adoção de tecnologias menos consolidadas.
+
+\noindent{Deste modo}, o N8N revelou-se a opção mais adequada para suportar a implementação da pipeline proposta, garantindo simultaneamente flexibilidade, capacidade de integração e suporte ao longo do desenvolvimento.
+
+\section{Arquitetura Geral da Solução}

@@ -1,0 +1,1 @@
+To call different models in n8n the only adjustment needed in to change the configuration in the HTTP Request nodes. This directory stores a file with the different configuration for the different models

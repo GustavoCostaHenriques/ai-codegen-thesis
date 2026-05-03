@@ -1,0 +1,961 @@
+{
+  "name": "requirements-v2",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\n\nfunction getNodeItemsSafe(nodeName) {\n  if (typeof $items !== 'function') return [];\n  try {\n    return $items(nodeName) || [];\n  } catch (error) {\n    const message = String(error?.message ?? error ?? '');\n    if (message.includes(\"hasn't been executed\") || message.includes('not executed')) {\n      return [];\n    }\n    return [];\n  }\n}\n\nconst hvItems = getNodeItemsSafe('REQ - Human Validation');\nconst hv1Items = getNodeItemsSafe('REQ - Human Validation1');\nconst loopItems = getNodeItemsSafe('REQ - Loop Decision');\n\nconst hvJson = hvItems[0]?.json ?? {};\nconst hv1Json = hv1Items[0]?.json ?? {};\nconst loopJson = loopItems[0]?.json ?? {};\n\nconst hvBinary = hvItems[0]?.binary ?? {};\nconst hv1Binary = hv1Items[0]?.binary ?? {};\nconst loopBinary = loopItems[0]?.binary ?? {};\n\nconst mergedJson = { ...hvJson, ...hv1Json, ...loopJson, ...(item.json ?? {}) };\nconst mergedBinary = { ...hvBinary, ...hv1Binary, ...loopBinary, ...(item.binary ?? {}) };\n\nconst requirements = String(mergedJson.requirements ?? '').trim();\nif (!requirements) {\n  throw new Error('Requirements Markdown draft is missing for refinement generation.');\n}\n\nconst reviewerFeedback = [\n  mergedJson.feedback,\n  mergedJson.Feedback,\n  loopJson.feedback,\n  loopJson.Feedback,\n  hv1Json.feedback,\n  hv1Json.Feedback,\n  hvJson.feedback,\n  hvJson.Feedback,\n]\n  .map((value) => String(value ?? '').trim())\n  .find((value) => value.length > 0) || 'Reviewer requested changes without additional details.';\n\nconst revisionNumber = Math.max(0, Math.trunc(Number(mergedJson.revisionNumber ?? 0) || 0)) + 1;\n\nfunction splitLines(text) {\n  return String(text ?? '').replace(/\\r\\n/g, '\\n').split('\\n');\n}\n\nfunction looksTextLike(binaryEntry, key) {\n  const mime = String(binaryEntry?.mimeType ?? '').toLowerCase();\n  const extRaw = String(binaryEntry?.fileExtension ?? '').toLowerCase();\n  const ext = extRaw.startsWith('.') ? extRaw.slice(1) : extRaw;\n\n  const textExt = new Set([\n    'txt', 'md', 'markdown', 'json', 'yaml', 'yml', 'csv', 'tsv', 'xml', 'html', 'htm',\n    'js', 'ts', 'py', 'java', 'c', 'cpp', 'cs', 'sql', 'log', 'ini', 'cfg',\n  ]);\n\n  if (mime.startsWith('text/')) return true;\n  if (mime.includes('json') || mime.includes('xml') || mime.includes('yaml')) return true;\n  if (textExt.has(ext)) return true;\n\n  const keyLower = String(key ?? '').toLowerCase();\n  if (keyLower.endsWith('.txt') || keyLower.endsWith('.md') || keyLower.endsWith('.json')) return true;\n\n  return false;\n}\n\nfunction decodeText(binaryEntry) {\n  try {\n    const raw = String(binaryEntry?.data ?? '');\n    if (!raw) return '';\n    return Buffer.from(raw, 'base64').toString('utf8');\n  } catch (error) {\n    return '';\n  }\n}\n\nconst attachmentEntries = Object.entries(mergedBinary)\n  .filter(([key]) => /^attachments?(?:_|$)/i.test(String(key)));\n\nconst attachmentSummaries = [];\nconst attachmentTextBlocks = [];\n\nlet totalTextChars = 0;\nconst maxTotalChars = 24000;\nconst maxPerFileChars = 6000;\n\nfor (const [key, bin] of attachmentEntries) {\n  const fileName = String(bin?.fileName ?? key);\n  const mimeType = String(bin?.mimeType ?? 'application/octet-stream');\n  const fileSize = Number(bin?.fileSize ?? 0);\n\n  attachmentSummaries.push({\n    key,\n    fileName,\n    mimeType,\n    fileSize,\n  });\n\n  if (!looksTextLike(bin, key)) continue;\n  if (totalTextChars >= maxTotalChars) continue;\n\n  const text = decodeText(bin).trim();\n  if (!text) continue;\n\n  const remaining = maxTotalChars - totalTextChars;\n  const take = Math.min(maxPerFileChars, remaining);\n  const excerpt = text.slice(0, take);\n\n  attachmentTextBlocks.push(\n    `Attachment: ${fileName} (${mimeType})\\n---\\n${excerpt}`,\n  );\n\n  totalTextChars += excerpt.length;\n}\n\nconst numberedMarkdown = splitLines(requirements)\n  .map((line, index) => `${index + 1}: ${line}`)\n  .join('\\n');\n\nconst attachmentSummaryText = attachmentSummaries.length\n  ? attachmentSummaries\n    .map((a, i) => `${i + 1}) ${a.fileName} | mime=${a.mimeType} | size=${a.fileSize}`)\n    .join('\\n')\n  : '[No attachments provided.]';\n\nconst attachmentExtractedText = attachmentTextBlocks.length\n  ? attachmentTextBlocks.join('\\n\\n')\n  : '[No text could be extracted from attachments automatically.]';\n\nconst patchPrompt = [\n  'Reviewer feedback:',\n  reviewerFeedback,\n  '',\n  'Attachment metadata:',\n  attachmentSummaryText,\n  '',\n  'Extracted attachment text (partial when available):',\n  attachmentExtractedText,\n  '',\n  'Current markdown draft with line numbers:',\n  numberedMarkdown,\n].join('\\n');\n\nreturn [{\n  json: {\n    requirements,\n    reviewerFeedback,\n    revisionNumber,\n    attachmentCount: attachmentSummaries.length,\n    attachmentSummaries,\n    patchPrompt,\n  },\n  ...(mergedBinary && Object.keys(mergedBinary).length > 0 ? { binary: mergedBinary } : {}),\n}];\n"
+      },
+      "id": "2ea3700e-32e1-4dbe-a7b8-0c3245ef6da4",
+      "name": "REQ - Build Refinement Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        34880,
+        11824
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function joinContentBlocks(value) {\n  if (!Array.isArray(value)) return \"\";\n  const parts = value\n    .map((entry) => {\n      if (typeof entry === \"string\") return entry;\n      if (entry && typeof entry.text === \"string\") return entry.text;\n      if (entry && typeof entry.content === \"string\") return entry.content;\n      return \"\";\n    })\n    .filter((entry) => entry && entry.trim());\n  return parts.join(\"\\n\").trim();\n}\n\nfunction toTokenCount(value) {\n  const parsed = Number(value);\n  if (!Number.isFinite(parsed) || parsed < 0) return null;\n  return Math.trunc(parsed);\n}\n\nfunction extractUsageTokensObject(obj) {\n  if (!obj || typeof obj !== \"object\") return null;\n\n  const candidates = [\n    obj.usage?.completion_tokens,\n    obj.usage?.output_tokens,\n    obj.usage?.completionTokens,\n    obj.usage?.outputTokens,\n    obj.completion_tokens,\n    obj.output_tokens,\n    obj.data?.usage?.completion_tokens,\n    obj.data?.usage?.output_tokens,\n    obj.choices?.[0]?.usage?.completion_tokens,\n    obj.choices?.[0]?.usage?.output_tokens,\n  ];\n\n  for (const candidate of candidates) {\n    const count = toTokenCount(candidate);\n    if (count !== null) return count;\n  }\n\n  return null;\n}\n\nfunction extractUsageTokensFromSseText(value) {\n  if (typeof value !== \"string\") return null;\n  const text = value.trim();\n  if (!text || !text.includes(\"data:\")) return null;\n\n  let lastCount = null;\n  const lines = text.split(/\\r?\\n/);\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (!line.startsWith(\"data:\")) continue;\n\n    const payload = line.slice(5).trim();\n    if (!payload || payload === \"[DONE]\") continue;\n\n    try {\n      const chunk = JSON.parse(payload);\n      const count = extractUsageTokensObject(chunk);\n      if (count !== null) lastCount = count;\n    } catch {\n      // Ignore malformed chunks\n    }\n  }\n\n  return lastCount;\n}\n\nfunction normalizeStreamingText(value) {\n  if (typeof value !== \"string\") return \"\";\n  const text = value.trim();\n  if (!text) return \"\";\n\n  if (!text.includes(\"data:\")) return text;\n\n  const collected = [];\n  const lines = text.split(/\\r?\\n/);\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (!line.startsWith(\"data:\")) continue;\n\n    const payload = line.slice(5).trim();\n    if (!payload || payload === \"[DONE]\") continue;\n\n    try {\n      const chunk = JSON.parse(payload);\n      const delta = chunk?.choices?.[0]?.delta?.content;\n      const messageContent = chunk?.choices?.[0]?.message?.content;\n      const plainText = chunk?.choices?.[0]?.text;\n\n      if (typeof delta === \"string\") collected.push(delta);\n      else if (typeof messageContent === \"string\") collected.push(messageContent);\n      else if (typeof plainText === \"string\") collected.push(plainText);\n    } catch {\n      // Ignore malformed chunks and keep parsing\n    }\n  }\n\n  const merged = collected.join(\"\").trim();\n  return merged || text;\n}\n\nfunction firstText(...values) {\n  for (const value of values) {\n    if (typeof value === \"string\" && value.trim()) {\n      const normalized = normalizeStreamingText(value);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n\n    const joined = joinContentBlocks(value);\n    if (joined) {\n      const normalized = normalizeStreamingText(joined);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n  }\n  return \"\";\n}\n\nfunction parseMaybeJson(value) {\n  if (typeof value !== \"string\") return null;\n  const trimmed = value.trim();\n  if (!trimmed.startsWith(\"{\") && !trimmed.startsWith(\"[\")) return null;\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return null;\n  }\n}\n\nfunction tryParseJsonObject(text) {\n  if (typeof text !== \"string\") return null;\n  const start = text.indexOf(\"{\");\n  const end = text.lastIndexOf(\"}\");\n  if (start === -1 || end <= start) return null;\n  const candidate = text.slice(start, end + 1);\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction extractModelText(json) {\n  if (!json || typeof json !== \"object\") return \"\";\n\n  const direct = firstText(\n    json.text,\n    json.response,\n    json.output,\n    json.result,\n    json.answer,\n    json.completion,\n    json.generated_text,\n    json.message?.content,\n    json.choices?.[0]?.message?.content,\n    json.choices?.[0]?.text,\n    json.data?.text,\n    json.data?.response,\n    json.data?.output,\n    json.data?.result,\n    json.data?.choices?.[0]?.message?.content,\n    json.data?.choices?.[0]?.text,\n    json.content,\n    json.data?.content,\n    json.data\n  );\n  if (direct) return direct;\n\n  const parsedFromStrings = [json.response, json.text, json.output, json.result, json.data]\n    .map((value) => parseMaybeJson(value))\n    .filter((value) => value && typeof value === \"object\");\n\n  for (const parsed of parsedFromStrings) {\n    const parsedText = extractModelText(parsed);\n    if (parsedText) return parsedText;\n  }\n\n  return \"\";\n}\n\nfunction extractOutputTokens(json, rawModelText) {\n  const direct = extractUsageTokensObject(json);\n  if (direct !== null) {\n    return { outputTokens: direct, outputTokensSource: \"usage.completion_tokens\" };\n  }\n\n  const maybeSse = [json.data, json.response, json.output, json.result, json.text];\n  for (const value of maybeSse) {\n    const fromSse = extractUsageTokensFromSseText(value);\n    if (fromSse !== null) {\n      return { outputTokens: fromSse, outputTokensSource: \"stream.usage.completion_tokens\" };\n    }\n  }\n\n  const estimated = Math.max(1, Math.round(String(rawModelText ?? \"\").length / 4));\n  return { outputTokens: estimated, outputTokensSource: \"estimated_char_div4\" };\n}\n\nfunction decodeQuoted(value) {\n  const trimmed = String(value ?? \"\").trim();\n  if (!trimmed) return \"\";\n\n  if (trimmed.startsWith(\"\\\"\") && trimmed.endsWith(\"\\\"\")) {\n    try {\n      return JSON.parse(trimmed);\n    } catch {\n      return trimmed\n        .slice(1, -1)\n        .replace(/\\\\r\\\\n/g, \"\\n\")\n        .replace(/\\\\n/g, \"\\n\")\n        .replace(/\\\\t/g, \"\\t\")\n        .replace(/\\\\\\\"/g, \"\\\"\")\n        .replace(/\\\\'/g, \"'\")\n        .replace(/\\\\\\\\/g, \"\\\\\");\n    }\n  }\n\n  if (trimmed.startsWith(\"'\") && trimmed.endsWith(\"'\")) {\n    return trimmed\n      .slice(1, -1)\n      .replace(/\\\\r\\\\n/g, \"\\n\")\n      .replace(/\\\\n/g, \"\\n\")\n      .replace(/\\\\t/g, \"\\t\")\n      .replace(/\\\\\\\"/g, \"\\\"\")\n      .replace(/\\\\'/g, \"'\")\n      .replace(/\\\\\\\\/g, \"\\\\\");\n  }\n\n  return trimmed;\n}\n\nfunction normalizeCandidate(text) {\n  let out = String(text ?? \"\").trim();\n  if (!out) return \"\";\n\n  const fenced = out.match(/^\\`\\`\\`(?:markdown|md|txt)?\\s*([\\s\\S]*?)\\`\\`\\`$/i);\n  if (fenced) out = fenced[1].trim();\n\n  out = out\n    .replace(/^\\s*[\"']?requirements[\"']?\\s*:\\s*/i, \"\")\n    .replace(/^\\s*[\"']?response[\"']?\\s*:\\s*/i, \"\")\n    .trim();\n\n  out = decodeQuoted(out);\n\n  if (!out.includes(\"\\n\") && /\\\\n|\\\\r|\\\\t/.test(out)) {\n    out = out\n      .replace(/\\\\r\\\\n/g, \"\\n\")\n      .replace(/\\\\n/g, \"\\n\")\n      .replace(/\\\\r/g, \"\\n\")\n      .replace(/\\\\t/g, \"\\t\")\n      .replace(/\\\\\\\"/g, \"\\\"\")\n      .replace(/\\\\'/g, \"'\")\n      .replace(/\\\\\\\\/g, \"\\\\\");\n  }\n\n  out = out.replace(/\\r\\n/g, \"\\n\").replace(/\\r/g, \"\\n\").trim();\n\n  const firstHeadingIndex = out.search(/(^|\\n)#{1,6}\\s+\\S/);\n  if (firstHeadingIndex > 0) {\n    const prefix = out.slice(0, firstHeadingIndex).toLowerCase();\n    if (\n      prefix.includes(\"here\") ||\n      prefix.includes(\"generated\") ||\n      prefix.includes(\"requirements\") ||\n      prefix.includes(\"specification\")\n    ) {\n      out = out.slice(firstHeadingIndex).trim();\n    }\n  }\n\n  const trailingMarkers = [\n    /\\n(?:Notes?|Explanation|Rationale|Summary)\\s*:/i,\n    /\\n(?:If you'd like|If you want|Let me know|I can help)/i,\n    /\\nThis (?:requirements|document|specification) /i,\n  ];\n  let endIndex = out.length;\n  for (const marker of trailingMarkers) {\n    const match = marker.exec(out);\n    if (match && match.index > 0) endIndex = Math.min(endIndex, match.index);\n  }\n  out = out.slice(0, endIndex).trim();\n\n  return out;\n}\n\nfunction collectRequirementsCandidatesFromObject(obj, candidates) {\n  if (!obj || typeof obj !== \"object\") return;\n\n  const valueCandidates = [\n    obj.requirements,\n    obj.output?.requirements,\n    obj.data?.requirements,\n    obj.result?.requirements,\n    obj.response?.requirements,\n    obj.message?.requirements,\n    obj.content?.requirements,\n    obj.markdown,\n    obj.data?.markdown,\n  ];\n\n  for (const value of valueCandidates) {\n    if (typeof value === \"string\" && value.trim()) candidates.push(value);\n  }\n\n  if (Array.isArray(obj)) {\n    for (const entry of obj) collectRequirementsCandidatesFromObject(entry, candidates);\n    return;\n  }\n\n  for (const [key, value] of Object.entries(obj)) {\n    if (!value || typeof value !== \"object\" || key === \"usage\") continue;\n    collectRequirementsCandidatesFromObject(value, candidates);\n  }\n}\n\nfunction scoreCandidate(text) {\n  let score = text.length;\n  if (/^#\\s+/.test(text)) score += 1200;\n  if (/\\n##\\s+/.test(text)) score += 800;\n  if (/\\bMUST\\b/.test(text)) score += 400;\n  if (/\\b(REQ|DATA|SEC|TST)-\\d{3}\\b/.test(text)) score += 500;\n  if (/^\\s*\\{\\s*\"/.test(text)) score -= 2000;\n  if (/^\\s*\\[/.test(text)) score -= 1500;\n  return score;\n}\n\nfunction extractRequirementsMarkdown(rawText) {\n  if (typeof rawText !== \"string\" || !rawText.trim()) {\n    throw new Error(\"Requirements response is empty.\");\n  }\n\n  const raw = rawText.trim();\n  const candidates = [raw];\n\n  const fencedMatches = [...raw.matchAll(/\\`\\`\\`(?:markdown|md|txt)?\\s*([\\s\\S]*?)\\`\\`\\`/gi)];\n  for (const match of fencedMatches) {\n    if (match && typeof match[1] === \"string\") candidates.push(match[1]);\n  }\n\n  const parsedWhole = parseMaybeJson(raw);\n  if (parsedWhole && typeof parsedWhole === \"object\") {\n    collectRequirementsCandidatesFromObject(parsedWhole, candidates);\n  }\n\n  const parsedEmbedded = tryParseJsonObject(raw);\n  if (parsedEmbedded && typeof parsedEmbedded === \"object\") {\n    collectRequirementsCandidatesFromObject(parsedEmbedded, candidates);\n  }\n\n  const labelled = raw.match(/(?:^|\\n)\\s*[\"']?requirements[\"']?\\s*:\\s*([\\s\\S]*)/i);\n  if (labelled) candidates.push(labelled[1]);\n\n  const firstHeadingIndex = raw.search(/(^|\\n)#{1,6}\\s+\\S/);\n  if (firstHeadingIndex >= 0) candidates.push(raw.slice(firstHeadingIndex));\n\n  const normalized = candidates.map(normalizeCandidate).filter((value) => value.length > 0);\n  if (!normalized.length) {\n    throw new Error(\"Could not extract requirements content from model output.\");\n  }\n\n  let best = normalized[0];\n  let bestScore = scoreCandidate(best);\n  for (const candidate of normalized.slice(1)) {\n    const score = scoreCandidate(candidate);\n    if (score > bestScore) {\n      best = candidate;\n      bestScore = score;\n    }\n  }\n\n  return best;\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\nconst rawModelText = extractModelText(json);\nconst tokenInfo = extractOutputTokens(json, rawModelText);\n\nreturn [{\n  json: {\n    response: extractRequirementsMarkdown(rawModelText),\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    outputTokens: tokenInfo.outputTokens,\n    outputTokensSource: tokenInfo.outputTokensSource,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "becaa634-0bf8-498a-8b4a-8ef10d604a41",
+      "name": "REQ - Clean Refinement Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        35712,
+        11840
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function joinContentBlocks(value) {\n  if (!Array.isArray(value)) return \"\";\n  const parts = value\n    .map((entry) => {\n      if (typeof entry === \"string\") return entry;\n      if (entry && typeof entry.text === \"string\") return entry.text;\n      if (entry && typeof entry.content === \"string\") return entry.content;\n      return \"\";\n    })\n    .filter((entry) => entry && entry.trim());\n  return parts.join(\"\\n\").trim();\n}\n\nfunction toTokenCount(value) {\n  const parsed = Number(value);\n  if (!Number.isFinite(parsed) || parsed < 0) return null;\n  return Math.trunc(parsed);\n}\n\nfunction extractUsageTokensObject(obj) {\n  if (!obj || typeof obj !== \"object\") return null;\n\n  const candidates = [\n    obj.usage?.completion_tokens,\n    obj.usage?.output_tokens,\n    obj.usage?.completionTokens,\n    obj.usage?.outputTokens,\n    obj.completion_tokens,\n    obj.output_tokens,\n    obj.data?.usage?.completion_tokens,\n    obj.data?.usage?.output_tokens,\n    obj.choices?.[0]?.usage?.completion_tokens,\n    obj.choices?.[0]?.usage?.output_tokens,\n  ];\n\n  for (const candidate of candidates) {\n    const count = toTokenCount(candidate);\n    if (count !== null) return count;\n  }\n\n  return null;\n}\n\nfunction extractUsageTokensFromSseText(value) {\n  if (typeof value !== \"string\") return null;\n  const text = value.trim();\n  if (!text || !text.includes(\"data:\")) return null;\n\n  let lastCount = null;\n  const lines = text.split(/\\r?\\n/);\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (!line.startsWith(\"data:\")) continue;\n\n    const payload = line.slice(5).trim();\n    if (!payload || payload === \"[DONE]\") continue;\n\n    try {\n      const chunk = JSON.parse(payload);\n      const count = extractUsageTokensObject(chunk);\n      if (count !== null) lastCount = count;\n    } catch {\n      // Ignore malformed chunks\n    }\n  }\n\n  return lastCount;\n}\n\nfunction normalizeStreamingText(value) {\n  if (typeof value !== \"string\") return \"\";\n  const text = value.trim();\n  if (!text) return \"\";\n\n  if (!text.includes(\"data:\")) return text;\n\n  const collected = [];\n  const lines = text.split(/\\r?\\n/);\n\n  for (const rawLine of lines) {\n    const line = rawLine.trim();\n    if (!line.startsWith(\"data:\")) continue;\n\n    const payload = line.slice(5).trim();\n    if (!payload || payload === \"[DONE]\") continue;\n\n    try {\n      const chunk = JSON.parse(payload);\n      const delta = chunk?.choices?.[0]?.delta?.content;\n      const messageContent = chunk?.choices?.[0]?.message?.content;\n      const plainText = chunk?.choices?.[0]?.text;\n\n      if (typeof delta === \"string\") collected.push(delta);\n      else if (typeof messageContent === \"string\") collected.push(messageContent);\n      else if (typeof plainText === \"string\") collected.push(plainText);\n    } catch {\n      // Ignore malformed chunks and keep parsing\n    }\n  }\n\n  const merged = collected.join(\"\").trim();\n  return merged || text;\n}\n\nfunction firstText(...values) {\n  for (const value of values) {\n    if (typeof value === \"string\" && value.trim()) {\n      const normalized = normalizeStreamingText(value);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n\n    const joined = joinContentBlocks(value);\n    if (joined) {\n      const normalized = normalizeStreamingText(joined);\n      if (normalized && normalized.trim()) return normalized.trim();\n    }\n  }\n  return \"\";\n}\n\nfunction parseMaybeJson(value) {\n  if (typeof value !== \"string\") return null;\n  const trimmed = value.trim();\n  if (!trimmed.startsWith(\"{\") && !trimmed.startsWith(\"[\")) return null;\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return null;\n  }\n}\n\nfunction tryParseJsonObject(text) {\n  if (typeof text !== \"string\") return null;\n  const start = text.indexOf(\"{\");\n  const end = text.lastIndexOf(\"}\");\n  if (start === -1 || end <= start) return null;\n  const candidate = text.slice(start, end + 1);\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction extractModelText(json) {\n  if (!json || typeof json !== \"object\") return \"\";\n\n  const direct = firstText(\n    json.text,\n    json.response,\n    json.output,\n    json.result,\n    json.answer,\n    json.completion,\n    json.generated_text,\n    json.message?.content,\n    json.choices?.[0]?.message?.content,\n    json.choices?.[0]?.text,\n    json.data?.text,\n    json.data?.response,\n    json.data?.output,\n    json.data?.result,\n    json.data?.choices?.[0]?.message?.content,\n    json.data?.choices?.[0]?.text,\n    json.content,\n    json.data?.content,\n    json.data\n  );\n  if (direct) return direct;\n\n  const parsedFromStrings = [json.response, json.text, json.output, json.result, json.data]\n    .map((value) => parseMaybeJson(value))\n    .filter((value) => value && typeof value === \"object\");\n\n  for (const parsed of parsedFromStrings) {\n    const parsedText = extractModelText(parsed);\n    if (parsedText) return parsedText;\n  }\n\n  return \"\";\n}\n\nfunction extractOutputTokens(json, rawModelText) {\n  const direct = extractUsageTokensObject(json);\n  if (direct !== null) {\n    return { outputTokens: direct, outputTokensSource: \"usage.completion_tokens\" };\n  }\n\n  const maybeSse = [json.data, json.response, json.output, json.result, json.text];\n  for (const value of maybeSse) {\n    const fromSse = extractUsageTokensFromSseText(value);\n    if (fromSse !== null) {\n      return { outputTokens: fromSse, outputTokensSource: \"stream.usage.completion_tokens\" };\n    }\n  }\n\n  const estimated = Math.max(1, Math.round(String(rawModelText ?? \"\").length / 4));\n  return { outputTokens: estimated, outputTokensSource: \"estimated_char_div4\" };\n}\n\nfunction decodeQuoted(value) {\n  const trimmed = String(value ?? \"\").trim();\n  if (!trimmed) return \"\";\n\n  if (trimmed.startsWith(\"\\\"\") && trimmed.endsWith(\"\\\"\")) {\n    try {\n      return JSON.parse(trimmed);\n    } catch {\n      return trimmed\n        .slice(1, -1)\n        .replace(/\\\\r\\\\n/g, \"\\n\")\n        .replace(/\\\\n/g, \"\\n\")\n        .replace(/\\\\t/g, \"\\t\")\n        .replace(/\\\\\\\"/g, \"\\\"\")\n        .replace(/\\\\'/g, \"'\")\n        .replace(/\\\\\\\\/g, \"\\\\\");\n    }\n  }\n\n  if (trimmed.startsWith(\"'\") && trimmed.endsWith(\"'\")) {\n    return trimmed\n      .slice(1, -1)\n      .replace(/\\\\r\\\\n/g, \"\\n\")\n      .replace(/\\\\n/g, \"\\n\")\n      .replace(/\\\\t/g, \"\\t\")\n      .replace(/\\\\\\\"/g, \"\\\"\")\n      .replace(/\\\\'/g, \"'\")\n      .replace(/\\\\\\\\/g, \"\\\\\");\n  }\n\n  return trimmed;\n}\n\nfunction normalizeCandidate(text) {\n  let out = String(text ?? \"\").trim();\n  if (!out) return \"\";\n\n  const fenced = out.match(/^\\`\\`\\`(?:markdown|md|txt)?\\s*([\\s\\S]*?)\\`\\`\\`$/i);\n  if (fenced) out = fenced[1].trim();\n\n  out = out\n    .replace(/^\\s*[\"']?requirements[\"']?\\s*:\\s*/i, \"\")\n    .replace(/^\\s*[\"']?response[\"']?\\s*:\\s*/i, \"\")\n    .trim();\n\n  out = decodeQuoted(out);\n\n  if (!out.includes(\"\\n\") && /\\\\n|\\\\r|\\\\t/.test(out)) {\n    out = out\n      .replace(/\\\\r\\\\n/g, \"\\n\")\n      .replace(/\\\\n/g, \"\\n\")\n      .replace(/\\\\r/g, \"\\n\")\n      .replace(/\\\\t/g, \"\\t\")\n      .replace(/\\\\\\\"/g, \"\\\"\")\n      .replace(/\\\\'/g, \"'\")\n      .replace(/\\\\\\\\/g, \"\\\\\");\n  }\n\n  out = out.replace(/\\r\\n/g, \"\\n\").replace(/\\r/g, \"\\n\").trim();\n\n  const firstHeadingIndex = out.search(/(^|\\n)#{1,6}\\s+\\S/);\n  if (firstHeadingIndex > 0) {\n    const prefix = out.slice(0, firstHeadingIndex).toLowerCase();\n    if (\n      prefix.includes(\"here\") ||\n      prefix.includes(\"generated\") ||\n      prefix.includes(\"requirements\") ||\n      prefix.includes(\"specification\")\n    ) {\n      out = out.slice(firstHeadingIndex).trim();\n    }\n  }\n\n  const trailingMarkers = [\n    /\\n(?:Notes?|Explanation|Rationale|Summary)\\s*:/i,\n    /\\n(?:If you'd like|If you want|Let me know|I can help)/i,\n    /\\nThis (?:requirements|document|specification) /i,\n  ];\n  let endIndex = out.length;\n  for (const marker of trailingMarkers) {\n    const match = marker.exec(out);\n    if (match && match.index > 0) endIndex = Math.min(endIndex, match.index);\n  }\n  out = out.slice(0, endIndex).trim();\n\n  return out;\n}\n\nfunction collectRequirementsCandidatesFromObject(obj, candidates) {\n  if (!obj || typeof obj !== \"object\") return;\n\n  const valueCandidates = [\n    obj.requirements,\n    obj.output?.requirements,\n    obj.data?.requirements,\n    obj.result?.requirements,\n    obj.response?.requirements,\n    obj.message?.requirements,\n    obj.content?.requirements,\n    obj.markdown,\n    obj.data?.markdown,\n  ];\n\n  for (const value of valueCandidates) {\n    if (typeof value === \"string\" && value.trim()) candidates.push(value);\n  }\n\n  if (Array.isArray(obj)) {\n    for (const entry of obj) collectRequirementsCandidatesFromObject(entry, candidates);\n    return;\n  }\n\n  for (const [key, value] of Object.entries(obj)) {\n    if (!value || typeof value !== \"object\" || key === \"usage\") continue;\n    collectRequirementsCandidatesFromObject(value, candidates);\n  }\n}\n\nfunction scoreCandidate(text) {\n  let score = text.length;\n  if (/^#\\s+/.test(text)) score += 1200;\n  if (/\\n##\\s+/.test(text)) score += 800;\n  if (/\\bMUST\\b/.test(text)) score += 400;\n  if (/\\b(REQ|DATA|SEC|TST)-\\d{3}\\b/.test(text)) score += 500;\n  if (/^\\s*\\{\\s*\"/.test(text)) score -= 2000;\n  if (/^\\s*\\[/.test(text)) score -= 1500;\n  return score;\n}\n\nfunction extractRequirementsMarkdown(rawText) {\n  if (typeof rawText !== \"string\" || !rawText.trim()) {\n    throw new Error(\"Requirements response is empty.\");\n  }\n\n  const raw = rawText.trim();\n  const candidates = [raw];\n\n  const fencedMatches = [...raw.matchAll(/\\`\\`\\`(?:markdown|md|txt)?\\s*([\\s\\S]*?)\\`\\`\\`/gi)];\n  for (const match of fencedMatches) {\n    if (match && typeof match[1] === \"string\") candidates.push(match[1]);\n  }\n\n  const parsedWhole = parseMaybeJson(raw);\n  if (parsedWhole && typeof parsedWhole === \"object\") {\n    collectRequirementsCandidatesFromObject(parsedWhole, candidates);\n  }\n\n  const parsedEmbedded = tryParseJsonObject(raw);\n  if (parsedEmbedded && typeof parsedEmbedded === \"object\") {\n    collectRequirementsCandidatesFromObject(parsedEmbedded, candidates);\n  }\n\n  const labelled = raw.match(/(?:^|\\n)\\s*[\"']?requirements[\"']?\\s*:\\s*([\\s\\S]*)/i);\n  if (labelled) candidates.push(labelled[1]);\n\n  const firstHeadingIndex = raw.search(/(^|\\n)#{1,6}\\s+\\S/);\n  if (firstHeadingIndex >= 0) candidates.push(raw.slice(firstHeadingIndex));\n\n  const normalized = candidates.map(normalizeCandidate).filter((value) => value.length > 0);\n  if (!normalized.length) {\n    throw new Error(\"Could not extract requirements content from model output.\");\n  }\n\n  let best = normalized[0];\n  let bestScore = scoreCandidate(best);\n  for (const candidate of normalized.slice(1)) {\n    const score = scoreCandidate(candidate);\n    if (score > bestScore) {\n      best = candidate;\n      bestScore = score;\n    }\n  }\n\n  return best;\n}\n\nconst item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\nconst rawModelText = extractModelText(json);\nconst tokenInfo = extractOutputTokens(json, rawModelText);\n\nreturn [{\n  json: {\n    response: extractRequirementsMarkdown(rawModelText),\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    outputTokens: tokenInfo.outputTokens,\n    outputTokensSource: tokenInfo.outputTokensSource,\n  },\n  ...(item.binary && Object.keys(item.binary).length > 0 ? { binary: item.binary } : {}),\n}];"
+      },
+      "id": "d8e4e8ed-5630-4404-b10d-2549b5caa158",
+      "name": "REQ - Clean Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        35136,
+        12160
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pQM23J0BoE8iVhNc",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pQM23J0BoE8iVhNc",
+          "cachedResultName": "zip link"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.reviewZip.mimeType }}",
+            "archiveFileName": "={{ $binary.reviewZip.fileName }}",
+            "response": "={{ $json.response }}",
+            "archiveData": "={{ $binary.reviewZip ? ($binary.reviewZip.data || ($binary.reviewZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+            "archiveId": "={{ $binary.reviewZip ? ($binary.reviewZip.id || \"\") : \"\" }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "archiveData",
+              "displayName": "archiveData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveMimeType",
+              "displayName": "archiveMimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveFileName",
+              "displayName": "archiveFileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "openapiYaml",
+              "displayName": "openapiYaml",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "revisionNumber",
+              "displayName": "revisionNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "response",
+              "displayName": "response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveId",
+              "displayName": "archiveId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveBinaryProperty",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveBinaryProperty",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        36000,
+        12288
+      ],
+      "id": "21aea7ea-0f7c-4ac2-b325-75986df14793",
+      "name": "REQ - Create Zip Link"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "requirementsZip"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        33728,
+        12160
+      ],
+      "id": "5fe46612-877a-484a-82d1-1319a7b85efa",
+      "name": "REQ - Decompress Zip"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = item.json ?? {};\n\nconst requirements = String(json.response ?? '').trim();\nif (!requirements) {\n  throw new Error('Requirements Markdown draft is missing before review ZIP creation.');\n}\n\nconst parsedOutputTokens = Number(json.outputTokens);\nconst outputTokens = Number.isFinite(parsedOutputTokens) && parsedOutputTokens >= 0\n  ? Math.trunc(parsedOutputTokens)\n  : Math.max(1, Math.round(requirements.length / 4));\n\nconst outputTokensSource = String(json.outputTokensSource ?? 'estimated_char_div4').trim() || 'estimated_char_div4';\n\nfunction makeBinaryText(text, fileName, mimeType) {\n  return {\n    data: Buffer.from(String(text), 'utf8').toString('base64'),\n    fileName,\n    mimeType,\n  };\n}\n\nconst binary = {\n  ...(item.binary ?? {}),\n  requirements: makeBinaryText(requirements, 'requirements.md', 'text/markdown'),\n  outTokens: makeBinaryText(String(outputTokens) + '\\n', 'out_tokens.txt', 'text/plain'),\n};\n\nreturn [{\n  json: {\n    ...json,\n    outputTokens,\n    outputTokensSource,\n  },\n  binary,\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        35392,
+        12256
+      ],
+      "id": "7344b005-4a54-465f-a599-f7416afa1764",
+      "name": "REQ - File to Review"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer OR0sxOaBgUkWjAz8g5Ib6LXJwMwAIGSc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"mistral-large-latest\",\n  messages: [\n    {\n      role: \"system\",\n      content: `\nYou are a Senior Software Engineer operating inside an automated software engineering pipeline.\n\nTHIS IS A STRICT REFINEMENT ITERATION TASK.\n\nYou are refining an existing artefact — NOT creating from scratch.\n\n------------------------------------------------\nGOAL\n------------------------------------------------\n\nProduce one improved, internally consistent next-iteration requirements specification.\n\nThe refinement MUST:\n\n- fix identified issues\n- preserve valid content\n- maintain stable contracts\n- improve clarity, consistency, and completeness\n\n------------------------------------------------\nMODULE TARGET\n------------------------------------------------\n\nModule: requirements\n\nThis artefact is the authoritative source for all downstream modules.\n\n------------------------------------------------\nINPUTS (AUTHORITATIVE)\n------------------------------------------------\n\nYou will receive:\n\n- current requirements document\n- review feedback / validation issues\n\nTreat both as authoritative.\n\n------------------------------------------------\nREFINEMENT RULES (MANDATORY)\n------------------------------------------------\n\n1) Preserve valid content  \n- Do NOT remove correct requirements\n\n2) Resolve root causes  \n- Fix underlying issues, not symptoms\n\n3) Maintain consistency  \n- Keep terminology uniform\n\n4) Keep structure stable  \n- Do NOT reorganise unnecessarily\n\n5) Minimal assumptions  \n- Only introduce when required  \n- Mark as [ASSUMPTION: ...]\n\n------------------------------------------------\nREQUIREMENTS QUALITY RULES\n------------------------------------------------\n\nEnsure all requirements are:\n\n- atomic\n- testable\n- unambiguous\n- consistent\n\nEnsure identifiers remain stable.\n\nDo NOT renumber existing requirements unless necessary.\n\n------------------------------------------------\nUI DESIGN REFINEMENT (CONDITIONAL)\n------------------------------------------------\n\nOnly refine the final UI design section IF the feedback explicitly refers to UI.\n\nIf UI is part of the feedback:\n\n- Update the UI design to remain consistent with the requirements\n- Apply the feedback to improve or correct the UI design\n- If there is a conflict between requirements and feedback, you MUST prioritize the feedback\n\n------------------------------------------------\nUI MINIMALISM RULE (MANDATORY DURING REFINEMENT)\n------------------------------------------------\n\nWhen modifying UI:\n\n- Reduce unnecessary complexity where possible\n- Avoid excessive number of Screens\n- Merge UI elements when appropriate\n- Ensure UI remains minimal and focused on core requirements\n\n------------------------------------------------\nUI TYPE DEFINITIONS (MANDATORY)\n------------------------------------------------\n\nScreen:\n- A main page with multiple responsibilities\n- Contains multiple actions and sections\n\nModal:\n- A focused interaction for a specific action (create/edit/configure)\n\nDialog:\n- A simple list or selection interface\n- Must remain lightweight and limited in scope\n\n------------------------------------------------\nCLASSIFICATION CORRECTION RULE\n------------------------------------------------\n\nDuring refinement:\n\n- Fix incorrect classification of UI elements\n- Convert Screens into Modals or Dialogs when they are too granular\n- Ensure UI types follow definitions strictly\n\n------------------------------------------------\nPRESERVATION RULE\n------------------------------------------------\n\nIf UI is NOT mentioned in the feedback:\n\n- Preserve the UI section exactly as-is\n- Do NOT modify it\n\n------------------------------------------------\nQUALITY GATE (MANDATORY)\n------------------------------------------------\n\nBefore output verify:\n\n- all issues from feedback are resolved\n- no new inconsistencies introduced\n- requirements and UI design remain aligned\n- document is complete and coherent\n\nIf any check fails, correct it before producing final output.\n\n------------------------------------------------\nOUTPUT CONTRACT (STRICT)\n------------------------------------------------\n\nReturn ONLY the updated Markdown requirements document.\n\n- No explanations\n- No comments\n- No metadata\n- No text outside the document\n\n`\n    },\n    {\n      role: \"user\",\n      content: $json.patchPrompt\n    }\n  ],\n  temperature: 0.2,\n  max_tokens: 100000,\n  stream: true,\n}) }}\n",
+        "options": {
+          "timeout": 7200000
+        }
+      },
+      "id": "58dc606f-5a9d-467a-b91b-2448d6c23669",
+      "name": "REQ - Generate Refinement Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        35168,
+        11904
+      ],
+      "retryOnFail": false,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer OR0sxOaBgUkWjAz8g5Ib6LXJwMwAIGSc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"mistral-large-latest\",\n  messages: [\n    {\n      role: \"system\",\n      content: `\nYou are a Senior Software Requirements Engineer operating inside an automated software engineering pipeline.\n\nYour responsibility is to transform raw project context into a precise, structured, and implementation-ready requirements specification.\n\nThis document is the authoritative source of truth for all downstream modules, including design, UI generation, API definition, backend, frontend, infrastructure, and testing.\n\n------------------------------------------------\nMISSION\n------------------------------------------------\n\nGenerate a complete, internally consistent software requirements specification in Markdown.\n\nThe document must describe:\n\n- what the system MUST do\n- the rules it MUST follow\n- the constraints under which it MUST operate\n\nYou are defining system behaviour — NOT technical implementation.\n\n------------------------------------------------\nINPUT HANDLING\n------------------------------------------------\n\nYou may receive one or more artefacts such as:\n\n- business context\n- project description\n- user stories\n- domain rules\n- process descriptions\n- constraints (legal, organisational, technical)\n\nPriority:\n\n1. Explicit input content\n2. Prompt rules\n3. Minimal conservative assumptions\n\nIf a necessary detail is missing:\n\n- introduce a minimal assumption\n- mark it inline as:\n\n[ASSUMPTION: description]\n\n------------------------------------------------\nOUTPUT CONTRACT (STRICT)\n------------------------------------------------\n\nReturn ONLY the final Markdown document.\n\nRules:\n\n- No text before the first heading\n- No text after the final section\n- No code fences\n- No JSON\n- No explanations\n\nThe output must read as a professional requirements specification.\n\n------------------------------------------------\nWRITING RULES\n------------------------------------------------\n\nUse normative language:\n\nMUST / MUST NOT / SHOULD / MAY\n\nAll requirements must be:\n\n- atomic\n- testable\n- unambiguous\n- consistent\n\nEach requirement MUST have a unique identifier:\n\nREQ-001  \nDATA-001  \nSEC-001  \nTST-001  \n\nAvoid duplication and contradictions.\n\nUse consistent terminology across the document.\n\n------------------------------------------------\nDOCUMENT STRUCTURE\n------------------------------------------------\n\nOrganise the document logically.\n\nDo NOT follow a rigid template.\n\nHowever, ensure the document sufficiently covers (when relevant):\n\n- system scope and purpose\n- user roles and permissions\n- functional behaviour\n- workflows and states\n- business rules\n- data entities and relationships\n- constraints\n- integrations\n- security\n- performance expectations\n- testability\n\n------------------------------------------------\nFUNCTIONAL REQUIREMENTS\n------------------------------------------------\n\nDescribe system behaviour clearly.\n\nWhen relevant include:\n\n- preconditions\n- triggers\n- system response\n- resulting state\n- failure scenarios\n\n------------------------------------------------\nDATA AND STATE\n------------------------------------------------\n\nDescribe:\n\n- domain entities\n- attributes\n- relationships\n- lifecycle states\n\nFocus on conceptual clarity.\n\n------------------------------------------------\nCONSTRAINTS\n------------------------------------------------\n\nOnly include constraints present in the input.\n\nDo NOT invent technical constraints.\n\n------------------------------------------------\nTESTABILITY\n------------------------------------------------\n\nRequirements MUST be verifiable.\n\nInclude acceptance criteria where appropriate.\n\n------------------------------------------------\nUI DESIGN INTENT (MANDATORY FINAL SECTION)\n------------------------------------------------\n\nAt the END of the document, you MUST include a section describing the intended UI design.\n\nThis section MUST describe:\n\n- all Screens\n- all Modals\n- all Dialogs\n\n------------------------------------------------\nUI MINIMALISM RULE (CRITICAL)\n------------------------------------------------\n\nThe UI design MUST be minimal and focused.\n\n- Only include UI elements that are strictly necessary to satisfy the requirements\n- Do NOT create a large number of screens\n- Do NOT create one screen per action\n- Prefer grouping related actions into the same Screen\n- Avoid over-fragmentation of the UI\n\nA smaller, well-structured UI is ALWAYS preferred over a large fragmented one.\n\n------------------------------------------------\nUI TYPE DEFINITIONS (MANDATORY)\n------------------------------------------------\n\nScreen:\n- A main page with multiple responsibilities\n- Contains multiple actions and sections\n- Represents a navigation destination\n- Example: \"Member Management\", \"Dashboard\"\n\nModal:\n- Used for a specific and focused action\n- Usually triggered from a Screen\n- Typically used for:\n  - create\n  - edit\n  - configure\n- Example: \"Create Member\", \"Edit Profile\"\n\nDialog:\n- Used for simple list or selection views\n- Lightweight and focused\n- Typically used for:\n  - selecting items\n  - displaying simple lists\n- MUST NOT contain complex workflows\n\n------------------------------------------------\nCLASSIFICATION RULES (CRITICAL)\n------------------------------------------------\n\n- Every UI element MUST be correctly classified\n- DO NOT misuse Screens for simple actions\n- DO NOT convert all elements into Screens\n\nStrong guidelines:\n\n- If it contains multiple sections and actions → Screen\n- If it is a single focused action → Modal\n- If it is a simple list or selection → Dialog\n\n------------------------------------------------\nUI DESIGN DESCRIPTION\n------------------------------------------------\n\nFor each element:\n\n- name\n- purpose\n- main responsibilities\n- key UI elements (forms, tables, actions, navigation elements)\n- interactions with other UI elements\n\nRules:\n\n- Cover ALL user flows\n- Do NOT invent features outside requirements\n- Ensure consistency with functional requirements\n- Use clear, descriptive names\n- Avoid duplication\n\nThis section MUST be detailed enough to guide downstream UI generation.\n\n------------------------------------------------\nCONSISTENCY CHECK (SILENT)\n------------------------------------------------\n\nBefore output:\n\n- no contradictions\n- no duplicate requirements\n- terminology consistent\n- UI design aligns with requirements\n- flows are complete and coherent\n\nReturn ONLY the Markdown document.\n`\n    },\n    {\n      role: \"user\",\n      content: $json.userPrompt\n    }\n  ],\n  temperature: 0.2,\n  max_tokens: 100000,\n  stream: true,\n}) }}",
+        "options": {
+          "timeout": 7200000
+        }
+      },
+      "id": "8f0302ca-e558-465f-a33d-59487c97c85f",
+      "name": "REQ - Generate Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        34928,
+        12160
+      ],
+      "retryOnFail": false,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst markdown = String(json.response ?? '').replace(/\\r\\n/g, '\\n');\n\nif (!markdown.trim()) {\n  throw new Error('Requirements Markdown is missing, cannot generate PDF.');\n}\n\nconst PAGE_WIDTH = 595;\nconst PAGE_HEIGHT = 842;\nconst MARGIN_X = 48;\nconst MARGIN_Y = 52;\nconst CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);\nconst LINE_GAP = 4;\nconst TABLE_FONT_SIZE = 11;\nconst TABLE_LINE_HEIGHT = 14;\nconst TABLE_CELL_PADDING_X = 5;\nconst TABLE_CELL_PADDING_Y = 4;\n\nconst WIN_ANSI_MAP = {\n  '\\u20AC': 0x80,\n  '\\u201A': 0x82,\n  '\\u0192': 0x83,\n  '\\u201E': 0x84,\n  '\\u2026': 0x85,\n  '\\u2020': 0x86,\n  '\\u2021': 0x87,\n  '\\u02C6': 0x88,\n  '\\u2030': 0x89,\n  '\\u0160': 0x8A,\n  '\\u2039': 0x8B,\n  '\\u0152': 0x8C,\n  '\\u017D': 0x8E,\n  '\\u2018': 0x91,\n  '\\u2019': 0x92,\n  '\\u201C': 0x93,\n  '\\u201D': 0x94,\n  '\\u2022': 0x95,\n  '\\u2013': 0x96,\n  '\\u2014': 0x97,\n  '\\u02DC': 0x98,\n  '\\u2122': 0x99,\n  '\\u0161': 0x9A,\n  '\\u203A': 0x9B,\n  '\\u0153': 0x9C,\n  '\\u017E': 0x9E,\n  '\\u0178': 0x9F,\n};\n\nfunction stripInlineMarkdown(value) {\n  return String(value ?? '')\n    .replace(/`([^`]+)`/g, '$1')\n    .replace(/\\*\\*([^*]+)\\*\\*/g, '$1')\n    .replace(/__([^_]+)__/g, '$1')\n    .replace(/\\*([^*]+)\\*/g, '$1')\n    .replace(/_([^_]+)_/g, '$1')\n    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '$1 ($2)');\n}\n\nfunction normalizeText(value) {\n  return String(value ?? '')\n    .normalize('NFC')\n    .replace(/\\u0000/g, '')\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, '')\n    .replace(/\\t/g, '    ');\n}\n\nfunction collapseSpaces(value) {\n  return String(value ?? '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction estimateMaxChars(fontSize, indent) {\n  const usable = Math.max(60, CONTENT_WIDTH - indent);\n  const avgCharWidth = Math.max(4.6, fontSize * 0.5);\n  return Math.max(18, Math.floor(usable / avgCharWidth));\n}\n\nfunction wrapText(text, maxChars) {\n  const clean = collapseSpaces(text);\n  const limit = Math.max(4, Math.floor(maxChars || 0));\n  if (!clean) return [''];\n\n  const lines = [];\n  let remaining = clean;\n\n  while (remaining.length > limit) {\n    let breakAt = remaining.lastIndexOf(' ', limit);\n    if (breakAt < Math.floor(limit * 0.5)) {\n      breakAt = limit;\n    }\n\n    const segment = remaining.slice(0, breakAt).trim();\n    if (segment) {\n      lines.push(segment);\n      remaining = remaining.slice(breakAt).trimStart();\n    } else {\n      lines.push(remaining.slice(0, limit));\n      remaining = remaining.slice(limit);\n    }\n  }\n\n  if (remaining) lines.push(remaining);\n  return lines.length ? lines : [''];\n}\n\nfunction toWinAnsiString(value) {\n  const input = String(value ?? '').normalize('NFC');\n  let out = '';\n\n  for (const char of input) {\n    const code = char.codePointAt(0);\n\n    if (code <= 0xff) {\n      out += String.fromCharCode(code);\n      continue;\n    }\n\n    if (WIN_ANSI_MAP[char] !== undefined) {\n      out += String.fromCharCode(WIN_ANSI_MAP[char]);\n      continue;\n    }\n\n    if (char === '?') {\n      out += '->';\n      continue;\n    }\n\n    const noDiacritics = char.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '');\n    if (noDiacritics && noDiacritics.codePointAt(0) <= 0xff) {\n      out += String.fromCharCode(noDiacritics.codePointAt(0));\n    }\n  }\n\n  return out;\n}\n\nfunction escapePdfLiteral(value) {\n  return String(value ?? '')\n    .replace(/\\\\/g, '\\\\\\\\')\n    .replace(/\\(/g, '\\\\(')\n    .replace(/\\)/g, '\\\\)');\n}\n\nfunction isTableSeparator(line) {\n  const inner = String(line ?? '').trim().replace(/^\\|/, '').replace(/\\|$/, '');\n  if (!inner) return false;\n  const cells = inner.split('|').map((c) => c.trim());\n  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));\n}\n\nfunction parseTableLine(line) {\n  const inner = String(line ?? '').trim().replace(/^\\|/, '').replace(/\\|$/, '');\n  return inner.split('|').map((cell) => collapseSpaces(stripInlineMarkdown(cell)));\n}\n\nfunction buildTableLayout(tableRows, columnCount) {\n  const safeRows = tableRows.map((row) => Array.from({ length: columnCount }, (_, i) => collapseSpaces(row[i] ?? '')));\n\n  const maxCharsByCol = Array.from({ length: columnCount }, () => 8);\n  for (const row of safeRows) {\n    for (let i = 0; i < columnCount; i += 1) {\n      maxCharsByCol[i] = Math.max(maxCharsByCol[i], Math.min(48, row[i].length || 1));\n    }\n  }\n\n  let widths = maxCharsByCol.map((chars) => Math.max(50, chars * 5.1 + (TABLE_CELL_PADDING_X * 2)));\n  const total = widths.reduce((acc, v) => acc + v, 0);\n\n  if (total > CONTENT_WIDTH) {\n    const scale = CONTENT_WIDTH / total;\n    widths = widths.map((w) => Math.max(44, w * scale));\n    const scaledTotal = widths.reduce((acc, v) => acc + v, 0);\n    if (scaledTotal > CONTENT_WIDTH) {\n      widths[widths.length - 1] -= (scaledTotal - CONTENT_WIDTH);\n    }\n  }\n\n  const rowLayouts = safeRows.map((row, rowIndex) => {\n    const cellLines = row.map((cell, col) => {\n      const maxChars = Math.max(3, Math.floor((widths[col] - (TABLE_CELL_PADDING_X * 2)) / 5.8) - 1);\n      return wrapText(cell, maxChars);\n    });\n\n    const maxLineCount = Math.max(...cellLines.map((c) => c.length));\n    return {\n      font: rowIndex === 0 ? 'F2' : 'F1',\n      fontSize: TABLE_FONT_SIZE,\n      cellLines,\n      height: (maxLineCount * TABLE_LINE_HEIGHT) + (TABLE_CELL_PADDING_Y * 2),\n    };\n  });\n\n  return { widths, rowLayouts };\n}\n\nfunction buildLayout(mdText) {\n  const rows = [];\n  const lines = normalizeText(mdText).split('\\n');\n\n  const firstMeaningful = lines\n    .map((line) => collapseSpaces(stripInlineMarkdown(line)))\n    .find((line) => !!line) ?? 'Requirements Specification';\n\n  const firstHeading = firstMeaningful.match(/^(#{1,6})\\s+(.+)$/);\n  const title = firstHeading\n    ? collapseSpaces(firstHeading[2])\n    : collapseSpaces(firstMeaningful.replace(/^\\*\\*(.*)\\*\\*$/, '$1'));\n\n  rows.push({ text: title, font: 'F2', fontSize: 24, lineHeight: 30, indent: 0, extraAfter: 2 });\n  rows.push({ text: 'Requirements Specification Document', font: 'F1', fontSize: 12, lineHeight: 16, indent: 0, extraAfter: 8 });\n  rows.push({ type: 'rule' });\n  rows.push({ type: 'spacer', amount: 8 });\n\n  let titleConsumed = false;\n\n  for (let idx = 0; idx < lines.length; idx += 1) {\n    const rawLine = lines[idx];\n    const line = String(rawLine ?? '').replace(/\\s+$/g, '');\n    const trimmed = line.trim();\n    const cleanTrimmed = collapseSpaces(stripInlineMarkdown(trimmed.replace(/^#{1,6}\\s+/, '').replace(/^\\*\\*(.*)\\*\\*$/, '$1')));\n\n    if (!titleConsumed && cleanTrimmed && cleanTrimmed === title) {\n      titleConsumed = true;\n      continue;\n    }\n\n    if (!trimmed) {\n      rows.push({ type: 'spacer', amount: 6 });\n      continue;\n    }\n\n    if (trimmed.startsWith('|')) {\n      const tableLines = [trimmed];\n      let probe = idx + 1;\n      while (probe < lines.length) {\n        const candidate = String(lines[probe] ?? '').trim();\n        if (!candidate.startsWith('|')) break;\n        tableLines.push(candidate);\n        probe += 1;\n      }\n\n      if (tableLines.length >= 2 && isTableSeparator(tableLines[1])) {\n        const parsed = tableLines\n          .filter((lineValue, lineIndex) => !(lineIndex === 1 && isTableSeparator(lineValue)))\n          .map(parseTableLine);\n\n        const columnCount = parsed.reduce((acc, row) => Math.max(acc, row.length), 0);\n        if (parsed.length > 0 && columnCount > 0) {\n          rows.push({ type: 'table', rows: parsed, columnCount });\n          rows.push({ type: 'spacer', amount: 8 });\n          idx = probe - 1;\n          continue;\n        }\n      }\n    }\n\n    if (/^---+$/.test(trimmed) || /^___+$/.test(trimmed) || /^\\*\\*\\*+$/.test(trimmed)) {\n      rows.push({ type: 'rule' });\n      rows.push({ type: 'spacer', amount: 8 });\n      continue;\n    }\n\n    const heading = trimmed.match(/^(#{1,6})\\s+(.*)$/);\n    if (heading) {\n      const level = Math.min(6, heading[1].length);\n      const sizeMap = { 1: 20, 2: 16, 3: 14, 4: 12, 5: 11, 6: 10 };\n      rows.push({\n        text: collapseSpaces(stripInlineMarkdown(heading[2])),\n        font: 'F2',\n        fontSize: sizeMap[level],\n        lineHeight: sizeMap[level] + 4,\n        indent: 0,\n        extraBefore: level <= 2 ? 8 : 4,\n        extraAfter: level <= 2 ? 4 : 2,\n      });\n      continue;\n    }\n\n    const bullet = trimmed.match(/^[-*+]\\s+(.*)$/);\n    if (bullet) {\n      rows.push({ text: collapseSpaces(stripInlineMarkdown(bullet[1])), font: 'F1', fontSize: 12, lineHeight: 17, indent: 18, bullet: '- ' });\n      continue;\n    }\n\n    const ordered = trimmed.match(/^(\\d+[.)])\\s+(.*)$/);\n    if (ordered) {\n      rows.push({ text: collapseSpaces(stripInlineMarkdown(ordered[2])), font: 'F1', fontSize: 12, lineHeight: 17, indent: 22, bullet: ordered[1] + ' ' });\n      continue;\n    }\n\n    rows.push({ text: collapseSpaces(stripInlineMarkdown(trimmed)), font: 'F1', fontSize: 12, lineHeight: 17, indent: 0 });\n  }\n\n  return rows;\n}\n\nfunction paginate(rows) {\n  const pages = [];\n  let currentPage = [];\n  let y = PAGE_HEIGHT - MARGIN_Y;\n\n  function pushPage() {\n    pages.push(currentPage);\n    currentPage = [];\n    y = PAGE_HEIGHT - MARGIN_Y;\n  }\n\n  for (const row of rows) {\n    if (row.type === 'spacer') {\n      y -= row.amount;\n      if (y < MARGIN_Y) pushPage();\n      continue;\n    }\n\n    if (row.type === 'rule') {\n      y -= 8;\n      if (y < MARGIN_Y) pushPage();\n      currentPage.push({ type: 'line', x1: MARGIN_X, y1: y, x2: PAGE_WIDTH - MARGIN_X, y2: y, width: 0.2 });\n      y -= 12;\n      if (y < MARGIN_Y) pushPage();\n      continue;\n    }\n\n    if (row.type === 'table') {\n      const table = buildTableLayout(row.rows, row.columnCount);\n      const xBreaks = [MARGIN_X];\n      for (const w of table.widths) xBreaks.push(xBreaks[xBreaks.length - 1] + w);\n\n      for (let r = 0; r < table.rowLayouts.length; r += 1) {\n        const rowLayout = table.rowLayouts[r];\n        const rowHeight = rowLayout.height;\n\n        if ((y - rowHeight) < MARGIN_Y) pushPage();\n\n        const top = y;\n        const bottom = y - rowHeight;\n\n        currentPage.push({ type: 'line', x1: xBreaks[0], y1: top, x2: xBreaks[xBreaks.length - 1], y2: top, width: 0.6 });\n        currentPage.push({ type: 'line', x1: xBreaks[0], y1: bottom, x2: xBreaks[xBreaks.length - 1], y2: bottom, width: 0.6 });\n\n        for (let c = 0; c < xBreaks.length; c += 1) {\n          currentPage.push({ type: 'line', x1: xBreaks[c], y1: top, x2: xBreaks[c], y2: bottom, width: 0.4 });\n        }\n\n        for (let c = 0; c < rowLayout.cellLines.length; c += 1) {\n          const linesInCell = rowLayout.cellLines[c];\n          let textY = top - TABLE_CELL_PADDING_Y - TABLE_FONT_SIZE;\n          for (const segment of linesInCell) {\n            currentPage.push({\n              type: 'text',\n              text: segment,\n              font: rowLayout.font,\n              fontSize: rowLayout.fontSize,\n              x: xBreaks[c] + TABLE_CELL_PADDING_X,\n              y: textY,\n            });\n            textY -= TABLE_LINE_HEIGHT;\n          }\n        }\n\n        y = bottom - 4;\n        if (y < MARGIN_Y) pushPage();\n      }\n      continue;\n    }\n\n    y -= row.extraBefore ?? 0;\n    if (y < MARGIN_Y) pushPage();\n\n    const prefix = row.bullet ?? '';\n    const bodyMaxChars = estimateMaxChars(row.fontSize, row.indent);\n    const wrapped = wrapText(row.text, Math.max(12, bodyMaxChars - prefix.length));\n\n    for (let i = 0; i < wrapped.length; i += 1) {\n      const text = (i === 0 ? prefix : ' '.repeat(prefix.length)) + wrapped[i];\n      currentPage.push({ type: 'text', text, font: row.font, fontSize: row.fontSize, x: MARGIN_X + row.indent, y });\n      y -= row.lineHeight;\n      if (y < MARGIN_Y) pushPage();\n    }\n\n    y -= (row.extraAfter ?? LINE_GAP);\n    if (y < MARGIN_Y) pushPage();\n  }\n\n  if (currentPage.length === 0) {\n    currentPage.push({ type: 'text', text: '(empty document)', font: 'F1', fontSize: 11, x: MARGIN_X, y: PAGE_HEIGHT - MARGIN_Y });\n  }\n\n  pages.push(currentPage);\n  return pages;\n}\n\nfunction pageToStream(pageRows) {\n  const lines = [];\n\n  for (const row of pageRows) {\n    if (row.type === 'line') {\n      lines.push((row.width ?? 0.2).toFixed(2) + ' w');\n      lines.push(row.x1.toFixed(2) + ' ' + row.y1.toFixed(2) + ' m');\n      lines.push(row.x2.toFixed(2) + ' ' + row.y2.toFixed(2) + ' l');\n      lines.push('S');\n      continue;\n    }\n\n    const safe = escapePdfLiteral(toWinAnsiString(row.text || ''));\n    lines.push('BT');\n    lines.push('/' + row.font + ' ' + row.fontSize + ' Tf');\n    lines.push('1 0 0 1 ' + row.x.toFixed(2) + ' ' + row.y.toFixed(2) + ' Tm');\n    lines.push('(' + safe + ') Tj');\n    lines.push('ET');\n  }\n\n  return lines.join('\\n');\n}\n\nfunction buildPdfDocument(pageStreams) {\n  const objects = [];\n  const pageStart = 5;\n  const contentStart = pageStart + pageStreams.length;\n  const pageRefs = pageStreams.map((_, i) => (pageStart + i) + ' 0 R').join(' ');\n\n  objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';\n  objects[2] = '<< /Type /Pages /Kids [' + pageRefs + '] /Count ' + pageStreams.length + ' >>';\n  objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman /Encoding /WinAnsiEncoding >>';\n  objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold /Encoding /WinAnsiEncoding >>';\n\n  for (let i = 0; i < pageStreams.length; i += 1) {\n    const pageObj = pageStart + i;\n    const contentObj = contentStart + i;\n    objects[pageObj] = [\n      '<< /Type /Page',\n      '/Parent 2 0 R',\n      '/MediaBox [0 0 ' + PAGE_WIDTH + ' ' + PAGE_HEIGHT + ']',\n      '/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >>',\n      '/Contents ' + contentObj + ' 0 R',\n      '>>',\n    ].join(' ');\n\n    const stream = pageStreams[i];\n    const len = Buffer.byteLength(stream, 'latin1');\n    objects[contentObj] = '<< /Length ' + len + ' >>\\nstream\\n' + stream + '\\nendstream';\n  }\n\n  const maxObject = objects.length - 1;\n  let pdf = '%PDF-1.4\\n';\n  const offsets = [0];\n\n  for (let i = 1; i <= maxObject; i += 1) {\n    offsets[i] = Buffer.byteLength(pdf, 'latin1');\n    pdf += i + ' 0 obj\\n' + objects[i] + '\\nendobj\\n';\n  }\n\n  const xrefOffset = Buffer.byteLength(pdf, 'latin1');\n  pdf += 'xref\\n0 ' + (maxObject + 1) + '\\n';\n  pdf += '0000000000 65535 f \\n';\n\n  for (let i = 1; i <= maxObject; i += 1) {\n    const offset = String(offsets[i]).padStart(10, '0');\n    pdf += offset + ' 00000 n \\n';\n  }\n\n  pdf += 'trailer\\n<< /Size ' + (maxObject + 1) + ' /Root 1 0 R >>\\n';\n  pdf += 'startxref\\n' + xrefOffset + '\\n%%EOF';\n  return Buffer.from(pdf, 'latin1');\n}\n\nconst rows = buildLayout(markdown);\nconst pages = paginate(rows);\nconst streams = pages.map(pageToStream);\nconst pdfBuffer = buildPdfDocument(streams);\n\nreturn [{\n  json: { ...json },\n  binary: {\n    ...(item.binary ?? {}),\n    requirementsPdf: {\n      data: pdfBuffer.toString('base64'),\n      mimeType: 'application/pdf',\n      fileName: 'requirements.pdf',\n      fileExtension: 'pdf',\n    },\n  },\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        35392,
+        12080
+      ],
+      "id": "bd6320f7-ffbe-49ba-abc6-4effe8130937",
+      "name": "REQ - Markdown to PDF"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        35584,
+        12160
+      ],
+      "id": "7b1e026d-3f14-4cf3-beca-1e9d7cd704fb",
+      "name": "REQ - Md and Pdf"
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizeText(value) {\n  return String(value ?? '')\n    .replace(/\\u0000/g, '')\n    .replace(/\\u00A0/g, ' ')\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\r/g, '\\n')\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, '')\n    .replace(/[ \\t]+\\n/g, '\\n')\n    .replace(/\\n{4,}/g, '\\n\\n\\n')\n    .split('\\n')\n    .map((line) => line.replace(/\\s+$/g, ''))\n    .join('\\n')\n    .trim();\n}\n\nfunction fixCommonLigatures(value) {\n  return String(value ?? '')\n    .replace(/ï¬/g, 'fi')\n    .replace(/ï¬‚/g, 'fl')\n    .replace(/ï¬€/g, 'ff')\n    .replace(/ï¬ƒ/g, 'ffi')\n    .replace(/ï¬„/g, 'ffl')\n    .replace(/ï¬…/g, 'ft')\n    .replace(/ï¬†/g, 'st');\n}\n\nfunction scoreCandidate(source, text) {\n  const lengthScore = text.length;\n  const sourceBoosts = {\n    text: 90000,\n    extractedText: 80000,\n    markdown: 75000,\n    pdfText: 70000,\n    pages_joined: 70000,\n    data_text: 65000,\n    content: 60000,\n    fallback_field: 40000,\n  };\n  return (sourceBoosts[source] ?? 10000) + lengthScore;\n}\n\nfunction extractTextFromItem(json) {\n  if (!json || typeof json !== 'object') return '';\n  const candidates = [];\n  const push = (source, value) => {\n    if (typeof value !== 'string') return;\n    const normalized = normalizeText(fixCommonLigatures(value));\n    if (!normalized) return;\n    candidates.push({ source, text: normalized, score: scoreCandidate(source, normalized) });\n  };\n\n  push('text', json.text);\n  push('data', json.data);\n  push('content', json.content);\n  push('extractedText', json.extractedText);\n  push('markdown', json.markdown);\n  push('pdfText', json.pdfText);\n\n  if (Array.isArray(json.pages)) {\n    const joined = json.pages\n      .map((p) => (p && typeof p === 'object' ? (p.text ?? p.content ?? p.markdown ?? '') : ''))\n      .filter(Boolean)\n      .join('\\n\\n');\n    push('pages_joined', joined);\n  }\n\n  if (json.data && typeof json.data === 'object' && !Array.isArray(json.data)) {\n    push('data_text', json.data.text);\n    push('data_content', json.data.content);\n    push('data_markdown', json.data.markdown);\n  }\n\n  const metadataKeys = new Set([\n    'fileName','propertyName','mimeType','fileExtension','sourceKind','zipSkippedFiles','extractionMethod',\n    'model','response','done','created_at','total_duration','load_duration','prompt_eval_count','eval_count',\n    'chunkPrompt','chunkMeta','coverage','userPrompt','chunkCoverage','ooxmlXmlEntryCount'\n  ]);\n\n  for (const [k, v] of Object.entries(json)) {\n    if (!metadataKeys.has(k) && typeof v === 'string' && v.trim().length >= 120) push('fallback_field', v);\n  }\n\n  if (!candidates.length) return '';\n  candidates.sort((a, b) => b.score - a.score);\n  return candidates[0].text;\n}\n\nconst items = $input.all();\nif (!items.length) throw new Error('No extracted file items received before parsing.');\n\nconst firstJson = items[0]?.json ?? {};\nconst extractedFiles = [];\nconst unreadableFiles = [];\nlet skippedFiles = [];\n\nfor (let index = 0; index < items.length; index += 1) {\n  const json = items[index]?.json ?? {};\n  const fileName = String(json.fileName ?? ('file_' + (index + 1)));\n  const content = extractTextFromItem(json);\n\n  if (Array.isArray(json.zipSkippedFiles) && json.zipSkippedFiles.length) skippedFiles = json.zipSkippedFiles;\n  if (!content) {\n    unreadableFiles.push({ fileName, reason: 'no_extracted_text', sourceKind: String(json.sourceKind ?? '') });\n    continue;\n  }\n\n  extractedFiles.push({\n    fileName,\n    sourceKind: String(json.sourceKind ?? ''),\n    extractionMethod: String(json.extractionMethod ?? (json.sourceKind === 'pdf' ? 'extract_from_file_pdf' : 'text_file_decode')),\n    content,\n  });\n}\n\nif (unreadableFiles.length > 0) {\n  throw new Error('No readable text extracted for: ' + unreadableFiles.map((f) => f.fileName).join(', ') + '\\n' + JSON.stringify(unreadableFiles, null, 2));\n}\nif (!extractedFiles.length) throw new Error('No readable text extracted from provided files.');\n\nconst corpus = extractedFiles.map((file) => ['### ' + file.fileName, file.content].join('\\n')).join('\\n\\n');\n\nconst userPrompt = [\n  'Extracted evidence:',\n  corpus,\n].join('\\n');\n\nreturn [{\n  json: {\n    ...(firstJson ?? {}),\n    userPrompt,\n    sourceFileCount: extractedFiles.length,\n    skippedFileCount: Array.isArray(skippedFiles) ? skippedFiles.length : 0,\n    extractionCoverage: {\n      totalFiles: extractedFiles.length,\n      skippedFiles: Array.isArray(skippedFiles) ? skippedFiles : [],\n    },\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        34976,
+        12368
+      ],
+      "id": "df0252ae-2c7b-444f-b154-eb478132160e",
+      "name": "REQ - Parse Information"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst requirements = String(json.response ?? '').trim();\nif (!requirements) throw new Error('Requirements draft is missing.');\n\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\n\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\n\nconst outputTokens = Number.isFinite(Number(json.outputTokens)) ? Math.trunc(Number(json.outputTokens)) : null;\n\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Requirements ZIP (Markdown + PDF + token file)</a></p>';\n\nconst output = {\n  json: {\n    requirements,\n    revisionNumber,\n    zipDownloadUrl,\n    zipDownloadToken,\n    downloadLinkHtml,\n    ...(outputTokens !== null ? { outputTokens } : {}),\n  },\n};\n\nif (item.binary && Object.keys(item.binary).length > 0) output.binary = item.binary;\nreturn [output];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        36432,
+        12176
+      ],
+      "id": "32622cf8-8e48-41a8-8b62-9b4864153ee1",
+      "name": "REQ - Prepare Information"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        35488,
+        11840
+      ],
+      "id": "7ac5e0b6-8738-4d94-88be-3d830d0b5d46",
+      "name": "REQ - Response and Revision Number"
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "requirements,requirementsPdf,outTokens",
+        "fileName": "req.zip",
+        "binaryPropertyOutput": "reviewZip"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        35760,
+        12160
+      ],
+      "id": "318d3868-e5f2-4efb-8d8a-e4bc2c7ecad0",
+      "name": "REQ - Zip to Review"
+    },
+    {
+      "parameters": {
+        "content": "## Requirements Generation Module\n\nTransforms the **user instructions** into a **structured requirements document**.",
+        "height": 1120,
+        "width": 3008,
+        "color": "#DBEAFE"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        33584,
+        11616
+      ],
+      "typeVersion": 1,
+      "id": "a2ba9511-04f4-4153-8cc8-dc754f1ef9aa",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-b13b448a-55bd-47c2-b556-8c20f9c207cf",
+              "leftValue": "={{ $json.reviewMode }}",
+              "rightValue": "refine",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0862f784-59ff-49c6-8080-95104bd4f03a",
+      "name": "REQ - Execute Refinement?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        34640,
+        11840
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json['Start Again'];\n  delete json.reviewMode;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) => !String(key).endsWith('_firstIteration')),\n  );\n}\n\nfunction firstNonEmpty(values) {\n  for (const value of values) {\n    if (typeof value === 'string' && value.trim()) return value.trim();\n  }\n  return '';\n}\n\nfunction makeTextBinary(text, fileName, mimeType) {\n  const value = String(text ?? '').trim();\n  if (!value) return null;\n  return {\n    data: Buffer.from(value, 'utf8').toString('base64'),\n    fileName,\n    mimeType,\n  };\n}\n\nconst firstNode = getNodeItemSafe('REQ - Prepare Information for First Iteration');\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\nconst currentValue = firstNonEmpty([currentJson.requirements, currentJson.response]);\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst currentArtifact = makeTextBinary(currentValue, 'requirements.md', 'text/markdown');\nif (currentArtifact) cleanCurrentBinary['requirements'] = currentArtifact;\n\nconst firstValue = firstNonEmpty([firstJson.requirements, baseJson.firstIterationRequirements, currentValue]);\nconst firstArtifact = makeTextBinary(firstValue, 'requirements.md', 'text/markdown');\nconst inheritedFirst = rawBinary['requirements_firstIteration'];\nif (firstArtifact || inheritedFirst) cleanCurrentBinary['requirements_firstIteration'] = firstArtifact || inheritedFirst;\n\nconst outputJson = {\n  ...baseJson,\n  reviewMode: '',\n  requirements: currentValue,\n    firstIterationRequirements: firstValue,\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? '').trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? '').trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? '').trim(),\n};\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        36384,
+        11808
+      ],
+      "id": "299f2bd9-b02d-4621-8c20-30ccc62ace37",
+      "name": "REQ - Review Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nfor (const key of ['Approved', 'Start Again', 'Feedback', 'feedback', 'Attachments (optional)', 'reviewMode']) {\n  delete json[key];\n}\nconst binary = Object.fromEntries(\n  Object.entries(item.binary ?? {}).filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n);\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];"
+      },
+      "id": "a9766016-17de-4abe-8e9b-5aec4cb1acb5",
+      "name": "REQ - Sanitize Output Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        35872,
+        11728
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        36192,
+        12176
+      ],
+      "id": "7f4f86cd-bcca-48f8-adda-205846881b86",
+      "name": "REQ - Zip and Link"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "413d4ba2-fe4b-4e74-b6f7-731f22b27898",
+      "name": "REQ - Workflow Output",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        36544,
+        11744
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst binary = item.binary ?? {};\n\nfunction normalizePathLike(value) {\n  return String(value ?? '').replace(/\\\\/g, '/').trim();\n}\n\nfunction getExt(meta, key) {\n  const extRaw = String(meta?.fileExtension ?? '').toLowerCase();\n  if (extRaw) return extRaw.startsWith('.') ? extRaw.slice(1) : extRaw;\n\n  const fileName = normalizePathLike(meta?.fileName ?? key ?? '').toLowerCase();\n  const match = fileName.match(/\\.([a-z0-9]+)$/i);\n  return match ? match[1].toLowerCase() : '';\n}\n\nfunction isPdfFile(meta, key) {\n  const mime = String(meta?.mimeType ?? '').toLowerCase();\n  const fileName = normalizePathLike(meta?.fileName ?? key ?? '').toLowerCase();\n  const ext = getExt(meta, key);\n  return mime.includes('pdf') || ext === 'pdf' || fileName.endsWith('.pdf');\n}\n\nfunction looksTextLike(meta, key) {\n  const mime = String(meta?.mimeType ?? '').toLowerCase();\n  const ext = getExt(meta, key);\n  const textExt = new Set([\n    'txt','md','markdown','json','yaml','yml','xml','csv','tsv','ini','cfg','conf','env','rtf','properties',\n    'js','mjs','cjs','ts','tsx','jsx','py','java','kt','go','rs','rb','php','sql','html','htm','log','sh','ps1',\n    'toml','rst'\n  ]);\n\n  if (mime.startsWith('text/')) return true;\n  if (mime.includes('json') || mime.includes('xml') || mime.includes('yaml') || mime.includes('csv')) return true;\n  if (textExt.has(ext)) return true;\n\n  const keyLower = normalizePathLike(key).toLowerCase();\n  return keyLower.endsWith('.txt') || keyLower.endsWith('.md') || keyLower.endsWith('.json') || keyLower.endsWith('.yaml') || keyLower.endsWith('.yml');\n}\n\nfunction detectSourceKind(meta, key) {\n  if (isPdfFile(meta, key)) return 'pdf';\n  if (looksTextLike(meta, key)) return 'text';\n\n  const mime = String(meta?.mimeType ?? '').toLowerCase();\n  const ext = getExt(meta, key);\n\n  const docxExt = new Set(['docx','docm','dotx','dotm']);\n  const xlsxExt = new Set(['xlsx','xlsm','xltx','xltm']);\n  const pptxExt = new Set(['pptx','pptm','potx','ppsx','ppsm']);\n\n  if (docxExt.has(ext) || mime.includes('wordprocessingml')) return 'ooxml_docx';\n  if (xlsxExt.has(ext) || mime.includes('spreadsheetml')) return 'ooxml_xlsx';\n  if (pptxExt.has(ext) || mime.includes('presentationml')) return 'ooxml_pptx';\n\n  return 'unsupported';\n}\n\nconst entries = Object.entries(binary);\nif (!entries.length) {\n  throw new Error('No files were extracted from requirements ZIP.');\n}\n\nconst out = [];\nconst skipped = [];\n\nfor (const [key, meta] of entries) {\n  const fileName = normalizePathLike(meta?.fileName ?? key ?? '');\n  if (!fileName || fileName.endsWith('/')) {\n    skipped.push({ fileName: fileName || key, reason: 'directory_entry' });\n    continue;\n  }\n\n  const sourceKind = detectSourceKind(meta, key);\n  if (sourceKind === 'unsupported') {\n    skipped.push({ fileName, reason: 'unsupported_file_type' });\n    continue;\n  }\n\n  out.push({\n    json: {\n      ...(item.json ?? {}),\n      fileName,\n      propertyName: key,\n      mimeType: String(meta?.mimeType ?? ''),\n      fileExtension: String(meta?.fileExtension ?? ''),\n      fileSize: Number(meta?.fileSize ?? 0) || 0,\n      sourceKind,\n      zipSkippedFiles: skipped,\n    },\n    binary: {\n      data: meta,\n    },\n  });\n}\n\nif (!out.length) {\n  throw new Error('No supported files found in ZIP. Skipped: ' + JSON.stringify(skipped));\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        33920,
+        12160
+      ],
+      "id": "1d24048a-2496-4d58-9e29-e3b1d0ccb3ec",
+      "name": "REQ - Expand Zip Files"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-req-is-pdf",
+              "leftValue": "={{ $json.sourceKind }}",
+              "rightValue": "pdf",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        34112,
+        12160
+      ],
+      "id": "41509a71-9a5d-4a79-8c58-64e50993601d",
+      "name": "REQ - Is PDF File?"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        34352,
+        12144
+      ],
+      "id": "919cd95e-8119-4809-b0c3-6cfbbc657ac7",
+      "name": "REQ - Extract PDF Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizeText(value) {\n  return String(value ?? '')\n    .replace(/\\u0000/g, '')\n    .replace(/\\u00A0/g, ' ')\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\r/g, '\\n')\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, '')\n    .replace(/[ \\t]+\\n/g, '\\n')\n    .replace(/\\n{4,}/g, '\\n\\n\\n')\n    .split('\\n')\n    .map((line) => line.replace(/\\s+$/g, ''))\n    .join('\\n')\n    .trim();\n}\n\nfunction decodeUtf16Be(buffer) {\n  const swapped = Buffer.alloc(buffer.length);\n  for (let i = 0; i < buffer.length - 1; i += 2) {\n    swapped[i] = buffer[i + 1];\n    swapped[i + 1] = buffer[i];\n  }\n  if (buffer.length % 2 === 1) swapped[buffer.length - 1] = buffer[buffer.length - 1];\n  return swapped.toString('utf16le');\n}\n\nfunction countReplacementChars(text) {\n  return (String(text ?? '').match(/ï¿½/g) ?? []).length;\n}\n\nfunction looksLikeUtf16(buffer) {\n  if (!buffer || buffer.length < 4) return null;\n  let evenZero = 0;\n  let oddZero = 0;\n  const sample = Math.min(buffer.length, 2048);\n  for (let i = 0; i < sample; i += 1) {\n    if (buffer[i] === 0) {\n      if (i % 2 === 0) evenZero += 1;\n      else oddZero += 1;\n    }\n  }\n\n  const threshold = Math.max(8, Math.floor(sample * 0.2));\n  if (oddZero >= threshold && evenZero < threshold / 2) return 'utf16le';\n  if (evenZero >= threshold && oddZero < threshold / 2) return 'utf16be';\n  return null;\n}\n\nfunction decodeTextBuffer(buffer) {\n  if (!buffer || !buffer.length) return '';\n\n  if (buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {\n    return buffer.subarray(3).toString('utf8');\n  }\n  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {\n    return buffer.subarray(2).toString('utf16le');\n  }\n  if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {\n    return decodeUtf16Be(buffer.subarray(2));\n  }\n\n  const utf16Guess = looksLikeUtf16(buffer);\n  if (utf16Guess === 'utf16le') return buffer.toString('utf16le');\n  if (utf16Guess === 'utf16be') return decodeUtf16Be(buffer);\n\n  const utf8 = buffer.toString('utf8');\n  const latin1 = buffer.toString('latin1');\n\n  if (countReplacementChars(utf8) > countReplacementChars(latin1)) {\n    return latin1;\n  }\n\n  return utf8;\n}\n\nasync function readBinaryBuffer(itemIndex, item) {\n  const preferredKey = item.binary?.data ? 'data' : (Object.keys(item.binary ?? {})[0] ?? 'data');\n  const entry = item.binary?.[preferredKey] ?? null;\n\n  if (typeof this?.helpers?.getBinaryDataBuffer === 'function') {\n    try {\n      const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, preferredKey);\n      if (buffer?.length) return buffer;\n    } catch {}\n  }\n\n  const raw = String(entry?.data ?? '');\n  if (raw && raw !== 'filesystem-v2') {\n    try {\n      return Buffer.from(raw, 'base64');\n    } catch {}\n  }\n\n  return Buffer.alloc(0);\n}\n\nconst items = $input.all();\nif (!items.length) {\n  throw new Error('No text items received for decoding.');\n}\n\nconst out = [];\nfor (let index = 0; index < items.length; index += 1) {\n  const item = items[index] ?? { json: {}, binary: {} };\n  const buffer = await readBinaryBuffer.call(this, index, item);\n  if (!buffer.length) {\n    throw new Error('Text file binary payload is empty for: ' + String(item.json?.fileName ?? ('item_' + index)));\n  }\n\n  const decoded = decodeTextBuffer(buffer);\n  const text = normalizeText(decoded);\n  if (!text) {\n    throw new Error('Decoded text file is empty for: ' + String(item.json?.fileName ?? ('item_' + index)));\n  }\n\n  out.push({\n    json: {\n      ...(item.json ?? {}),\n      text,\n      extractionMethod: 'text_file_decode',\n    },\n    ...(item.binary ? { binary: item.binary } : {}),\n  });\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        34320,
+        12544
+      ],
+      "id": "f5c08647-0e68-48a0-ac1d-42893a014a37",
+      "name": "REQ - Decode Text File"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        34672,
+        12352
+      ],
+      "id": "42dadd77-2195-48d7-b09c-e835f14da9c2",
+      "name": "REQ - Merge Extracted Text"
+    },
+    {
+      "parameters": {},
+      "id": "65a99e6d-7eef-4313-8f9f-bd003283f59a",
+      "name": "REQ - Decompress OOXML",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1,
+      "position": [
+        34192,
+        12368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizeText(value) {\n  return String(value ?? '')\n    .replace(/\\u0000/g, '')\n    .replace(/\\u00A0/g, ' ')\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\r/g, '\\n')\n    .replace(/[\\u200B-\\u200D\\uFEFF]/g, '')\n    .replace(/[ \\t]+\\n/g, '\\n')\n    .replace(/\\n{4,}/g, '\\n\\n\\n')\n    .split('\\n')\n    .map((line) => line.replace(/\\s+$/g, ''))\n    .join('\\n')\n    .trim();\n}\n\nfunction decodeUtf16Be(buffer) {\n  const swapped = Buffer.alloc(buffer.length);\n  for (let i = 0; i < buffer.length - 1; i += 2) {\n    swapped[i] = buffer[i + 1];\n    swapped[i + 1] = buffer[i];\n  }\n  if (buffer.length % 2 === 1) swapped[buffer.length - 1] = buffer[buffer.length - 1];\n  return swapped.toString('utf16le');\n}\n\nfunction decodeTextBuffer(buffer) {\n  if (!buffer || !buffer.length) return '';\n  if (buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) return buffer.subarray(3).toString('utf8');\n  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) return buffer.subarray(2).toString('utf16le');\n  if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) return decodeUtf16Be(buffer.subarray(2));\n  return buffer.toString('utf8');\n}\n\nfunction decodeXmlEntities(value) {\n  return String(value ?? '')\n    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))\n    .replace(/&#(\\d+);/g, (_, dec) => String.fromCodePoint(Number.parseInt(dec, 10)))\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/&apos;/g, \"'\");\n}\n\nfunction naturalSortByTrailingNumber(paths) {\n  return [...paths].sort((a, b) => {\n    const an = Number.parseInt(String(a).match(/(\\d+)(?!.*\\d)/)?.[1] ?? '0', 10);\n    const bn = Number.parseInt(String(b).match(/(\\d+)(?!.*\\d)/)?.[1] ?? '0', 10);\n    if (an !== bn) return an - bn;\n    return String(a).localeCompare(String(b));\n  });\n}\n\nfunction columnRefToIndex(cellRef) {\n  const letters = String(cellRef ?? '').match(/^([A-Z]+)/i)?.[1] ?? '';\n  if (!letters) return -1;\n  let index = 0;\n  for (const char of letters.toUpperCase()) index = (index * 26) + (char.charCodeAt(0) - 64);\n  return Math.max(0, index - 1);\n}\n\nfunction extractDocxText(xmlEntries) {\n  const preferred = naturalSortByTrailingNumber(\n    xmlEntries.map((entry) => entry.path).filter((path) => /^word\\/(document|header\\d+|footer\\d+|footnotes|endnotes|comments)\\.xml$/i.test(path))\n  );\n  const parts = [];\n  for (const path of preferred) {\n    const xml = xmlEntries.find((entry) => entry.path === path)?.xml ?? '';\n    if (!xml) continue;\n    const text = decodeXmlEntities(\n      xml\n        .replace(/<w:tab[^>]*\\/>/gi, '\\t')\n        .replace(/<w:br[^>]*\\/>/gi, '\\n')\n        .replace(/<w:cr[^>]*\\/>/gi, '\\n')\n        .replace(/<\\/w:p>/gi, '\\n')\n        .replace(/<\\/w:tr>/gi, '\\n')\n        .replace(/<\\/w:tc>/gi, '\\t')\n        .replace(/<\\/w:tbl>/gi, '\\n')\n        .replace(/<w:t[^>]*>/gi, '')\n        .replace(/<\\/w:t>/gi, '')\n        .replace(/<[^>]+>/g, '')\n    );\n    if (text.trim()) parts.push(text);\n  }\n  return parts.join('\\n\\n');\n}\n\nfunction parseSharedStrings(sharedXml) {\n  if (!sharedXml) return [];\n  const shared = [];\n  const siRegex = /<si\\b[^>]*>([\\s\\S]*?)<\\/si>/gi;\n  let match;\n  while ((match = siRegex.exec(sharedXml)) !== null) {\n    const inner = String(match[1] ?? '');\n    const tMatches = [...inner.matchAll(/<t\\b[^>]*>([\\s\\S]*?)<\\/t>/gi)].map((m) => decodeXmlEntities(m[1]));\n    shared.push(tMatches.length ? tMatches.join('') : decodeXmlEntities(inner.replace(/<[^>]+>/g, '')));\n  }\n  return shared;\n}\n\nfunction parseWorksheet(xml, sharedStrings) {\n  const rows = [];\n  const rowRegex = /<row\\b[^>]*>([\\s\\S]*?)<\\/row>/gi;\n  let rowMatch;\n  while ((rowMatch = rowRegex.exec(xml)) !== null) {\n    const rowXml = String(rowMatch[1] ?? '');\n    const cellRegex = /<c\\b([^>]*?)(?:>([\\s\\S]*?)<\\/c>|\\/>)/gi;\n    let cellMatch;\n    const values = new Map();\n    let autoColumn = 0;\n    let maxColumn = -1;\n    while ((cellMatch = cellRegex.exec(rowXml)) !== null) {\n      const attrs = String(cellMatch[1] ?? '');\n      const body = String(cellMatch[2] ?? '');\n      const ref = attrs.match(/\\br=\"([A-Z]+\\d+)\"/i)?.[1] ?? '';\n      let columnIndex = columnRefToIndex(ref);\n      if (columnIndex < 0) columnIndex = autoColumn;\n      autoColumn = Math.max(autoColumn, columnIndex + 1);\n      maxColumn = Math.max(maxColumn, columnIndex);\n      const type = attrs.match(/\\bt=\"([^\"]+)\"/i)?.[1] ?? '';\n      let value = '';\n      if (type === 's') {\n        const sharedIndex = Number.parseInt(body.match(/<v>([\\s\\S]*?)<\\/v>/i)?.[1] ?? '-1', 10);\n        value = sharedIndex >= 0 ? (sharedStrings[sharedIndex] ?? '') : '';\n      } else if (type === 'inlineStr') {\n        const inline = body.match(/<is\\b[^>]*>([\\s\\S]*?)<\\/is>/i)?.[1] ?? body;\n        const tValues = [...inline.matchAll(/<t\\b[^>]*>([\\s\\S]*?)<\\/t>/gi)].map((m) => decodeXmlEntities(m[1]));\n        value = tValues.length ? tValues.join('') : decodeXmlEntities(inline.replace(/<[^>]+>/g, ''));\n      } else {\n        value = decodeXmlEntities(body.match(/<v>([\\s\\S]*?)<\\/v>/i)?.[1] ?? '');\n      }\n      values.set(columnIndex, String(value ?? ''));\n    }\n    if (maxColumn >= 0) {\n      const rowValues = [];\n      for (let i = 0; i <= maxColumn; i += 1) rowValues.push(values.get(i) ?? '');\n      const line = rowValues.join('\\t').replace(/\\t+$/g, '');\n      if (line.trim()) rows.push(line);\n    }\n  }\n  if (rows.length) return rows.join('\\n');\n  return [...xml.matchAll(/<t\\b[^>]*>([\\s\\S]*?)<\\/t>/gi)].map((m) => decodeXmlEntities(m[1]).trim()).filter(Boolean).join('\\n');\n}\n\nfunction extractXlsxText(xmlEntries) {\n  const byPath = new Map(xmlEntries.map((entry) => [entry.path, entry.xml]));\n  const sharedStrings = parseSharedStrings(byPath.get('xl/sharedStrings.xml') ?? byPath.get('xl/sharedstrings.xml') ?? '');\n  const sheetPaths = naturalSortByTrailingNumber(xmlEntries.map((entry) => entry.path).filter((path) => /^xl\\/worksheets\\/sheet\\d+\\.xml$/i.test(path)));\n  const sheets = [];\n  for (const sheetPath of sheetPaths) {\n    const sheetXml = byPath.get(sheetPath) ?? '';\n    if (!sheetXml) continue;\n    const text = parseWorksheet(sheetXml, sharedStrings);\n    if (text.trim()) sheets.push(text);\n  }\n  return sheets.join('\\n\\n');\n}\n\nfunction extractPptxText(xmlEntries) {\n  const slidePaths = naturalSortByTrailingNumber(xmlEntries.map((entry) => entry.path).filter((path) => /^ppt\\/slides\\/slide\\d+\\.xml$/i.test(path)));\n  const parts = [];\n  for (const slidePath of slidePaths) {\n    const slideXml = xmlEntries.find((entry) => entry.path === slidePath)?.xml ?? '';\n    if (!slideXml) continue;\n    const text = decodeXmlEntities(\n      slideXml\n        .replace(/<a:br[^>]*\\/>/gi, '\\n')\n        .replace(/<\\/a:p>/gi, '\\n')\n        .replace(/<a:t[^>]*>/gi, '')\n        .replace(/<\\/a:t>/gi, '')\n        .replace(/<[^>]+>/g, '')\n    );\n    if (text.trim()) parts.push(text);\n  }\n  return parts.join('\\n\\n');\n}\n\nasync function readBinaryBuffer(itemIndex, item, propertyName) {\n  const entry = item.binary?.[propertyName] ?? null;\n  if (typeof this?.helpers?.getBinaryDataBuffer === 'function') {\n    try {\n      const buffer = await this.helpers.getBinaryDataBuffer(itemIndex, propertyName);\n      if (buffer?.length) return buffer;\n    } catch {}\n  }\n  const raw = String(entry?.data ?? '');\n  if (raw && raw !== 'filesystem-v2') {\n    try { return Buffer.from(raw, 'base64'); } catch {}\n  }\n  return Buffer.alloc(0);\n}\n\nconst items = $input.all();\nif (!items.length) throw new Error('No OOXML items received for extraction.');\n\nconst out = [];\nfor (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {\n  const item = items[itemIndex] ?? { json: {}, binary: {} };\n  const json = item.json ?? {};\n  const sourceKind = String(json.sourceKind ?? '').trim();\n  const fileName = String(json.fileName ?? ('file_' + (itemIndex + 1))).trim();\n  const xmlEntries = [];\n\n  for (const key of Object.keys(item.binary ?? {})) {\n    const meta = item.binary?.[key] ?? {};\n    const entryPath = String(meta?.fileName ?? key ?? '').replace(/\\\\/g, '/').trim();\n    if (!entryPath || entryPath.endsWith('/') || !entryPath.toLowerCase().endsWith('.xml')) continue;\n    const buffer = await readBinaryBuffer.call(this, itemIndex, item, key);\n    if (!buffer.length) continue;\n    const xml = decodeTextBuffer(buffer);\n    if (!xml) continue;\n    xmlEntries.push({ path: entryPath, xml });\n  }\n\n  if (!xmlEntries.length) throw new Error('No readable XML entries found inside OOXML file: ' + fileName);\n\n  let extracted = '';\n  let extractionMethod = 'ooxml_generic';\n  if (sourceKind === 'ooxml_docx') {\n    extracted = extractDocxText(xmlEntries);\n    extractionMethod = 'ooxml_docx_parser';\n  } else if (sourceKind === 'ooxml_xlsx') {\n    extracted = extractXlsxText(xmlEntries);\n    extractionMethod = 'ooxml_xlsx_parser';\n  } else if (sourceKind === 'ooxml_pptx') {\n    extracted = extractPptxText(xmlEntries);\n    extractionMethod = 'ooxml_pptx_parser';\n  } else {\n    extracted = xmlEntries.map((entry) => decodeXmlEntities(entry.xml.replace(/<[^>]+>/g, ''))).join('\\n\\n');\n  }\n\n  const text = normalizeText(extracted);\n  if (!text) throw new Error('OOXML extractor returned empty text for file: ' + fileName);\n\n  out.push({\n    json: { ...json, text, extractionMethod, ooxmlXmlEntryCount: xmlEntries.length },\n    ...(item.binary ? { binary: item.binary } : {}),\n  });\n}\n\nreturn out;"
+      },
+      "id": "7c38a7bf-dad3-4eef-83a7-ca62a217049b",
+      "name": "REQ - Parse OOXML Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        34384,
+        12368
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "1c9ea24b-f85f-4f22-b964-a845a9fdf8f5",
+      "name": "REQ - Workflow trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        33520,
+        11728
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-req-is-ooxml",
+              "leftValue": "={{ $json.sourceKind }}",
+              "rightValue": "ooxml_",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7d5b9faf-2dfc-4756-a63b-ecc677dd9bff",
+      "name": "REQ - Is OOXML File?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        33904,
+        12384
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "REQ - Generate Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Response and Revision Number",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "REQ - Zip and Link",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Zip to Review": {
+      "main": [
+        [
+          {
+            "node": "REQ - Create Zip Link",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Zip and Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Zip and Link": {
+      "main": [
+        [
+          {
+            "node": "REQ - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Markdown to PDF": {
+      "main": [
+        [
+          {
+            "node": "REQ - Md and Pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Execute Refinement?": {
+      "main": [
+        [
+          {
+            "node": "REQ - Build Refinement Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Decompress Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - File to Review": {
+      "main": [
+        [
+          {
+            "node": "REQ - Md and Pdf",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Md and Pdf": {
+      "main": [
+        [
+          {
+            "node": "REQ - Zip to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Review Output": {
+      "main": [
+        [
+          {
+            "node": "REQ - Workflow Output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Clean Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Markdown to PDF",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - File to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Sanitize Output Context": {
+      "main": [
+        [
+          {
+            "node": "REQ - Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Decompress Zip": {
+      "main": [
+        [
+          {
+            "node": "REQ - Expand Zip Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Generate Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Clean Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "REQ - Review Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Response and Revision Number": {
+      "main": [
+        [
+          {
+            "node": "REQ - Clean Refinement Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Parse Information": {
+      "main": [
+        [
+          {
+            "node": "REQ - Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Clean Refinement Response": {
+      "main": [
+        [
+          {
+            "node": "REQ - Markdown to PDF",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - File to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Build Refinement Prompt": {
+      "main": [
+        [
+          {
+            "node": "REQ - Generate Refinement Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Response and Revision Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Expand Zip Files": {
+      "main": [
+        [
+          {
+            "node": "REQ - Is PDF File?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Is PDF File?": {
+      "main": [
+        [
+          {
+            "node": "REQ - Extract PDF Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Is OOXML File?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Extract PDF Text": {
+      "main": [
+        [
+          {
+            "node": "REQ - Merge Extracted Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Decode Text File": {
+      "main": [
+        [
+          {
+            "node": "REQ - Merge Extracted Text",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "REQ - Merge Extracted Text": {
+      "main": [
+        [
+          {
+            "node": "REQ - Parse Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Decompress OOXML": {
+      "main": [
+        [
+          {
+            "node": "REQ - Parse OOXML Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Parse OOXML Text": {
+      "main": [
+        [
+          {
+            "node": "REQ - Merge Extracted Text",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "REQ - Workflow trigger": {
+      "main": [
+        [
+          {
+            "node": "REQ - Execute Refinement?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "REQ - Sanitize Output Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REQ - Is OOXML File?": {
+      "main": [
+        [
+          {
+            "node": "REQ - Decompress OOXML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REQ - Decode Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "4f3cd736-8334-472e-bb5b-c3cf31e346a8",
+  "meta": {
+    "instanceId": "b8db71e6cd806cd646e3036d735235b01787ac6bf74adc87afc57bddf23e92c7"
+  },
+  "id": "F1rwZMAaUyr0aYq5",
+  "tags": []
+}

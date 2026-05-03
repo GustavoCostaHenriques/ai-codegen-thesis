@@ -1,0 +1,426 @@
+{
+  "name": "api-independent",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "API Module - Standalone",
+        "formDescription": "Upload requirements and design artefacts, then run API generation with human validation loop.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Requirements File",
+              "fieldType": "file",
+              "fieldName": "requirements",
+              "multipleFiles": false,
+              "acceptFileTypes": ".md,.txt"
+            },
+            {
+              "fieldLabel": "Design File",
+              "fieldType": "file",
+              "fieldName": "design",
+              "multipleFiles": false,
+              "acceptFileTypes": ".json,.excalidraw,.txt"
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Generate API",
+          "path": "144e3a6a-4557-4a81-87e5-62ea1d8d0db6",
+          "useWorkflowTimezone": true
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        4096,
+        752
+      ],
+      "id": "bbaa3d31-f4ba-4c6e-85e9-17ba79527534",
+      "name": "API - Start",
+      "webhookId": "144e3a6a-4557-4a81-87e5-62ea1d8d0db6",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "yYQ0qN5jihL92qaI",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/yYQ0qN5jihL92qaI",
+          "cachedResultName": "api-v2"
+        },
+        "workflowInputs": {
+          "value": {},
+          "mappingMode": "defineBelow",
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "matchingColumns": [],
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "0a02f79c-e8d6-4848-921e-c65a9f64a90e",
+      "name": "API - Create API",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4320,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = {};\nif (Array.isArray(item.json?.apiHistory)) {\n  json.apiHistory = item.json.apiHistory;\n}\n\nconst binary = {};\nfor (const [name, value] of Object.entries(item.binary ?? {})) {\n  if (name === 'requirements' || name === 'design' || /^api_iteration_\\d+$/.test(name)) {\n    binary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(binary).length ? { binary } : {}),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
+        880
+      ],
+      "id": "7af7e44f-34fa-4939-ae25-601764afd708",
+      "name": "API - History Context"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "e44ac491-af72-4345-a617-ef29d339dcf1",
+      "name": "API - History Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4560,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\n\nconst buildApiReviewAssets = ({ history, currentIterationNumber, currentZipDownloadUrl, restoreError }) => {\n  const currentDownloadUrl = String(currentZipDownloadUrl ?? '').trim();\n  const currentDownloadHtml = currentDownloadUrl\n    ? `<p><a href=\"${escapeHtml(currentDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current API ZIP</a></p>`\n    : '';\n\n  const historyItemsHtml = history.map((entry) => {\n    const iterationNumber = Number(entry.iterationNumber ?? 0) || 0;\n    const revisionNumber = Number(entry.revisionNumber ?? 0) || 0;\n    const currentTag = iterationNumber === currentIterationNumber ? ' <strong>(current)</strong>' : '';\n    const entryDownloadUrl = String(entry.zipDownloadUrl ?? '').trim();\n    const entryDownloadHtml = entryDownloadUrl\n      ? `<a href=\"${escapeHtml(entryDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download ZIP</a>`\n      : '';\n    return `<li><strong>Iteration ${iterationNumber}</strong> - Revision ${escapeHtml(revisionNumber)}${currentTag}${entryDownloadHtml ? ` - ${entryDownloadHtml}` : ''}</li>`;\n  }).join('');\n\n  const restoreChoices = history\n    .filter((entry) => Number(entry.iterationNumber ?? 0) !== currentIterationNumber)\n    .map((entry) => ({\n      option: `Iteration ${Number(entry.iterationNumber ?? 0) || 0} (rev ${Number(entry.revisionNumber ?? 0) || 0})`,\n    }));\n\n  const formFields = [\n    {\n      fieldLabel: 'Approved',\n      fieldName: 'Approved',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [\n          { option: 'approved' },\n          { option: 'rejected' },\n        ],\n      },\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Restore older iteration',\n      fieldName: 'Restore older iteration',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [\n          { option: 'Yes' },\n          { option: 'No' },\n        ],\n      },\n      defaultValue: 'No',\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Iteration to restore',\n      fieldName: 'Iteration to restore',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: restoreChoices,\n      },\n    },\n    {\n      fieldLabel: 'Attachments (optional)',\n      fieldName: 'Attachments',\n      fieldType: 'file',\n    },\n    {\n      fieldLabel: 'Feedback',\n      fieldName: 'Feedback',\n      fieldType: 'textarea',\n      placeholder: 'Describe exactly what should change in the API package.',\n    },\n  ];\n\n  const descriptionHtml = [\n    '<p>Review the current API ZIP, then approve it or request changes.</p>',\n    currentDownloadHtml,\n    restoreError ? `<p><strong>${escapeHtml(restoreError)}</strong></p>` : '',\n    '<p>If you want to return to a previously generated version, choose Yes in Restore older iteration. You can also download any generated iteration below.</p>',\n    historyItemsHtml ? `<p>Generated iterations:</p><ol>${historyItemsHtml}</ol>` : '<p>No generated iterations are available yet.</p>',\n  ].filter(Boolean).join('');\n\n  return {\n    descriptionHtml,\n    formJson: JSON.stringify(formFields),\n  };\n};\n\nconst existingHistory = Array.isArray(json.apiHistory)\n  ? json.apiHistory.filter((entry) => entry && typeof entry === 'object')\n  : [];\n\nconst normalizedHistory = existingHistory.map((entry, index) => ({\n  iterationNumber: Number(entry.iterationNumber ?? index + 1) || (index + 1),\n  revisionNumber: Number(entry.revisionNumber ?? 0) || 0,\n  openapiYaml: String(entry.openapiYaml ?? entry.response ?? '').trim(),\n  zipDownloadUrl: String(entry.zipDownloadUrl ?? '').trim(),\n  zipDownloadToken: String(entry.zipDownloadToken ?? '').trim(),\n  downloadLinkHtml: String(entry.downloadLinkHtml ?? '').trim(),\n  binaryPropertyName: String(entry.binaryPropertyName ?? '').trim(),\n  fileCount: Number(entry.fileCount ?? 0) || 0,\n  files: Array.isArray(entry.files) ? entry.files : [],\n}));\n\nconst currentEntry = {\n  revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n  openapiYaml: String(json.openapiYaml ?? json.response ?? '').trim(),\n  zipDownloadUrl: String(json.zipDownloadUrl ?? '').trim(),\n  zipDownloadToken: String(json.zipDownloadToken ?? '').trim(),\n  downloadLinkHtml: String(json.downloadLinkHtml ?? '').trim(),\n  fileCount: Number(json.fileCount ?? 0) || 0,\n  files: Array.isArray(json.files) ? json.files : [],\n};\n\nconst isSameEntry = (entry) =>\n  entry.revisionNumber === currentEntry.revisionNumber &&\n  entry.zipDownloadToken === currentEntry.zipDownloadToken &&\n  entry.zipDownloadUrl === currentEntry.zipDownloadUrl &&\n  entry.openapiYaml === currentEntry.openapiYaml;\n\nlet storedEntry = normalizedHistory.find(isSameEntry);\n\nconst usedBinaryPropertyNames = new Set(\n  normalizedHistory\n    .map((entry) => String(entry.binaryPropertyName ?? '').trim())\n    .filter(Boolean),\n);\n\nif (!storedEntry) {\n  const nextIterationNumber = normalizedHistory.reduce(\n    (maxValue, entry) => Math.max(maxValue, Number(entry.iterationNumber ?? 0) || 0),\n    0,\n  ) + 1;\n\n  let binaryPropertyName = '';\n  if (binary.reviewZip) {\n    let suffix = nextIterationNumber;\n    do {\n      binaryPropertyName = `api_iteration_${suffix}`;\n      suffix += 1;\n    } while (usedBinaryPropertyNames.has(binaryPropertyName) || binary[binaryPropertyName]);\n    binary[binaryPropertyName] = binary.reviewZip;\n  }\n\n  storedEntry = {\n    iterationNumber: nextIterationNumber,\n    ...currentEntry,\n    binaryPropertyName,\n  };\n  normalizedHistory.push(storedEntry);\n} else if (!storedEntry.binaryPropertyName && binary.reviewZip) {\n  let suffix = Number(storedEntry.iterationNumber ?? normalizedHistory.length + 1) || (normalizedHistory.length + 1);\n  let binaryPropertyName = '';\n  do {\n    binaryPropertyName = `api_iteration_${suffix}`;\n    suffix += 1;\n  } while (usedBinaryPropertyNames.has(binaryPropertyName) || binary[binaryPropertyName]);\n  binary[binaryPropertyName] = binary.reviewZip;\n  storedEntry.binaryPropertyName = binaryPropertyName;\n}\n\njson.apiHistory = normalizedHistory;\njson.currentApiIterationNumber = Number(storedEntry.iterationNumber ?? 0) || 0;\n\nconst reviewAssets = buildApiReviewAssets({\n  history: normalizedHistory,\n  currentIterationNumber: json.currentApiIterationNumber,\n  currentZipDownloadUrl: json.zipDownloadUrl,\n  restoreError: '',\n});\njson.apiReviewDescriptionHtml = reviewAssets.descriptionHtml;\njson.apiReviewFormJson = reviewAssets.formJson;\n\ndelete json.apiHistoryHtml;\n\nconst preservedBinary = {};\nfor (const [name, value] of Object.entries(binary)) {\n  if (name === 'requirements' || name === 'design' || name === 'reviewZip' || /^api_iteration_\\d+$/.test(name)) {\n    preservedBinary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(preservedBinary).length ? { binary: preservedBinary } : {}),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
+        752
+      ],
+      "id": "1e07e201-493a-4160-aeef-e4500c30be67",
+      "name": "API - Store Iterations",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ $json.apiReviewFormJson }}",
+        "options": {
+          "formTitle": "Human Review: API Draft",
+          "formDescription": "={{ $json.apiReviewDescriptionHtml }}",
+          "buttonLabel": "Submit"
+        }
+      },
+      "id": "af5f6b12-3d3e-4d42-9a8a-15b20cecd69f",
+      "name": "API - Review",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        4992,
+        848
+      ],
+      "webhookId": "9d6db7aa-72a2-4a75-9df1-fcd690176c4c"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "0179d2f4-ab2d-468d-b90a-bf1e4f3a4f08",
+      "name": "API - Review Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5184,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "restore-older-api",
+              "leftValue": "={{ $json[\"Restore older iteration\"] }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "91ccfdff-9992-4903-84b7-470fa15f46be",
+      "name": "API - Restore Older Iteration?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5376,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "approved-api",
+              "leftValue": "={{ $json.Approved }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8ea8a51e-f8e3-423e-94bb-5f5f9149bb76",
+      "name": "API - Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5584,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst currentIterationNumber = Number(json.currentApiIterationNumber ?? 0) || 0;\nconst history = Array.isArray(json.apiHistory)\n  ? json.apiHistory.filter((entry) => entry && typeof entry === 'object')\n  : [];\n\nlet reviewZip = binary.reviewZip;\n\nif (currentIterationNumber > 0 && history.length > 0) {\n  const currentEntry = history.find(\n    (entry) => (Number(entry.iterationNumber ?? 0) || 0) === currentIterationNumber,\n  );\n  const binaryPropertyName = String(currentEntry?.binaryPropertyName ?? '').trim();\n  if (binaryPropertyName && binary[binaryPropertyName]) {\n    reviewZip = binary[binaryPropertyName];\n  }\n}\n\nif (!reviewZip) {\n  throw new Error('Approved API ZIP is missing.');\n}\n\nreturn [{\n  json: {\n    revisionNumber: Number(json.revisionNumber ?? 0) || 0,\n    zipDownloadUrl: String(json.zipDownloadUrl ?? '').trim(),\n    zipDownloadToken: String(json.zipDownloadToken ?? '').trim(),\n    currentApiIterationNumber: currentIterationNumber,\n  },\n  binary: {\n    reviewZip,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5824,
+        768
+      ],
+      "id": "9f1efd23-4d53-4109-ae8a-320524d899e1",
+      "name": "API - End"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nreturn [{\n  json: {\n    ...(item.json ?? {}),\n    reviewMode: 'refine',\n  },\n  ...(item.binary && Object.keys(item.binary).length ? { binary: item.binary } : {}),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5504,
+        992
+      ],
+      "id": "6be5c58d-042b-4ed9-9792-44e227ecd03b",
+      "name": "API - Prepare Refine Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\nconst history = Array.isArray(json.apiHistory)\n  ? json.apiHistory.filter((entry) => entry && typeof entry === 'object')\n  : [];\n\nconst escapeHtml = (value) => String(value ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;')\n  .replace(/'/g, '&#39;');\n\nconst buildApiReviewAssets = ({ history, currentIterationNumber, currentZipDownloadUrl, restoreError }) => {\n  const currentDownloadUrl = String(currentZipDownloadUrl ?? '').trim();\n  const currentDownloadHtml = currentDownloadUrl\n    ? `<p><a href=\"${escapeHtml(currentDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current API ZIP</a></p>`\n    : '';\n\n  const historyItemsHtml = history.map((entry) => {\n    const iterationNumber = Number(entry.iterationNumber ?? 0) || 0;\n    const revisionNumber = Number(entry.revisionNumber ?? 0) || 0;\n    const currentTag = iterationNumber === currentIterationNumber ? ' <strong>(current)</strong>' : '';\n    const entryDownloadUrl = String(entry.zipDownloadUrl ?? '').trim();\n    const entryDownloadHtml = entryDownloadUrl\n      ? `<a href=\"${escapeHtml(entryDownloadUrl)}\" download target=\"_blank\" rel=\"noopener noreferrer\">Download ZIP</a>`\n      : '';\n    return `<li><strong>Iteration ${iterationNumber}</strong> - Revision ${escapeHtml(revisionNumber)}${currentTag}${entryDownloadHtml ? ` - ${entryDownloadHtml}` : ''}</li>`;\n  }).join('');\n\n  const restoreChoices = history\n    .filter((entry) => Number(entry.iterationNumber ?? 0) !== currentIterationNumber)\n    .map((entry) => ({\n      option: `Iteration ${Number(entry.iterationNumber ?? 0) || 0} (rev ${Number(entry.revisionNumber ?? 0) || 0})`,\n    }));\n\n  const formFields = [\n    {\n      fieldLabel: 'Approved',\n      fieldName: 'Approved',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [\n          { option: 'approved' },\n          { option: 'rejected' },\n        ],\n      },\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Restore older iteration',\n      fieldName: 'Restore older iteration',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: [\n          { option: 'Yes' },\n          { option: 'No' },\n        ],\n      },\n      defaultValue: 'No',\n      requiredField: true,\n    },\n    {\n      fieldLabel: 'Iteration to restore',\n      fieldName: 'Iteration to restore',\n      fieldType: 'dropdown',\n      fieldOptions: {\n        values: restoreChoices,\n      },\n    },\n    {\n      fieldLabel: 'Attachments (optional)',\n      fieldName: 'Attachments',\n      fieldType: 'file',\n    },\n    {\n      fieldLabel: 'Feedback',\n      fieldName: 'Feedback',\n      fieldType: 'textarea',\n      placeholder: 'Describe exactly what should change in the API package.',\n    },\n  ];\n\n  const descriptionHtml = [\n    '<p>Review the current API ZIP, then approve it or request changes.</p>',\n    currentDownloadHtml,\n    restoreError ? `<p><strong>${escapeHtml(restoreError)}</strong></p>` : '',\n    '<p>If you want to return to a previously generated version, choose Yes in Restore older iteration. You can also download any generated iteration below.</p>',\n    historyItemsHtml ? `<p>Generated iterations:</p><ol>${historyItemsHtml}</ol>` : '<p>No generated iterations are available yet.</p>',\n  ].filter(Boolean).join('');\n\n  return {\n    descriptionHtml,\n    formJson: JSON.stringify(formFields),\n  };\n};\n\nconst selectionLabel = String(json['Iteration to restore'] ?? '').trim();\nconst selectionMatch = selectionLabel.match(/Iteration\\s+(\\d+)/i);\nconst selectedIterationNumber = selectionMatch ? Number.parseInt(selectionMatch[1], 10) : Number.NaN;\nconst currentIterationNumber = Number(json.currentApiIterationNumber ?? 0) || 0;\nconst selectedEntry = history.find((entry) => Number(entry.iterationNumber ?? 0) === selectedIterationNumber);\n\nif (selectedEntry && Number(selectedEntry.iterationNumber ?? 0) !== currentIterationNumber) {\n  json.openapiYaml = String(selectedEntry.openapiYaml ?? selectedEntry.response ?? json.openapiYaml ?? json.response ?? '').trim();\n  json.response = json.openapiYaml;\n  json.fileCount = Number(selectedEntry.fileCount ?? json.fileCount ?? 0) || 0;\n  json.files = Array.isArray(selectedEntry.files) ? selectedEntry.files : (Array.isArray(json.files) ? json.files : []);\n  json.revisionNumber = Number(selectedEntry.revisionNumber ?? json.revisionNumber ?? 0) || 0;\n  json.zipDownloadUrl = String(selectedEntry.zipDownloadUrl ?? json.zipDownloadUrl ?? '').trim();\n  json.zipDownloadToken = String(selectedEntry.zipDownloadToken ?? json.zipDownloadToken ?? '').trim();\n  json.downloadLinkHtml = String(selectedEntry.downloadLinkHtml ?? json.downloadLinkHtml ?? '').trim();\n  json.currentApiIterationNumber = Number(selectedEntry.iterationNumber ?? json.currentApiIterationNumber ?? 0) || 0;\n  json.fileCount = Number(selectedEntry.fileCount ?? json.fileCount ?? 0) || 0;\n  json.files = Array.isArray(selectedEntry.files) ? selectedEntry.files : (Array.isArray(json.files) ? json.files : []);\n\n  const binaryPropertyName = String(selectedEntry.binaryPropertyName ?? '').trim();\n  if (binaryPropertyName && binary[binaryPropertyName]) {\n    binary.reviewZip = binary[binaryPropertyName];\n  }\n\n  delete json.restoreSelectionError;\n} else {\n  json.restoreSelectionError = 'Select one of the previously generated iterations to restore it.';\n}\n\nconst reviewAssets = buildApiReviewAssets({\n  history,\n  currentIterationNumber: Number(json.currentApiIterationNumber ?? 0) || 0,\n  currentZipDownloadUrl: json.zipDownloadUrl,\n  restoreError: String(json.restoreSelectionError ?? '').trim(),\n});\njson.apiReviewDescriptionHtml = reviewAssets.descriptionHtml;\njson.apiReviewFormJson = reviewAssets.formJson;\n\ndelete json.apiHistoryHtml;\ndelete json.reviewMode;\ndelete json.feedback;\ndelete json.Feedback;\ndelete json.Approved;\ndelete json.Attachments;\ndelete json['Restore older iteration'];\ndelete json['Iteration to restore'];\n\nconst preservedBinary = {};\nfor (const [name, value] of Object.entries(binary)) {\n  if (name === 'requirements' || name === 'design' || name === 'reviewZip' || /^api_iteration_\\d+$/.test(name)) {\n    preservedBinary[name] = value;\n  }\n}\n\nreturn [{\n  json,\n  ...(Object.keys(preservedBinary).length ? { binary: preservedBinary } : {}),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5296,
+        976
+      ],
+      "id": "dd7431de-f031-491f-bf6b-c9ebf535cbc4",
+      "name": "API - Restore Selected Iteration"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "API - Start": {
+      "main": [
+        [
+          {
+            "node": "API - Create API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - History Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Create API": {
+      "main": [
+        [
+          {
+            "node": "API - History Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - History Context": {
+      "main": [
+        [
+          {
+            "node": "API - History Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "API - History Merge": {
+      "main": [
+        [
+          {
+            "node": "API - Store Iterations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Store Iterations": {
+      "main": [
+        [
+          {
+            "node": "API - Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - Review Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Review": {
+      "main": [
+        [
+          {
+            "node": "API - Review Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "API - Review Context": {
+      "main": [
+        [
+          {
+            "node": "API - Restore Older Iteration?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Restore Older Iteration?": {
+      "main": [
+        [
+          {
+            "node": "API - Restore Selected Iteration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API - Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Approved?": {
+      "main": [
+        [
+          {
+            "node": "API - End",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API - Prepare Refine Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Prepare Refine Input": {
+      "main": [
+        [
+          {
+            "node": "API - Create API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - History Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API - Restore Selected Iteration": {
+      "main": [
+        [
+          {
+            "node": "API - Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API - Review Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "ba2c93e4-7acd-4eaf-89be-5d185cce0b8b",
+  "meta": {
+    "instanceId": "b8db71e6cd806cd646e3036d735235b01787ac6bf74adc87afc57bddf23e92c7"
+  },
+  "id": "Ff4MPfcfylPSIPEn",
+  "tags": []
+}

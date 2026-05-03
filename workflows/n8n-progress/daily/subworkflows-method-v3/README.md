@@ -1,0 +1,1 @@
+This directory contains all the workflows in this new configuration. The requirements, design, api and backend are tested and working. What's missing is to test and possably fix problems in the frontend workflows and then create a new main-orchestrator workflow to orchestrate all this workflows in an autommatic way.

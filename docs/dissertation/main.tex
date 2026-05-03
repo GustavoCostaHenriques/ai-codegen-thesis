@@ -44,16 +44,35 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[11pt,openright,twoside]{report}
 
+\usepackage{iftex}
+\ifPDFTeX
 \usepackage[utf8]{inputenc}
-% Quem tiver problemas com os acentos, trocar utf8 por latin1
+\usepackage[T1]{fontenc}
+\fi
 
 \usepackage[portuguese,english]{babel}
+\ifPDFTeX
 \usepackage{times}
+\else
+\usepackage{fontspec}
+\usepackage{newunicodechar}
+\setmainfont{Times New Roman}
+\newfontfamily{\EmojiFont}{Segoe UI Emoji}
+\newcommand{\emoji}[1]{{\EmojiFont #1}}
+\newunicodechar{✅}{{\EmojiFont ✅}}
+\newunicodechar{❌}{{\EmojiFont ❌}}
+\newunicodechar{⭐}{{\EmojiFont ⭐}}
+\newunicodechar{⚠}{{\EmojiFont ⚠}}
+\newunicodechar{➡}{{\EmojiFont ➡}}
+\newunicodechar{️}{}
+\fi
 
 % Isto é só para gerar o texto dummy do exemplo. Remover da tese.
 \usepackage{blindtext}
 
 \usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
 
 % Indice remissivo
 \usepackage{makeidx}
@@ -137,7 +156,7 @@
 %}
 %\fi
 
-\usepackage[dvips]{geometry}
+\usepackage{geometry}
 \geometry{a4paper=true,portrait=true,left=3cm,right=3cm,top=2.5cm,bottom=3.5cm}
 
 %\title{\PEITITULO}

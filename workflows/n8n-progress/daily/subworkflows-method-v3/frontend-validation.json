@@ -1,0 +1,719 @@
+{
+  "name": "frontend-validation",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "function buildValidationHelperInput() {\n  return $input.all().map((item) => {\n    const inputJson = item.json || {};\n\n    const rawAttempts = Number(\n      inputJson.maxCompileFixAttempts ?? inputJson.maxAttempts ?? inputJson.max_fix_attempts ?? 50,\n    );\n    const maxCompileFixAttempts = Number.isFinite(rawAttempts)\n      ? Math.max(1, Math.min(50, Math.floor(rawAttempts)))\n      : 50;\n\n    const outputBinary = { ...(item.binary ?? {}) };\n    if (!outputBinary.frontendZip && outputBinary.reviewZip) {\n      outputBinary.frontendZip = outputBinary.reviewZip;\n    }\n\n    return {\n      json: {\n        ...inputJson,\n        compileFixAttempt: Number(inputJson.compileFixAttempt || 0),\n        maxCompileFixAttempts,\n        requirementsText: String(inputJson.requirementsText || ''),\n        requirementsFile: String(inputJson.requirementsFile || 'requirements.txt'),\n        openapiText: String(inputJson.openapiText || ''),\n        openapiFile: String(inputJson.openapiFile || 'openapi.yaml'),\n      },\n      binary: outputBinary,\n    };\n  });\n}\n\nreturn buildValidationHelperInput();"
+      },
+      "id": "d311d267-02bb-4382-8d49-f5180757be37",
+      "name": "FEV - Input Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        29920,
+        14896
+      ]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "frontendZip",
+        "outputPrefix": "current_"
+      },
+      "id": "787e4935-029c-4187-a591-aa29b97cb5c2",
+      "name": "FEV - Extract Frontend ZIP",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        30160,
+        14896
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function buildValidationHelperOutput() {\n  return $input.all().map((item) => ({\n    json: {\n      validationCompleted: true,\n      ...(item.json || {}),\n    },\n    binary: item.binary ?? {},\n  }));\n}\n\nreturn buildValidationHelperOutput();\n"
+      },
+      "id": "63e8dd19-da2c-4f59-805f-fae33792436a",
+      "name": "FEV - Validation Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32688,
+        14640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be-compile-passed-condition",
+              "leftValue": "={{ String($json.compilePassed || (Number($json.compileFixAttempt || 0) >= Number($json.maxCompileFixAttempts || 50))) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "59e860f2-d8f0-492e-af01-c6224c014184",
+      "name": "FE - Validation Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        30896,
+        14896
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "async function loadFrontendZipForValidation() {\n  const item = $input.first() || { json: {}, binary: {} };\n  const json = item.json || {};\n  const binary = item.binary || {};\n\n  const maxFileBytes = 1024 * 1024 * 2;\n\n  function normalizeFrontendPath(rawPath) {\n    const normalized = String(rawPath || '')\n      .replace(/\\\\/g, '/')\n      .trim()\n      .replace(/^\\.\\//, '')\n      .replace(/^\\/+/, '')\n      .replace(/\\/+/g, '/');\n\n    if (!normalized) return '';\n    if (normalized.endsWith('/')) return '';\n    if (normalized.startsWith('__MACOSX/')) return '';\n    if (normalized.endsWith('/.DS_Store')) return '';\n    if (normalized === '.DS_Store') return '';\n\n    if (normalized.startsWith('frontend/target/') || normalized === 'frontend/target') return '';\n    if (normalized.startsWith('frontend/bin/') || normalized === 'frontend/bin') return '';\n    if (normalized.startsWith('frontend/')) return normalized;\n    if (normalized === 'frontend') return '';\n\n    const prefixed = `frontend/${normalized}`;\n    if (prefixed.startsWith('frontend/target/') || prefixed === 'frontend/target') return '';\n    if (prefixed.startsWith('frontend/bin/') || prefixed === 'frontend/bin') return '';\n    return prefixed;\n  }\n\n  function isLikelyTextBuffer(buffer) {\n    const len = Math.min(buffer.length, 2048);\n    for (let index = 0; index < len; index += 1) {\n      if (buffer[index] === 0) return false;\n    }\n    return true;\n  }\n\n  async function readBinaryBuffer(propertyName, binaryEntry) {\n    try {\n      if (typeof this?.helpers?.getBinaryDataBuffer === 'function') {\n        const fromHelper = await this.helpers.getBinaryDataBuffer(0, propertyName);\n        if (fromHelper) return fromHelper;\n      }\n    } catch {}\n\n    try {\n      const raw = String(binaryEntry?.data ?? '');\n      if (!raw || raw === 'filesystem-v2') return null;\n      return Buffer.from(raw, 'base64');\n    } catch {\n      return null;\n    }\n  }\n\n  const extractedEntries = Object.entries(binary).filter(([propertyName]) => /^current_/i.test(propertyName));\n  if (!extractedEntries.length) {\n    return [{\n      json: {\n        ...json,\n        compilePassed: false,\n        compileErrorMessage: 'No extracted files found. Upload a valid frontend ZIP in the form field frontendZip.',\n        compileExitCode: 1,\n        compileRawExitCode: 'MISSING_ZIP_CONTENT',\n        compileHadError: true,\n        generatedFiles: [],\n      },\n      binary,\n    }];\n  }\n\n  const byPath = new Map();\n\n  for (const [propertyName, entry] of extractedEntries) {\n    const rawEntryPath = (() => {\n      const fileName = String(entry?.fileName || '').replace(/\\\\/g, '/').trim();\n      const directory = String(entry?.directory || '').replace(/\\\\/g, '/').trim();\n\n      if (!fileName) return '';\n      if (!directory) return fileName;\n      if (fileName.startsWith('frontend/') || fileName.includes('/')) return fileName;\n\n      return directory.replace(/\\/+$/, '') + '/' + fileName.replace(/^\\/+/, '');\n    })();\n    const filePath = normalizeFrontendPath(rawEntryPath);\n    if (!filePath) continue;\n\n    const buffer = await readBinaryBuffer.call(this, propertyName, entry);\n    if (!buffer) continue;\n    if (buffer.length > maxFileBytes) continue;\n    if (!isLikelyTextBuffer(buffer)) continue;\n\n    const content = buffer.toString('utf8');\n    if (!byPath.has(filePath)) {\n      byPath.set(filePath, content);\n    }\n  }\n\n  const generatedFiles = Array.from(byPath.entries())\n    .map(([path, content]) => ({ path, content }))\n    .sort((a, b) => a.path.localeCompare(b.path));\n\n  if (!generatedFiles.length) {\n    return [{\n      json: {\n        ...json,\n        compilePassed: false,\n        compileErrorMessage: 'Uploaded ZIP did not contain readable text files for frontend validation.',\n        compileExitCode: 1,\n        compileRawExitCode: 'NO_TEXT_FILES',\n        compileHadError: true,\n        generatedFiles: [],\n      },\n      binary,\n    }];\n  }\n\n  return [{\n    json: {\n      ...json,\n      generatedFiles,\n      generatedFilePaths: generatedFiles.map((file) => file.path),\n      generatedFileCountTotal: generatedFiles.length,\n      allPlannedFiles: generatedFiles.map((file) => ({ path: file.path })),\n      compileFixAttempt: Number(json.compileFixAttempt || 0),\n      maxCompileFixAttempts: Math.max(1, Number(json.maxCompileFixAttempts || 50)),\n      requirementsText: String(json.requirementsText || ''),\n      requirementsFile: String(json.requirementsFile || 'requirements.txt'),\n      openapiText: String(json.openapiText || ''),\n      openapiFile: String(json.openapiFile || 'openapi.yaml'),\n    },\n    binary,\n  }];\n}\n\nreturn loadFrontendZipForValidation();\n"
+      },
+      "id": "38d85bbf-ea54-4152-b3e3-e3fff65c389a",
+      "name": "FEV - Load Frontend ZIP",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        30400,
+        14896
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "43e017ec-1e5e-4086-ac88-9e8acf399dc2",
+      "name": "FEV - Start  Validation Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        29680,
+        14992
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Frontend Validation Helper",
+        "formDescription": "Upload a frontend ZIP and run compile/startup/test validation with automatic fix loop.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Frontend ZIP",
+              "fieldType": "file",
+              "fieldName": "frontendZip",
+              "multipleFiles": false,
+              "acceptFileTypes": ".zip"
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Run Validation",
+          "path": "1b99c5e4-40bd-4519-bd58-362466e3cf6e",
+          "useWorkflowTimezone": true
+        }
+      },
+      "id": "f61094cf-d7b5-4bc6-ac89-0f22e10fdf7b",
+      "name": "FEV - Start Validation Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        29680,
+        14800
+      ],
+      "webhookId": "1b99c5e4-40bd-4519-bd58-362466e3cf6e"
+    },
+    {
+      "parameters": {
+        "jsCode": "async function feValidateGeneratedFrontend(){const fs=require('fs/promises');const path=require('path');const os=require('os');const cp=require('child_process');const item=$input.first()||{json:{},binary:{}};const json=item.json||{};const binary=item.binary||{};const generatedFiles=Array.isArray(json.generatedFiles)?json.generatedFiles:[];if(!generatedFiles.length){return[{json:{...json,compilePassed:false,compileErrorMessage:'No generated frontend files found for validation.',compileExitCode:1,compileRawExitCode:'NO_GENERATED_FILES',compileHadError:true},binary}]};const sid=String(json.compileSessionId||`${Date.now()}-${Math.random().toString(36).slice(2,8)}`);const root=path.join(os.tmpdir(),'n8n-frontend-build',sid);const dir=path.join(root,'frontend');await fs.rm(root,{recursive:true,force:true});await fs.mkdir(dir,{recursive:true});for(const file of generatedFiles){const rel=String(file?.path||'').replace(/\\\\/g,'/').trim();if(!rel.startsWith('frontend/'))continue;const full=path.join(root,rel);await fs.mkdir(path.dirname(full),{recursive:true});const content=typeof file?.content==='string'?file.content:(file?.content==null?'':JSON.stringify(file.content,null,2));await fs.writeFile(full,content,'utf8')}const script=['set -e','npm install','npm run build','npm test -- --watch=false','(npm start > .n8n-frontend-start.log 2>&1 & APP_PID=$!; sleep 20; curl -f http://localhost:4200; STATUS=$?; kill $APP_PID >/dev/null 2>&1 || true; wait $APP_PID >/dev/null 2>&1 || true; exit $STATUS)'].join('\\n');const res=await new Promise((resolve)=>cp.execFile('/bin/bash',['-lc',script],{cwd:dir,timeout:Math.max(300000,Number(json.frontendValidationTimeoutMs||2400000)),maxBuffer:32*1024*1024,env:process.env},(e,so,se)=>{const raw=e?(e.code??'EXEC_ERROR'):0;resolve({code:Number.isInteger(raw)?raw:1,rawCode:raw,hadError:Boolean(e),stdout:String(so||''),stderr:String(se||''),errorMessage:e?String(e.message||''):''})}));return[{json:{...json,compileSessionId:sid,compileWorkspace:dir,compileCommand:'npm install && npm run build && npm test -- --watch=false && npm start & sleep 20 && curl -f http://localhost:4200',compileValidationStage:'frontend-ci',compileExitCode:res.code,compileRawExitCode:res.rawCode,compileHadError:res.hadError,compileStdout:res.stdout,compileStderr:res.stderr,compileErrorMessage:res.errorMessage||res.stderr||(res.code===0?'':'Frontend validation failed.'),compilePassed:res.code===0&&!res.hadError},binary}]}\nreturn feValidateGeneratedFrontend();"
+      },
+      "id": "f6026b3f-0bab-4826-905a-04f2a5740349",
+      "name": "FEV - Validate Generated Frontend",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        30624,
+        14896
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function bePrepareCompileFixState() {\n  const MAX_RECENT_MODEL_RESPONSES = 3;\n  const MAX_FIRST_COMPILER_ERRORS = 20;\n  const STAGNATION_WINDOW = 3;\n  const WIDE_RECOVERY_BUCKET_THRESHOLD = 4;\n  const WIDE_RECOVERY_NO_CHANGE_THRESHOLD = 3;\n  const WIDE_RECOVERY_ITERATIONS = 2;\n\n  function toText(value) {\n    return String(value ?? '').trim();\n  }\n\n  function buildErrorSignature(value) {\n    const text = String(value ?? '')\n      .toLowerCase()\n      .replace(/[a-z]:\\\\[^\\\\n\\\\r\\\\t ]*frontend\\\\/g, 'frontend/')\n      .replace(/\\/tmp\\/n8n-frontend-build\\/[a-z0-9-]+\\/frontend\\//g, 'frontend/')\n      .replace(/\\[[0-9]+,[0-9]+\\]/g, '[n,n]')\n      .replace(/:[0-9]+(?=[)\\s]|$)/g, ':n')\n      .replace(/\\s+/g, ' ')\n      .trim();\n\n    if (!text) return '';\n    return text.length > 5000 ? text.slice(0, 5000) : text;\n  }\n\n  function buildErrorBucket(value) {\n    const text = String(value ?? '').toLowerCase();\n    if (!text) return '';\n\n    if (text.includes('pre_compile_guard_failed')) {\n      return 'pre-compile-guard-failed';\n    }\n\n    if (text.includes('dependencies.dependency.version') && text.includes('org.testcontainers:redis')) {\n      return 'pom-missing-testcontainers-redis-version';\n    }\n\n    if (\n      text.includes('repo.zalando')\n      || text.includes('forbidden (403)')\n      || text.includes('name does not resolve')\n    ) {\n      return 'dependency-zalando-repository-unreachable';\n    }\n\n    if (\n      text.includes('problem-throwable')\n      || text.includes('package org.zalando.problem.throwable does not exist')\n    ) {\n      return 'java-missing-zalando-problem-throwable';\n    }\n\n    if (text.includes('unknown property') && text.includes('/mapper/')) {\n      return 'java-mapstruct-unknown-property';\n    }\n\n    if (\n      text.includes('failed to initialize jpa entitymanagerfactory')\n      || (text.includes('table [') && text.includes('contains physical column name'))\n    ) {\n      return 'spring-boot-jpa-entity-mapping';\n    }\n\n    if (\n      text.includes('application run failed')\n      || text.includes('error starting applicationcontext')\n      || text.includes('beancreationexception')\n    ) {\n      return 'spring-boot-startup-failure';\n    }\n\n    if (text.includes('cannot find symbol')) {\n      return 'java-cannot-find-symbol';\n    }\n\n    if (text.includes('duplicate class')) {\n      return 'java-duplicate-class';\n    }\n\n    if (text.includes('public type \"') && text.includes('must be declared in')) {\n      return 'java-duplicate-class';\n    }\n\n    if (text.includes('package ') && text.includes(' does not exist')) {\n      return 'java-missing-package';\n    }\n\n    if (text.includes('compilation error')) {\n      return 'java-compilation-error';\n    }\n\n    if (text.includes('could not resolve dependencies') || text.includes('failed to read artifact descriptor')) {\n      return 'dependency-resolution';\n    }\n\n    if (text.includes('non-parseable pom') || text.includes('modelparseexception')) {\n      return 'pom-parse-error';\n    }\n\n    return text\n      .replace(/\\s+/g, ' ')\n      .trim()\n      .slice(0, 120);\n  }\n\n  function normalizePathArray(value) {\n    if (!Array.isArray(value)) return [];\n    const seen = new Set();\n    const normalized = [];\n    for (const raw of value) {\n      const path = String(raw || '').trim().replace(/\\\\/g, '/');\n      if (!path || !path.startsWith('frontend/')) continue;\n      if (seen.has(path)) continue;\n      seen.add(path);\n      normalized.push(path);\n    }\n    return normalized;\n  }\n\n  function pickErrorSummary(parts, maxChars) {\n    const text = parts.filter(Boolean).join('\\n').trim();\n    if (!text) return '';\n    return text.length > maxChars ? text.slice(0, maxChars) : text;\n  }\n\n  function compactText(value, maxChars) {\n    const text = String(value ?? '');\n    if (!text) return '';\n    return text.length > maxChars ? text.slice(0, maxChars) : text;\n  }\n\n  function normalizeRecentModelResponses(value) {\n    if (!Array.isArray(value)) return [];\n    const normalized = [];\n    for (const entry of value) {\n      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;\n      const attempt = Math.max(0, Number(entry.attempt || 0));\n      const response = compactText(entry.response, 2400);\n      if (!attempt || !response) continue;\n      normalized.push({\n        attempt,\n        parseError: toText(entry.parseError),\n        parsedPaths: normalizePathArray(entry.parsedPaths).slice(0, 20),\n        appliedPaths: normalizePathArray(entry.appliedPaths).slice(0, 20),\n        response,\n      });\n    }\n    return normalized.slice(-MAX_RECENT_MODEL_RESPONSES);\n  }\n\n  function splitLines(value) {\n    return String(value ?? '')\n      .split(/\\r?\\n/)\n      .map((line) => String(line || '').trim())\n      .filter(Boolean);\n  }\n\n  function extractCompilerErrorLines(value, maxLines = MAX_FIRST_COMPILER_ERRORS) {\n    const lines = splitLines(value);\n    const selected = [];\n    for (const line of lines) {\n      if (!line.startsWith('[ERROR]')) continue;\n      const normalized = line.replace(/\\s+/g, ' ').trim();\n      if (\n        normalized === '[ERROR]'\n        || normalized.startsWith('[ERROR] -> [Help ')\n        || normalized.includes('For more information about the errors and possible solutions')\n      ) {\n        continue;\n      }\n      selected.push(normalized);\n      if (selected.length >= maxLines) break;\n    }\n    return selected;\n  }\n\n  function countCompilerErrorLines(value) {\n    return extractCompilerErrorLines(value, 5000).length;\n  }\n\n  function getBucketSeverityScore(bucket, stage) {\n    const normalizedBucket = String(bucket || '').toLowerCase();\n    const normalizedStage = String(stage || '').toLowerCase();\n    let score = 0;\n\n    if (normalizedStage === 'compile') score += 60000;\n    else if (normalizedStage === 'guard') score += 50000;\n    else if (normalizedStage === 'run') score += 30000;\n    else if (normalizedStage === 'test') score += 10000;\n    else score += 40000;\n\n    if (!normalizedBucket) return score + 5000;\n    if (normalizedBucket.startsWith('pom-') || normalizedBucket.startsWith('dependency-')) return score + 9000;\n    if (normalizedBucket === 'dependency-resolution') return score + 8500;\n    if (normalizedBucket === 'java-compilation-error') return score + 7000;\n    if (normalizedBucket === 'java-duplicate-class') return score + 6800;\n    if (normalizedBucket === 'java-mapstruct-unknown-property') return score + 6500;\n    if (normalizedBucket === 'java-cannot-find-symbol') return score + 6000;\n    if (normalizedBucket === 'java-missing-package') return score + 5800;\n    if (normalizedBucket.startsWith('spring-boot-')) return score + 3000;\n    return score + 5000;\n  }\n\n  function computeConvergenceScore(params) {\n    if (params.compilePassed) return 0;\n    const bucketScore = getBucketSeverityScore(params.errorBucket, params.validationStage);\n    const errorLineScore = Math.min(15000, Math.max(0, params.errorLineCount) * 25);\n    const noChangePenalty = Math.min(5000, Math.max(0, params.noChangeCount) * 700);\n    return bucketScore + errorLineScore + noChangePenalty + 1;\n  }\n\n  function isDependencyLikeBucket(bucket) {\n    const value = String(bucket || '').toLowerCase();\n    if (!value) return false;\n    return value === 'dependency-resolution' || value.startsWith('dependency-') || value.startsWith('pom-');\n  }\n\n  function hasNonDecreasingTrend(values) {\n    if (!Array.isArray(values) || values.length < STAGNATION_WINDOW) return false;\n    for (let index = 1; index < values.length; index += 1) {\n      if (values[index] < values[index - 1]) return false;\n    }\n    return true;\n  }\n\n  function isLogbackNoiseLine(line) {\n    const text = String(line || '').toLowerCase();\n    if (!text) return false;\n    if (text.includes('|-info in') && text.includes('logback')) return true;\n    if (text.includes('logback.classic') || text.includes('logback.core')) return true;\n    if (text.includes('contextinitializer') || text.includes('basicconfigurator')) return true;\n    if (text.includes('appendermodelhandler') || text.includes('levelchangepropagator')) return true;\n    if (text.includes('setting level of logger') || text.includes('propagating ')) return true;\n    if (text.includes('could not find resource [logback')) return true;\n    if (text.includes('this is logback-classic version')) return true;\n    return false;\n  }\n\n  function selectRunFailureSummary(compileErrorMessage, compileStderr, compileStdout, maxChars) {\n    const priorityPatterns = [\n      /failed to initialize jpa entitymanagerfactory/i,\n      /beancreationexception/i,\n      /exception encountered during context initialization/i,\n      /table \\[[a-z0-9_]+\\] contains physical column name/i,\n      /application run failed/i,\n      /error starting applicationcontext/i,\n      /caused by:/i,\n      /\\[error\\]/i,\n      /compilation error/i,\n      /cannot find symbol/i,\n      /incompatible types/i,\n      /illegal character/i,\n      /failed to execute goal .*spring-boot-maven-plugin.*run/i,\n    ];\n\n    const orderedLines = [\n      ...splitLines(compileStdout),\n      ...splitLines(compileStderr),\n      ...splitLines(compileErrorMessage),\n    ];\n\n    const preferred = [];\n    for (const line of orderedLines) {\n      if (isLogbackNoiseLine(line)) continue;\n      if (priorityPatterns.some((pattern) => pattern.test(line))) {\n        preferred.push(line);\n      }\n    }\n\n    const withErrors = orderedLines.filter((line) => {\n      if (isLogbackNoiseLine(line)) return false;\n      const text = line.toLowerCase();\n      return text.includes(' error ') || text.includes('exception');\n    });\n\n    const fallback = orderedLines.filter((line) => !isLogbackNoiseLine(line));\n    const merged = Array.from(new Set([\n      ...preferred,\n      ...withErrors,\n      ...splitLines(compileErrorMessage),\n      ...fallback.slice(-8),\n    ]));\n\n    return pickErrorSummary(merged, maxChars);\n  }\n\n  function collectRelevantPaths(errorText, generatedFiles, explicitPaths = []) {\n    const found = new Set();\n\n    const unixMatches = errorText.match(/frontend\\/[A-Za-z0-9_./-]+/g) || [];\n    for (const raw of unixMatches) {\n      found.add(String(raw).replace(/,+$/, '').trim());\n    }\n\n    const windowsMatches = errorText.match(/frontend\\\\[A-Za-z0-9_.\\\\-]+/g) || [];\n    for (const raw of windowsMatches) {\n      found.add(String(raw).replace(/,+$/, '').replace(/\\\\/g, '/').trim());\n    }\n\n    const generatedPathSet = new Set(\n      (Array.isArray(generatedFiles) ? generatedFiles : [])\n        .map((file) => String(file?.path || '').trim())\n        .filter(Boolean),\n    );\n\n    for (const rawPath of explicitPaths) {\n      const normalized = String(rawPath || '').trim().replace(/\\\\/g, '/');\n      if (!normalized) continue;\n      found.add(normalized);\n    }\n\n    const tableMatches = Array.from(\n      String(errorText || '').matchAll(/table\\s*\\[([a-z0-9_]+)\\]/gi),\n      (match) => String(match[1] || '').toLowerCase(),\n    );\n    const hasJpaTableColumnMismatchSignal = /contains physical column name/i.test(String(errorText || ''));\n    const blockedColumnTokens = new Set(['error', 'help', 'warning', 'warn', 'info', 'line', 'column', 'table']);\n    const columnMatches = hasJpaTableColumnMismatchSignal\n      ? Array.from(\n        String(errorText || '').matchAll(/\\[([a-z0-9_]+)\\]/gi),\n        (match) => String(match[1] || '').toLowerCase(),\n      ).filter((token) => token && !blockedColumnTokens.has(token))\n      : [];\n\n    if (tableMatches.length || columnMatches.length) {\n      for (const file of (Array.isArray(generatedFiles) ? generatedFiles : [])) {\n        const path = String(file?.path || '').trim();\n        const content = String(file?.content || '').toLowerCase();\n        if (!path || !generatedPathSet.has(path)) continue;\n        if (!path.includes('/src/main/')) continue;\n        if (!content) continue;\n\n        const tableHit = tableMatches.some((tableName) => tableName && content.includes(tableName));\n        const columnHit = columnMatches.some((columnName) => {\n          if (!columnName) return false;\n          if (columnName.length < 3) return false;\n          if (content.includes(columnName)) return true;\n          const camelCase = columnName.replace(/_([a-z])/g, (_, c) => c.toUpperCase());\n          return camelCase !== columnName && content.includes(camelCase.toLowerCase());\n        });\n\n        if (tableHit || columnHit) {\n          found.add(path);\n        }\n      }\n    }\n\n    return Array.from(found).filter((path) => generatedPathSet.has(path));\n  }\n\n  return $input.all().map((item) => {\n    const json = item.json || {};\n    const generatedFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n\n    const compileErrorMessage = toText(json.compileErrorMessage);\n    const compileStderr = toText(json.compileStderr);\n    const compileStdout = toText(json.compileStdout);\n    const compileFixNoChangeCount = Math.max(0, Number(json.compileFixNoChangeCount || 0));\n    const compileFixAttempt = Number(json.compileFixAttempt || 0) + 1;\n    const maxCompileFixAttempts = Math.max(1, Number(json.maxCompileFixAttempts || 50));\n    const compileFixCanContinue = compileFixAttempt <= maxCompileFixAttempts;\n    const compileValidationStage = String(json.compileValidationStage || 'compile').trim();\n    const compileCommand = String(json.compileCommand || '').trim();\n    const combinedErrorText = compileValidationStage === 'run'\n      ? selectRunFailureSummary(compileErrorMessage, compileStderr, compileStdout, 12000)\n      : pickErrorSummary([compileErrorMessage, compileStderr, compileStdout], 12000);\n    const testFailedFilePaths = normalizePathArray(json.testFailedFilePaths);\n    const testTargetFilePaths = normalizePathArray(json.testTargetFilePaths);\n    const compileFixAppliedPaths = normalizePathArray(json.compileFixAppliedPaths);\n    const compileFixParsedPaths = normalizePathArray(\n      Array.isArray(json.compileFixParsedPaths)\n        ? json.compileFixParsedPaths\n        : (Array.isArray(json.compileFixFiles) ? json.compileFixFiles.map((file) => file?.path) : []),\n    );\n    const previousAttemptNumber = Math.max(0, Number(json.compileFixAttempt || 0));\n    const previousModelResponse = compactText(json.compileFixRawResponse, 2400);\n    let compileFixRecentModelResponses = normalizeRecentModelResponses(json.compileFixRecentModelResponses);\n    if (previousAttemptNumber > 0 && previousModelResponse) {\n      compileFixRecentModelResponses = compileFixRecentModelResponses\n        .filter((entry) => Number(entry?.attempt || 0) !== previousAttemptNumber);\n      compileFixRecentModelResponses.push({\n        attempt: previousAttemptNumber,\n        parseError: toText(json.compileFixParseError),\n        parsedPaths: compileFixParsedPaths.slice(0, 20),\n        appliedPaths: compileFixAppliedPaths.slice(0, 20),\n        response: previousModelResponse,\n      });\n      compileFixRecentModelResponses = compileFixRecentModelResponses.slice(-MAX_RECENT_MODEL_RESPONSES);\n    }\n    const currentErrorSignature = buildErrorSignature(combinedErrorText);\n    const currentErrorBucket = buildErrorBucket(combinedErrorText);\n    const firstCompilerErrors = extractCompilerErrorLines(combinedErrorText, MAX_FIRST_COMPILER_ERRORS);\n    const compilerErrorLineCount = countCompilerErrorLines(combinedErrorText);\n    const previousHistory = Array.isArray(json.compileFixHistory) ? json.compileFixHistory : [];\n    const previousErrorSignature = String(\n      json.lastCompileErrorSignature ||\n      previousHistory[previousHistory.length - 1]?.errorSignature ||\n      ''\n    ).trim();\n    const recentHistory = previousHistory.slice(-4);\n    const recentBucketMatches = currentErrorBucket\n      ? recentHistory.filter((entry) => String(entry?.errorBucket || '').trim() === currentErrorBucket).length\n      : 0;\n    const isRepeatedError = Boolean(\n      currentErrorSignature &&\n      previousErrorSignature &&\n      currentErrorSignature === previousErrorSignature\n    ) || recentBucketMatches >= 2;\n    const errorBucketRepeatCount = currentErrorBucket ? recentBucketMatches + 1 : 0;\n    const recentSameBucketEntries = currentErrorBucket\n      ? previousHistory\n        .filter((entry) => String(entry?.errorBucket || '').trim() === currentErrorBucket)\n        .slice(-(STAGNATION_WINDOW - 1))\n      : [];\n    const recentErrorCounts = [\n      ...recentSameBucketEntries.map((entry) => Math.max(0, Number(entry?.errorLineCount || 0))),\n      compilerErrorLineCount,\n    ].slice(-STAGNATION_WINDOW);\n    const stagnationByBucket = Boolean(\n      currentErrorBucket\n      && errorBucketRepeatCount >= STAGNATION_WINDOW\n      && recentErrorCounts.length >= STAGNATION_WINDOW\n      && hasNonDecreasingTrend(recentErrorCounts)\n    );\n    const repeatedBucketForWideRecovery = Boolean(\n      currentErrorBucket && errorBucketRepeatCount >= WIDE_RECOVERY_BUCKET_THRESHOLD\n    );\n    const repeatedNoChangeForWideRecovery = compileFixNoChangeCount >= WIDE_RECOVERY_NO_CHANGE_THRESHOLD;\n    let compileFixWideRecoveryTurnsLeft = Math.max(0, Number(json.compileFixWideRecoveryTurnsLeft || 0));\n    if (repeatedBucketForWideRecovery || repeatedNoChangeForWideRecovery) {\n      compileFixWideRecoveryTurnsLeft = WIDE_RECOVERY_ITERATIONS;\n    } else if (compileFixWideRecoveryTurnsLeft > 0) {\n      compileFixWideRecoveryTurnsLeft -= 1;\n    }\n    const compileFixUseWideRecoveryMode = compileFixWideRecoveryTurnsLeft > 0;\n    const compileFixUseSurgicalMode = Boolean(\n      !compileFixUseWideRecoveryMode && (stagnationByBucket || compileFixNoChangeCount >= 2)\n    );\n    const compileFixIsStuck = Boolean(currentErrorBucket && errorBucketRepeatCount >= 3)\n      || compileFixUseSurgicalMode\n      || compileFixUseWideRecoveryMode;\n    const compileFixStuckReason = compileFixIsStuck\n      ? (\n        compileFixUseWideRecoveryMode\n          ? (\n            repeatedBucketForWideRecovery\n              ? `Wide recovery mode enabled: bucket \"${currentErrorBucket}\" repeated ${errorBucketRepeatCount} attempts.`\n              : `Wide recovery mode enabled after ${compileFixNoChangeCount} no-change attempts.`\n          )\n          : compileFixUseSurgicalMode\n          ? `Stagnation detected for bucket \"${currentErrorBucket}\" with non-decreasing error volume (${recentErrorCounts.join(' -> ')}).`\n          : `Repeated error bucket \"${currentErrorBucket}\" for ${errorBucketRepeatCount} consecutive attempts.`\n      )\n      : '';\n    const compileFixForceConcreteEdits = Boolean(\n      compileFixNoChangeCount >= 1 || (previousAttemptNumber > 0 && compileFixAppliedPaths.length === 0)\n    );\n    const pomTouchedLastAttempt = compileFixAppliedPaths.includes('frontend/pom.xml');\n    const recentPomTouchCount = previousHistory\n      .slice(-5)\n      .filter((entry) => Boolean(entry?.pomTouched))\n      .length + (pomTouchedLastAttempt ? 1 : 0);\n\n    let compileFixStopReason = '';\n    if (compileFixAttempt > maxCompileFixAttempts) {\n      compileFixStopReason = `Reached max compile-fix attempts (${maxCompileFixAttempts}).`;\n    }\n\n    const relevantErrorPaths = collectRelevantPaths(\n      combinedErrorText,\n      generatedFiles,\n      [...testFailedFilePaths, ...testTargetFilePaths],\n    );\n    const firstCompilerErrorPaths = collectRelevantPaths(\n      firstCompilerErrors.join('\\n'),\n      generatedFiles,\n      [...testFailedFilePaths, ...testTargetFilePaths],\n    );\n    if (\n      isDependencyLikeBucket(currentErrorBucket)\n      && generatedFiles.some((file) => String(file?.path || '').trim() === 'frontend/pom.xml')\n      && !firstCompilerErrorPaths.includes('frontend/pom.xml')\n    ) {\n      firstCompilerErrorPaths.unshift('frontend/pom.xml');\n    }\n    const currentConvergenceScore = computeConvergenceScore({\n      compilePassed: Boolean(json.compilePassed),\n      errorBucket: currentErrorBucket,\n      validationStage: compileValidationStage,\n      errorLineCount: compilerErrorLineCount,\n      noChangeCount: compileFixNoChangeCount,\n    });\n    const compileFixRollbackToBest = false;\n\n    const compileFixHistory = [\n      ...previousHistory,\n      {\n        attempt: compileFixAttempt,\n        compilePassed: Boolean(json.compilePassed),\n        compileExitCode: json.compileExitCode,\n        compileRawExitCode: json.compileRawExitCode,\n        compileValidationStage,\n        compileCommand,\n        isRepeatedError,\n        failedTestFileCount: testFailedFilePaths.length,\n        testTargetFileCount: testTargetFilePaths.length,\n        summary: pickErrorSummary([compileErrorMessage, compileStderr], 1500),\n        errorSignature: currentErrorSignature,\n        errorBucket: currentErrorBucket,\n        errorLineCount: compilerErrorLineCount,\n        convergenceScore: currentConvergenceScore,\n        errorBucketRepeatCount,\n        compileFixIsStuck,\n        compileFixUseSurgicalMode,\n        compileFixUseWideRecoveryMode,\n        compileFixWideRecoveryTurnsLeft,\n        compileFixRollbackToBest,\n        pomTouched: pomTouchedLastAttempt,\n      },\n    ];\n\n    return {\n      json: {\n        ...json,\n        generatedFiles,\n        generatedFilePaths: generatedFiles.map((file) => String(file?.path || '').trim()).filter(Boolean),\n        generatedFileCountTotal: generatedFiles.length,\n        allPlannedFiles: generatedFiles.map((file) => ({ path: String(file?.path || '').trim() })).filter((file) => file.path),\n        compileFixAttempt,\n        maxCompileFixAttempts,\n        compileFixCanContinue,\n        compileFixShouldStop: !compileFixCanContinue,\n        compileFixStopReason,\n        compileValidationStage,\n        compileCommand,\n        compileErrorContext: combinedErrorText,\n        compileErrorSignature: currentErrorSignature,\n        compileErrorBucket: currentErrorBucket,\n        compilerErrorLineCount,\n        firstCompilerErrors,\n        firstCompilerErrorPaths,\n        currentConvergenceScore,\n        errorBucketRepeatCount,\n        lastCompileErrorSignature: currentErrorSignature,\n        isRepeatedError,\n        compileFixIsStuck,\n        compileFixUseSurgicalMode,\n        compileFixUseWideRecoveryMode,\n        compileFixWideRecoveryTurnsLeft,\n        compileFixStuckReason,\n        compileFixForceConcreteEdits,\n        compileFixRecentModelResponses,\n        recentPomTouchCount,\n        compileFixWorseStreak: 0,\n        compileFixRollbackToBest,\n        compileFixRollbackReason: '',\n        compileFixBestState: null,\n        relevantErrorPaths,\n        testFailedFilePaths,\n        testTargetFilePaths,\n        compileFixHistory,\n      },\n      binary: item.binary ?? {},\n    };\n  });\n}\n\nreturn bePrepareCompileFixState();\n\r\n\r\n\r\n"
+      },
+      "id": "7c80f5e6-6949-4da7-b6b2-9d7531ff0ff0",
+      "name": "FEV - Prepare Validation Fix State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        31184,
+        14912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function beBuildCompileFixPrompt() {\n  const MAX_CONTEXT_FILES = 20;\n  const MAX_CONTEXT_FILES_DUPLICATE = 30;\n  const MAX_CONTEXT_FILES_WIDE = 32;\n  const MAX_TOTAL_CONTEXT_CHARS = 90000;\n  const MAX_FILE_CONTEXT_CHARS = 14000;\n  const MAX_EDIT_SCOPE_GENERAL = 5;\n  const MAX_EDIT_SCOPE_SURGICAL = 3;\n  const MAX_EDIT_SCOPE_WIDE = 10;\n\n  function normalizePath(value) {\n    const raw = String(value || '').trim().replace(/\\\\/g, '/');\n    if (!raw) return '';\n    if (raw.startsWith('frontend/')) return raw;\n\n    const idx = raw.indexOf('frontend/');\n    if (idx >= 0) {\n      return raw.slice(idx);\n    }\n\n    return raw;\n  }\n\n  function isEditableProjectPath(path) {\n    const normalized = normalizePath(path);\n    if (!normalized || !normalized.startsWith('frontend/')) return false;\n    if (normalized === 'frontend/target' || normalized.startsWith('frontend/target/')) return false;\n    if (normalized === 'frontend/bin' || normalized.startsWith('frontend/bin/')) return false;\n    return true;\n  }\n\n  function compactJson(value) {\n    return JSON.stringify(value);\n  }\n\n  function compactText(value, maxChars) {\n    const text = String(value ?? '');\n    if (!text) return '';\n    return text.length > maxChars ? text.slice(0, maxChars) : text;\n  }\n\n  function splitTokens(value) {\n    const text = String(value || '')\n      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')\n      .replace(/[^A-Za-z0-9]+/g, ' ')\n      .toLowerCase();\n    return Array.from(new Set(text.split(/\\s+/).filter((token) => token.length > 1)));\n  }\n\n  function normalizeContent(contentValue) {\n    if (typeof contentValue === 'string') return contentValue;\n    if (contentValue === null || contentValue === undefined) return '';\n    if (typeof contentValue === 'object') return JSON.stringify(contentValue, null, 2);\n    return String(contentValue);\n  }\n\n  function normalizePathArray(value) {\n    if (!Array.isArray(value)) return [];\n    const seen = new Set();\n    const result = [];\n    for (const rawPath of value) {\n      const path = normalizePath(rawPath);\n      if (!isEditableProjectPath(path)) continue;\n      if (seen.has(path)) continue;\n      seen.add(path);\n      result.push(path);\n    }\n    return result;\n  }\n\n  function normalizeRecentModelResponses(value) {\n    if (!Array.isArray(value)) return [];\n    const normalized = [];\n    for (const entry of value) {\n      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;\n      const attempt = Math.max(0, Number(entry.attempt || 0));\n      const response = compactText(entry.response, 1800);\n      if (!attempt || !response) continue;\n      normalized.push({\n        attempt,\n        parseError: String(entry.parseError || ''),\n        parsedPaths: normalizePathArray(entry.parsedPaths).slice(0, 20),\n        appliedPaths: normalizePathArray(entry.appliedPaths).slice(0, 20),\n        response,\n      });\n    }\n    return normalized.slice(-3);\n  }\n\n  function addUniquePath(list, seen, path, pathSet) {\n    const normalized = normalizePath(path);\n    if (!isEditableProjectPath(normalized)) return;\n    if (!pathSet.has(normalized)) return;\n    if (seen.has(normalized)) return;\n    seen.add(normalized);\n    list.push(normalized);\n  }\n\n  function isBuildDependencyError(errorText) {\n    const text = String(errorText || '').toLowerCase();\n    if (!text) return false;\n\n    return [\n      'non-resolvable parent pom',\n      'could not resolve dependencies',\n      'could not collect dependencies',\n      'could not resolve artifact',\n      'failed to read artifact descriptor',\n      'could not transfer artifact',\n      'unable to find valid certification path',\n      'dependency resolution',\n      'pluginresolutionexception',\n      'unknown lifecycle phase',\n      'goal requires a project to execute but there is no pom',\n      'dependencies.dependency.version',\n      'non-parseable pom',\n      'modelparseexception',\n      'projectbuildingexception',\n      'name does not resolve',\n      'forbidden (403)',\n    ].some((marker) => text.includes(marker));\n  }\n\n  function hasExternalMissingDependencySignal(errorText) {\n    const rawText = String(errorText || '');\n    if (!rawText) return false;\n\n    const missingPackages = Array.from(\n      rawText.matchAll(/package\\s+([A-Za-z0-9_.]+)\\s+does not exist/gi),\n      (match) => String(match[1] || '').toLowerCase(),\n    );\n\n    const hasExternalMissingPackage = missingPackages.some((pkg) => {\n      if (!pkg) return false;\n      if (pkg.startsWith('com.example.')) return false;\n      return /^(org|io|com|net|jakarta|javax)\\./.test(pkg);\n    });\n    if (hasExternalMissingPackage) return true;\n\n    const missingClassFiles = Array.from(\n      rawText.matchAll(/class file for\\s+([A-Za-z0-9_.]+)\\s+not found/gi),\n      (match) => String(match[1] || '').toLowerCase(),\n    );\n\n    const hasExternalMissingClassFile = missingClassFiles.some((className) => {\n      if (!className) return false;\n      if (className.startsWith('com.example.')) return false;\n      return /^(org|io|com|net|jakarta|javax)\\./.test(className);\n    });\n\n    return hasExternalMissingClassFile;\n  }\n\n  function isMapstructError(errorText) {\n    const text = String(errorText || '');\n    return /mapstruct|unknown property .* in result type|no property named .* exists in source|the type of parameter .* has no property|has no properties\\./i.test(text);\n  }\n\n  function hasIncompatibleTypeError(errorText) {\n    const text = String(errorText || '');\n    return /incompatible types\\s*:/i.test(text);\n  }\n\n  function hasJavaCompileError(errorText) {\n    const text = String(errorText || '');\n    if (!text) return false;\n\n    return [\n      /compilation error/i,\n      /cannot find symbol/i,\n      /package\\s+[A-Za-z0-9_.]+\\s+does not exist/i,\n      /unknown property/i,\n      /incompatible types\\s*:/i,\n      /illegal character/i,\n      /frontend[\\\\/].*src[\\\\/](main|test)[\\\\/].*\\.(java|kt|groovy)/i,\n    ].some((pattern) => pattern.test(text));\n  }\n\n  function hasCustomRepositoryOutage(errorText) {\n    const text = String(errorText || '').toLowerCase();\n    if (!text) return false;\n    return (\n      text.includes('repo.zalando')\n      || text.includes('zalando (https://repo.zalando')\n      || text.includes('forbidden (403)')\n      || text.includes('name does not resolve')\n    );\n  }\n\n  function buildGeneratedLookup(generatedFiles) {\n    const byPath = new Map();\n    const pathSet = new Set();\n    const basenameIndex = new Map();\n\n    for (const file of generatedFiles) {\n      const path = normalizePath(file?.path);\n      if (!path || !path.startsWith('frontend/')) continue;\n\n      const content = normalizeContent(file?.content);\n      byPath.set(path, content);\n      pathSet.add(path);\n\n      const basename = path.split('/').pop()?.toLowerCase() || '';\n      if (!basename) continue;\n      if (!basenameIndex.has(basename)) basenameIndex.set(basename, []);\n      basenameIndex.get(basename).push(path);\n    }\n\n    return { byPath, pathSet, basenameIndex };\n  }\n\n  function extractReferencedFrontendPaths(errorText, generatedPathSet) {\n    const text = String(errorText || '');\n    const found = new Set();\n\n    const patterns = [\n      /frontend[\\\\/][A-Za-z0-9_./\\\\-]+/g,\n      /[A-Za-z]:\\\\[^\\s:]+frontend\\\\[A-Za-z0-9_.\\\\-]+/g,\n      /\\/tmp\\/[A-Za-z0-9_./-]*frontend\\/[A-Za-z0-9_./-]+/g,\n    ];\n\n    for (const pattern of patterns) {\n      for (const match of text.matchAll(pattern)) {\n        let value = normalizePath(match[0]);\n        value = value.replace(/[),:;\\]]+$/, '');\n        if (!value.startsWith('frontend/')) continue;\n        if (!generatedPathSet.has(value)) continue;\n        found.add(value);\n      }\n    }\n\n    return Array.from(found).sort((a, b) => a.localeCompare(b));\n  }\n\n  function extractMapstructTypeNames(errorText) {\n    const text = String(errorText || '');\n    const names = new Set();\n\n    const patterns = [\n      /result type\\s+\"?([A-Za-z_][A-Za-z0-9_$]*)\"?/gi,\n      /Type\\s+\"?([A-Za-z_][A-Za-z0-9_$]*)\"?\\s+has no properties/gi,\n      /parameter\\s+\"?[A-Za-z_][A-Za-z0-9_$]*\"?\\s+has no property[^\\n]*Type\\s+\"?([A-Za-z_][A-Za-z0-9_$]*)\"?/gi,\n      /type of parameter\\s+\"?([A-Za-z_][A-Za-z0-9_$]*)\"?\\s+has no property/gi,\n    ];\n\n    for (const pattern of patterns) {\n      for (const match of text.matchAll(pattern)) {\n        const className = String(match[1] || '').trim();\n        if (!className) continue;\n        names.add(className);\n      }\n    }\n\n    return Array.from(names);\n  }\n\n  function resolveClassPaths(classNames, basenameIndex, generatedPathSet) {\n    const resolved = new Set();\n\n    for (const className of classNames) {\n      const candidates = [\n        `${className}.java`,\n        `${className}.kt`,\n        `${className}.groovy`,\n      ];\n\n      for (const candidate of candidates) {\n        const options = basenameIndex.get(candidate.toLowerCase()) || [];\n        const preferred = options.find((path) => path.includes('/src/main/'))\n          || options.find((path) => path.startsWith('frontend/'))\n          || null;\n        if (preferred && generatedPathSet.has(preferred)) {\n          resolved.add(preferred);\n          break;\n        }\n      }\n    }\n\n    return Array.from(resolved);\n  }\n\n  function resolveProjectImportPaths(fileContent, generatedPathSet) {\n    const text = String(fileContent || '');\n    if (!text) return [];\n\n    const excludedPrefixes = [\n      'java.',\n      'javax.',\n      'jakarta.',\n      'lombok.',\n      'org.springframework.',\n      'org.mapstruct.',\n      'org.slf4j.',\n      'com.fasterxml.',\n      'com.zaxxer.',\n      'org.hibernate.',\n    ];\n\n    const resolved = new Set();\n    const importPattern = /^\\s*import\\s+([A-Za-z_][A-Za-z0-9_.]*)\\s*;/gm;\n    for (const match of text.matchAll(importPattern)) {\n      const fqn = String(match[1] || '').trim();\n      if (!fqn) continue;\n      if (excludedPrefixes.some((prefix) => fqn.startsWith(prefix))) continue;\n      if (!fqn.includes('.')) continue;\n\n      const mainPath = `frontend/src/main/java/${fqn.replace(/\\./g, '/')}.java`;\n      const testPath = `frontend/src/test/java/${fqn.replace(/\\./g, '/')}.java`;\n\n      if (generatedPathSet.has(mainPath)) resolved.add(mainPath);\n      else if (generatedPathSet.has(testPath)) resolved.add(testPath);\n    }\n\n    return Array.from(resolved);\n  }\n\n  function isDependencyBucket(bucket) {\n    const value = String(bucket || '').toLowerCase();\n    if (!value) return false;\n    return value.startsWith('dependency-')\n      || value.startsWith('pom-')\n      || value === 'dependency-resolution';\n  }\n\n  function extractMissingSymbolClassNames(errorText) {\n    const text = String(errorText || '');\n    const names = new Set();\n    const patterns = [\n      /symbol:\\s+class\\s+([A-Za-z_][A-Za-z0-9_$]*)/gi,\n      /class file for\\s+([A-Za-z_][A-Za-z0-9_$.]+)\\s+not found/gi,\n    ];\n\n    for (const pattern of patterns) {\n      for (const match of text.matchAll(pattern)) {\n        const raw = String(match[1] || '').trim();\n        if (!raw) continue;\n        const leaf = raw.includes('.') ? raw.split('.').pop() : raw;\n        if (!leaf) continue;\n        names.add(leaf);\n      }\n    }\n\n    return Array.from(names);\n  }\n\n  function resolveMissingSymbolPaths(errorText, basenameIndex, generatedPathSet) {\n    const resolved = new Set(resolveClassPaths(extractMissingSymbolClassNames(errorText), basenameIndex, generatedPathSet));\n    const text = String(errorText || '');\n    for (const match of text.matchAll(/package\\s+([A-Za-z_][A-Za-z0-9_.]+)\\s+does not exist/gi)) {\n      const pkg = String(match[1] || '').trim();\n      if (!pkg) continue;\n      const packagePath = pkg.replace(/\\./g, '/');\n      const mainPrefix = `frontend/src/main/java/${packagePath}/`;\n      const testPrefix = `frontend/src/test/java/${packagePath}/`;\n\n      for (const candidatePath of generatedPathSet) {\n        if (candidatePath.startsWith(mainPrefix) || candidatePath.startsWith(testPrefix)) {\n          resolved.add(candidatePath);\n        }\n      }\n    }\n\n    return Array.from(resolved).sort((a, b) => a.localeCompare(b));\n  }\n\n  function extractMissingHelperFileCandidates(errorText) {\n    const lines = String(errorText || '').split(/\\r?\\n/);\n    const candidates = new Set();\n\n    for (let index = 0; index < lines.length; index += 1) {\n      const symbolMatch = lines[index].match(/symbol:\\s+variable\\s+([A-Za-z_][A-Za-z0-9_]*)/i);\n      if (!symbolMatch) continue;\n\n      const symbolName = String(symbolMatch[1] || '').trim();\n      if (!symbolName) continue;\n      if (!/^[A-Z]/.test(symbolName)) continue;\n      if (!/(Util|Helper|Mapper|Converter|Factory)$/.test(symbolName)) continue;\n\n      let locationFqcn = '';\n      for (let cursor = index + 1; cursor <= Math.min(lines.length - 1, index + 4); cursor += 1) {\n        const locationMatch = lines[cursor].match(/location:\\s+(?:interface|class)\\s+([A-Za-z_][A-Za-z0-9_$.]*)/i);\n        if (locationMatch) {\n          locationFqcn = String(locationMatch[1] || '').trim();\n          break;\n        }\n      }\n      if (!locationFqcn || !locationFqcn.includes('.')) continue;\n\n      const packageName = locationFqcn.split('.').slice(0, -1).join('.');\n      if (!packageName) continue;\n      candidates.add(`frontend/src/main/java/${packageName.replace(/\\./g, '/')}/${symbolName}.java`);\n    }\n\n    // Fallback for truncated compiler output where `symbol:` / `location:` lines are missing.\n    // OpenAPI-generated `*Api.java` interfaces in `web/rest` typically reference ApiUtil static helpers.\n    const flat = String(errorText || '').replace(/\\\\/g, '/');\n    const apiMissingSymbolPattern = /frontend\\/(?:target\\/)?generated-sources\\/openapi\\/src\\/main\\/java\\/([A-Za-z0-9_./-]+)\\/([A-Za-z0-9_]+Api)\\.java:\\[\\d+,\\d+\\]\\s+cannot find symbol/gi;\n    for (const match of flat.matchAll(apiMissingSymbolPattern)) {\n      const packagePath = String(match[1] || '').replace(/\\./g, '/').replace(/^\\/+|\\/+$/g, '');\n      if (!packagePath) continue;\n      if (!/\\/web\\/rest$/i.test(packagePath)) continue;\n      candidates.add(`frontend/src/main/java/${packagePath}/ApiUtil.java`);\n    }\n\n    return Array.from(candidates).sort((a, b) => a.localeCompare(b));\n  }\n\n  function stripKnownTypeSuffix(typeName) {\n    const value = String(typeName || '').trim();\n    if (!value) return '';\n    return value.replace(/(Resource|Controller|ServiceImpl|Service|Mapper|Repository|DTO|Entity|Model|Request|Response)$/i, '');\n  }\n\n  function resolveNearestLayerChainPaths(seedPaths, basenameIndex, generatedPathSet) {\n    const exts = ['java', 'kt', 'groovy'];\n    const resolved = new Set();\n    const roots = new Set();\n    const names = new Set();\n\n    for (const path of seedPaths) {\n      const normalized = normalizePath(path);\n      if (!normalized || !generatedPathSet.has(normalized)) continue;\n      const fileName = normalized.split('/').pop() || '';\n      const stem = fileName.replace(/\\.(java|kt|groovy)$/i, '').trim();\n      if (!stem) continue;\n      names.add(stem);\n      const stripped = stripKnownTypeSuffix(stem);\n      if (stripped && stripped.length >= 3) roots.add(stripped);\n      if (stem.length >= 3) roots.add(stem);\n    }\n\n    for (const root of roots) {\n      names.add(root);\n      names.add(`${root}Resource`);\n      names.add(`${root}Controller`);\n      names.add(`${root}Service`);\n      names.add(`${root}ServiceImpl`);\n      names.add(`${root}Mapper`);\n      names.add(`${root}Repository`);\n      names.add(`${root}DTO`);\n      names.add(`${root}Entity`);\n      names.add(`${root}Request`);\n      names.add(`${root}Response`);\n    }\n\n    for (const name of names) {\n      for (const ext of exts) {\n        const candidates = basenameIndex.get(`${name}.${ext}`.toLowerCase()) || [];\n        for (const candidate of candidates) {\n          if (generatedPathSet.has(candidate)) {\n            resolved.add(candidate);\n          }\n        }\n      }\n    }\n\n    return Array.from(resolved).sort((a, b) => a.localeCompare(b));\n  }\n\n  function extractDuplicateClassSimpleNames(errorText) {\n    const text = String(errorText || '');\n    const names = new Set();\n\n    const patterns = [\n      /duplicate class:\\s*([A-Za-z_][A-Za-z0-9_$.]*)/gi,\n      /duplicate class\\s+([A-Za-z_][A-Za-z0-9_$.]*)/gi,\n    ];\n\n    for (const pattern of patterns) {\n      for (const match of text.matchAll(pattern)) {\n        const raw = String(match[1] || '').trim();\n        if (!raw) continue;\n        const leaf = raw.includes('.') ? raw.split('.').pop() : raw;\n        if (!leaf) continue;\n        names.add(leaf);\n      }\n    }\n\n    return Array.from(names);\n  }\n\n  function fileDeclaresTopLevelType(fileContent, typeName) {\n    const source = String(fileContent || '');\n    if (!source || !typeName) return false;\n\n    const escapedName = typeName.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n    const pattern = new RegExp(`^\\\\s*(?:public\\\\s+|protected\\\\s+|private\\\\s+)?(?:abstract\\\\s+|final\\\\s+)?(?:class|interface|enum|record)\\\\s+${escapedName}\\\\b`, 'm');\n    return pattern.test(source);\n  }\n\n  function resolveDuplicateClassPaths(errorText, byPath, pathSet, basenameIndex) {\n    const names = extractDuplicateClassSimpleNames(errorText);\n    if (!names.length) {\n      return { names: [], paths: [] };\n    }\n\n    const resolved = new Set(resolveClassPaths(names, basenameIndex, pathSet));\n    for (const [path, content] of byPath.entries()) {\n      for (const name of names) {\n        if (fileDeclaresTopLevelType(content, name)) {\n          resolved.add(path);\n          break;\n        }\n      }\n    }\n\n    return {\n      names,\n      paths: Array.from(resolved).sort((a, b) => a.localeCompare(b)),\n    };\n  }\n\n  function scoreFile(path, options) {\n    const {\n      errorText,\n      relevantPathSet,\n      failedTestPathSet,\n      testTargetPathSet,\n      recentModifiedPathSet,\n      shouldPrioritizePom,\n    } = options;\n\n    const normalizedPath = normalizePath(path);\n    if (!normalizedPath) return 0;\n\n    let score = 0;\n    if (relevantPathSet.has(normalizedPath)) score += 120;\n    if (failedTestPathSet.has(normalizedPath)) score += 260;\n    if (testTargetPathSet.has(normalizedPath)) score += 220;\n    if (recentModifiedPathSet.has(normalizedPath)) score += 180;\n\n    if (normalizedPath.endsWith('/pom.xml') || normalizedPath.endsWith('pom.xml')) {\n      score += shouldPrioritizePom ? 120 : 0;\n    }\n\n    const pathTokens = splitTokens(normalizedPath);\n    const errorTokens = splitTokens(errorText).slice(0, 200);\n    for (const token of errorTokens) {\n      if (pathTokens.includes(token)) score += 2;\n    }\n\n    return score;\n  }\n\n  return $input.all().map((item) => {\n    const json = item.json || {};\n    const generatedFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const compileValidationStage = String(json.compileValidationStage || 'compile').trim();\n    const compileCommand = String(json.compileCommand || '').trim();\n    const compileErrorContext = String(json.compileErrorContext || '').trim();\n    const compileStdout = String(json.compileStdout || '').trim();\n    const compileStderr = String(json.compileStderr || '').trim();\n    const compileErrorMessage = String(json.compileErrorMessage || '').trim();\n    const errorSignalText = [\n      compileErrorContext,\n      compactText(compileStdout, 12000),\n      compactText(compileStderr, 4000),\n      compactText(compileErrorMessage, 2000),\n    ].filter(Boolean).join('\\n');\n    const isRepeatedError = Boolean(json.isRepeatedError);\n    const compileErrorBucket = String(json.compileErrorBucket || '').trim();\n    const errorBucketRepeatCount = Math.max(0, Number(json.errorBucketRepeatCount || 0));\n    const recentPomTouchCount = Math.max(0, Number(json.recentPomTouchCount || 0));\n    const compileFixIsStuck = Boolean(json.compileFixIsStuck);\n    const compileFixUseSurgicalMode = Boolean(json.compileFixUseSurgicalMode);\n    const compileFixUseWideRecoveryMode = Boolean(json.compileFixUseWideRecoveryMode);\n    const compileFixWideRecoveryTurnsLeft = Math.max(0, Number(json.compileFixWideRecoveryTurnsLeft || 0));\n    const compileFixForceConcreteEdits = Boolean(json.compileFixForceConcreteEdits);\n    const compileFixStuckReason = String(json.compileFixStuckReason || '').trim();\n    const compileFixRecentModelResponses = normalizeRecentModelResponses(json.compileFixRecentModelResponses);\n    const firstCompilerErrors = Array.isArray(json.firstCompilerErrors)\n      ? json.firstCompilerErrors.map((line) => String(line || '').trim()).filter(Boolean).slice(0, 20)\n      : [];\n    const firstCompilerErrorPaths = normalizePathArray(json.firstCompilerErrorPaths);\n    const previousAttemptPatchPreview = compactText(json.compileFixLastPatchPreview, 14000);\n\n    const allPlannedFiles = Array.isArray(json.allPlannedFiles) && json.allPlannedFiles.length\n      ? json.allPlannedFiles\n      : (Array.isArray(json.frontendStructure) ? json.frontendStructure : []);\n    const planPaths = allPlannedFiles\n      .map((file) => String(file?.path || '').trim())\n      .filter(Boolean);\n\n    const relevantErrorPaths = normalizePathArray(json.relevantErrorPaths);\n    const testFailedFilePaths = normalizePathArray(json.testFailedFilePaths);\n    const testTargetFilePaths = normalizePathArray(json.testTargetFilePaths);\n    const compileFixAppliedPaths = normalizePathArray(json.compileFixAppliedPaths);\n\n    const relevantPathSet = new Set(relevantErrorPaths);\n    const failedTestPathSet = new Set(testFailedFilePaths);\n    const testTargetPathSet = new Set(testTargetFilePaths);\n    const recentModifiedPathSet = new Set(compileFixAppliedPaths);\n\n    const { byPath, pathSet, basenameIndex } = buildGeneratedLookup(generatedFiles);\n    const hasJavaCompileIssue = hasJavaCompileError(errorSignalText);\n    const hasCustomRepoOutage = hasCustomRepositoryOutage(errorSignalText);\n    const hasMapstructIssue = isMapstructError(errorSignalText);\n    const externalMissingDependencySignal = hasExternalMissingDependencySignal(errorSignalText);\n    const dependencyBucketStrategy = isDependencyBucket(compileErrorBucket) || externalMissingDependencySignal;\n    const mapstructBucketStrategy = Boolean(\n      hasMapstructIssue || compileErrorBucket === 'java-mapstruct-unknown-property'\n    );\n    const allowPomForMapstructLoop = Boolean(\n      hasMapstructIssue\n      && compileErrorBucket === 'java-mapstruct-unknown-property'\n      && errorBucketRepeatCount >= 2\n    );\n    const shouldPrioritizePom = isBuildDependencyError(errorSignalText)\n      || externalMissingDependencySignal\n      || allowPomForMapstructLoop;\n    const pomTriedTooManyTimes = recentPomTouchCount >= 3;\n    const disablePomEditsForThisTurn = Boolean(\n      (!allowPomForMapstructLoop && pomTriedTooManyTimes)\n      || (errorBucketRepeatCount >= 3 && !shouldPrioritizePom)\n      || (!allowPomForMapstructLoop && hasCustomRepoOutage && compileErrorBucket.includes('zalando'))\n    );\n    const hasIncompatibleTypeIssue = hasIncompatibleTypeError(errorSignalText);\n    const requiresMapstructCoordinatedFix = Boolean(\n      hasMapstructIssue && (isRepeatedError || Number(json.compileFixAttempt || 0) >= 2)\n    );\n    const referencedErrorPaths = extractReferencedFrontendPaths(errorSignalText, pathSet);\n    const missingSymbolCandidatePaths = resolveMissingSymbolPaths(errorSignalText, basenameIndex, pathSet);\n    const missingHelperFileCandidates = extractMissingHelperFileCandidates(errorSignalText);\n    const symbolChainPaths = compileErrorBucket === 'java-cannot-find-symbol'\n      ? resolveNearestLayerChainPaths(\n        [...firstCompilerErrorPaths, ...referencedErrorPaths, ...missingSymbolCandidatePaths],\n        basenameIndex,\n        pathSet\n      )\n      : [];\n    const duplicateClassResolution = resolveDuplicateClassPaths(errorSignalText, byPath, pathSet, basenameIndex);\n    const duplicateClassNames = duplicateClassResolution.names;\n    const duplicateClassCandidatePaths = duplicateClassResolution.paths;\n    const hasDuplicateClassError = duplicateClassNames.length > 0;\n\n    const mapstructMapperPaths = [];\n    const mapstructClassPaths = [];\n    if (hasMapstructIssue) {\n      const typeNames = extractMapstructTypeNames(errorSignalText);\n      mapstructClassPaths.push(...resolveClassPaths(typeNames, basenameIndex, pathSet));\n\n      const combinedErrorPaths = [...relevantErrorPaths, ...referencedErrorPaths];\n      for (const path of combinedErrorPaths) {\n        if (/\\/mapper\\//i.test(path) || /Mapper\\.(java|kt|groovy)$/i.test(path)) {\n          mapstructMapperPaths.push(path);\n        }\n      }\n\n      if (!mapstructMapperPaths.length) {\n        for (const path of byPath.keys()) {\n          if (/\\/mapper\\/.*Mapper\\.(java|kt|groovy)$/i.test(path)) {\n            mapstructMapperPaths.push(path);\n          }\n        }\n      }\n    }\n\n    const priorityContextPaths = [];\n    const seenPriority = new Set();\n    const addPriorityPath = (path) => addUniquePath(priorityContextPaths, seenPriority, path, pathSet);\n\n    // 1) Always prioritize duplicate-class candidates first when present.\n    for (const path of duplicateClassCandidatePaths) addPriorityPath(path);\n\n    // 2) Always include files referenced by the first compiler errors.\n    for (const path of firstCompilerErrorPaths) addPriorityPath(path);\n\n    // 3) Prioritize files directly implicated by current compiler/runtime errors.\n    for (const path of referencedErrorPaths) addPriorityPath(path);\n    for (const path of relevantErrorPaths) addPriorityPath(path);\n    for (const path of missingSymbolCandidatePaths) addPriorityPath(path);\n    for (const path of symbolChainPaths) addPriorityPath(path);\n    for (const path of compileFixAppliedPaths) addPriorityPath(path);\n\n    // 4) When the loop is stuck, include files from recent model attempts to prevent repetition.\n    if (compileFixIsStuck) {\n      for (const entry of compileFixRecentModelResponses) {\n        for (const path of normalizePathArray(entry.parsedPaths)) addPriorityPath(path);\n        for (const path of normalizePathArray(entry.appliedPaths)) addPriorityPath(path);\n      }\n    }\n\n    // 5) Add test-target context.\n    for (const path of testFailedFilePaths) addPriorityPath(path);\n    for (const path of testTargetFilePaths) addPriorityPath(path);\n\n    // 6) Add mapper-specific files when relevant.\n    for (const path of mapstructMapperPaths) addPriorityPath(path);\n    for (const path of mapstructClassPaths) addPriorityPath(path);\n\n    // 7) Add pom context only when allowed and relevant.\n    if ((shouldPrioritizePom || hasMapstructIssue) && !disablePomEditsForThisTurn) {\n      addPriorityPath('frontend/pom.xml');\n    }\n\n    // 8) Expand imports from prioritized Java/Kotlin/Groovy files so related DTO/repository\n    // contracts are present in context for coordinated type fixes.\n    const importExpandedPaths = [];\n    const seenImportExpanded = new Set();\n    for (const path of priorityContextPaths) {\n      if (!/\\.(java|kt|groovy)$/i.test(path)) continue;\n      const sourceContent = byPath.get(path);\n      if (!sourceContent) continue;\n      const importedProjectPaths = resolveProjectImportPaths(sourceContent, pathSet);\n      for (const importedPath of importedProjectPaths) {\n        addUniquePath(importExpandedPaths, seenImportExpanded, importedPath, pathSet);\n      }\n    }\n\n    const forcedContextPaths = [];\n    const seenForced = new Set();\n    for (const path of priorityContextPaths) addUniquePath(forcedContextPaths, seenForced, path, pathSet);\n    for (const path of importExpandedPaths) addUniquePath(forcedContextPaths, seenForced, path, pathSet);\n\n    const editableScopePaths = [];\n    const seenEditableScope = new Set();\n    const addEditableScopePath = (path) => addUniquePath(editableScopePaths, seenEditableScope, path, pathSet);\n    const addEditableScopePathAllowMissing = (path) => {\n      const normalized = normalizePath(path);\n      if (!isEditableProjectPath(normalized)) return;\n      if (seenEditableScope.has(normalized)) return;\n      seenEditableScope.add(normalized);\n      editableScopePaths.push(normalized);\n    };\n\n    if (hasDuplicateClassError) {\n      for (const path of duplicateClassCandidatePaths) addEditableScopePath(path);\n    } else if (dependencyBucketStrategy) {\n      // Keep dependency-resolution scope strictly on pom.xml to avoid irrelevant Java churn.\n      if (!disablePomEditsForThisTurn) addEditableScopePath('frontend/pom.xml');\n      if (!editableScopePaths.length) {\n        for (const path of referencedErrorPaths) addEditableScopePath(path);\n        for (const path of relevantErrorPaths) addEditableScopePath(path);\n      }\n    } else if (mapstructBucketStrategy) {\n      for (const path of mapstructMapperPaths) addEditableScopePath(path);\n      for (const path of mapstructClassPaths) addEditableScopePath(path);\n      for (const path of referencedErrorPaths) addEditableScopePath(path);\n      for (const path of relevantErrorPaths) addEditableScopePath(path);\n      for (const path of importExpandedPaths) addEditableScopePath(path);\n      if (allowPomForMapstructLoop && !disablePomEditsForThisTurn) {\n        addEditableScopePath('frontend/pom.xml');\n      }\n    } else if (compileErrorBucket === 'java-cannot-find-symbol') {\n      for (const path of firstCompilerErrorPaths) addEditableScopePath(path);\n      for (const path of missingSymbolCandidatePaths) addEditableScopePath(path);\n      for (const path of missingHelperFileCandidates) addEditableScopePathAllowMissing(path);\n      for (const path of symbolChainPaths) addEditableScopePath(path);\n      for (const path of referencedErrorPaths) addEditableScopePath(path);\n      for (const path of relevantErrorPaths) addEditableScopePath(path);\n      if (compileFixUseWideRecoveryMode) {\n        for (const path of importExpandedPaths) addEditableScopePath(path);\n      }\n    } else {\n      for (const path of firstCompilerErrorPaths) addEditableScopePath(path);\n      for (const path of referencedErrorPaths) addEditableScopePath(path);\n      for (const path of relevantErrorPaths) addEditableScopePath(path);\n      if (compileFixUseWideRecoveryMode) {\n        for (const path of importExpandedPaths) addEditableScopePath(path);\n      }\n    }\n\n    const scopedWithFirstErrorPaths = [];\n    const seenScopedWithFirstErrorPaths = new Set();\n    const addScopedPath = (path) => {\n      const normalized = normalizePath(path);\n      if (!normalized || !pathSet.has(normalized)) return;\n      if (seenScopedWithFirstErrorPaths.has(normalized)) return;\n      seenScopedWithFirstErrorPaths.add(normalized);\n      scopedWithFirstErrorPaths.push(normalized);\n    };\n    if (dependencyBucketStrategy) {\n      for (const path of editableScopePaths) addScopedPath(path);\n      for (const path of firstCompilerErrorPaths) addScopedPath(path);\n    } else {\n      for (const path of firstCompilerErrorPaths) addScopedPath(path);\n      for (const path of editableScopePaths) addScopedPath(path);\n    }\n\n    const maxEditableFiles = compileFixUseWideRecoveryMode\n      ? MAX_EDIT_SCOPE_WIDE\n      : (compileFixUseSurgicalMode ? MAX_EDIT_SCOPE_SURGICAL : MAX_EDIT_SCOPE_GENERAL);\n    let compileFixAllowedPaths = scopedWithFirstErrorPaths.slice(0, maxEditableFiles);\n    if (missingHelperFileCandidates.length) {\n      const missingSet = new Set(\n        missingHelperFileCandidates\n          .map((path) => normalizePath(path))\n          .filter((path) => path && path.startsWith('frontend/')),\n      );\n      if (missingSet.size > 0) {\n        compileFixAllowedPaths = [\n          ...Array.from(missingSet),\n          ...compileFixAllowedPaths.filter((path) => !missingSet.has(path)),\n        ].slice(0, Math.max(1, maxEditableFiles));\n      }\n    }\n    if (dependencyBucketStrategy && !disablePomEditsForThisTurn && pathSet.has('frontend/pom.xml')) {\n      if (!compileFixAllowedPaths.includes('frontend/pom.xml')) {\n        compileFixAllowedPaths = ['frontend/pom.xml', ...compileFixAllowedPaths]\n          .filter((path, index, arr) => arr.indexOf(path) === index)\n          .slice(0, Math.max(1, maxEditableFiles));\n      } else {\n        compileFixAllowedPaths = ['frontend/pom.xml', ...compileFixAllowedPaths.filter((path) => path !== 'frontend/pom.xml')]\n          .slice(0, Math.max(1, maxEditableFiles));\n      }\n    }\n    const hasScopedEdits = compileFixAllowedPaths.length > 0;\n\n    const candidates = Array.from(byPath.entries())\n      .map(([path, content]) => ({\n        path,\n        content,\n        score: scoreFile(path, {\n          errorText: errorSignalText,\n          relevantPathSet,\n          failedTestPathSet,\n          testTargetPathSet,\n          recentModifiedPathSet,\n          shouldPrioritizePom,\n        }),\n      }))\n      .filter((file) => file.score > 0)\n      .sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));\n\n    const contextFiles = [];\n    const seenContextPaths = new Set();\n    const allowedScopeSet = new Set(compileFixAllowedPaths);\n    let totalChars = 0;\n    const maxContextFiles = hasDuplicateClassError\n      ? Math.max(MAX_CONTEXT_FILES_DUPLICATE, duplicateClassCandidatePaths.length + 8)\n      : (compileFixUseWideRecoveryMode ? MAX_CONTEXT_FILES_WIDE : MAX_CONTEXT_FILES);\n\n    function addContextPath(path) {\n      if (contextFiles.length >= maxContextFiles || totalChars >= MAX_TOTAL_CONTEXT_CHARS) return;\n      if (seenContextPaths.has(path)) return;\n      if (!byPath.has(path)) return;\n\n      const remaining = MAX_TOTAL_CONTEXT_CHARS - totalChars;\n      const take = Math.min(MAX_FILE_CONTEXT_CHARS, remaining);\n      const content = String(byPath.get(path) || '').slice(0, take);\n\n      contextFiles.push({ path, content });\n      seenContextPaths.add(path);\n      totalChars += content.length;\n    }\n\n    if (hasDuplicateClassError) {\n      for (const path of duplicateClassCandidatePaths) {\n        addContextPath(path);\n      }\n    }\n\n    for (const path of firstCompilerErrorPaths) {\n      if (dependencyBucketStrategy && path !== 'frontend/pom.xml') continue;\n      addContextPath(path);\n    }\n\n    if (hasScopedEdits) {\n      for (const path of compileFixAllowedPaths) {\n        addContextPath(path);\n      }\n    }\n\n    for (const path of forcedContextPaths) {\n      if (hasScopedEdits && !allowedScopeSet.has(path)) continue;\n      addContextPath(path);\n    }\n\n    for (const file of candidates) {\n      if (hasScopedEdits && !allowedScopeSet.has(file.path)) continue;\n      addContextPath(file.path);\n    }\n\n    const compileFixPromptPayload = {\n      command: compileCommand,\n      validationStage: compileValidationStage,\n      errorLog: errorSignalText,\n      firstCompilerErrors,\n      previousAttemptPatchPreview,\n      contextFiles,\n      allowedFilesPlan: planPaths,\n      allowedEditScopePaths: compileFixAllowedPaths,\n      strategy: {\n        mode: compileFixUseWideRecoveryMode ? 'wide-recovery' : (compileFixUseSurgicalMode ? 'surgical' : 'standard'),\n        maxFilesToEdit: maxEditableFiles,\n        focusHint: compileFixUseWideRecoveryMode\n          ? 'Wide recovery: edit related interface/impl/mapper/resource chain files to break stagnation.'\n          : (compileFixUseSurgicalMode\n          ? 'Edit only files from first compiler errors and stop broad rewrites.'\n          : 'Keep changes minimal and focused on directly implicated files.'),\n      },\n      relevantFiles: {\n        firstCompilerErrorFiles: firstCompilerErrorPaths,\n        errorReferencedFiles: referencedErrorPaths,\n        recentlyModifiedFiles: compileFixAppliedPaths,\n        failedTestFiles: testFailedFilePaths,\n        testTargetFiles: testTargetFilePaths,\n        missingSymbolCandidateFiles: missingSymbolCandidatePaths,\n        missingHelperFileCandidates,\n        symbolChainFiles: symbolChainPaths,\n        duplicateClassCandidateFiles: duplicateClassCandidatePaths,\n      },\n      state: {\n        attempt: Number(json.compileFixAttempt || 0),\n        maxAttempts: Number(json.maxCompileFixAttempts || 50),\n        isRepeatedError,\n        errorBucket: compileErrorBucket,\n        errorBucketRepeatCount,\n        hasJavaCompileIssue,\n        externalMissingDependencySignal,\n        hasMapstructIssue,\n        hasIncompatibleTypeIssue,\n        hasDuplicateClassError,\n        duplicateClassSimpleNames: duplicateClassNames,\n        requiresMapstructCoordinatedFix,\n        shouldPrioritizePom,\n        allowPomForMapstructLoop,\n        disablePomEditsForThisTurn,\n        dependencyBucketStrategy,\n        mapstructBucketStrategy,\n        useSurgicalMode: compileFixUseSurgicalMode,\n        useWideRecoveryMode: compileFixUseWideRecoveryMode,\n        wideRecoveryTurnsLeft: compileFixWideRecoveryTurnsLeft,\n        forceConcreteEdits: compileFixForceConcreteEdits,\n        isStuckCycle: compileFixIsStuck,\n        stuckReason: compileFixStuckReason,\n      },\n      recentModelResponses: compileFixIsStuck ? compileFixRecentModelResponses : [],\n    };\n    const compileFixPrompt = compactJson(compileFixPromptPayload);\n\n    return {\n      json: {\n        ...json,\n        allPlannedFiles,\n        compileFixPrompt,\n        compileFixPromptLength: compileFixPrompt.length,\n        compileFixContextFileCount: contextFiles.length,\n        compileFixContextPaths: contextFiles.map((file) => file.path),\n        compileFixForcedContextPaths: forcedContextPaths,\n        compileFixAllowedPaths,\n        duplicateClassCandidateFiles: duplicateClassCandidatePaths,\n        hasDuplicateClassError,\n        compileFixScopeStrategy: compileFixUseSurgicalMode\n          ? 'surgical-first-errors'\n          : (compileFixUseWideRecoveryMode\n            ? 'wide-recovery'\n          : (hasDuplicateClassError\n          ? 'duplicate-class-focused'\n          : (dependencyBucketStrategy\n            ? 'dependency-focused'\n            : (mapstructBucketStrategy ? 'mapstruct-focused' : 'general')))),\n        compileFixRecentModelResponseCount: compileFixRecentModelResponses.length,\n      },\n      binary: item.binary ?? {},\n    };\n  });\n}\n\nreturn beBuildCompileFixPrompt();\n\r\n\r\n\r\n\r\n"
+      },
+      "id": "bb4f0706-e8c7-46a9-87a7-0162d1624cd0",
+      "name": "FEV - Build Validation Fix Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        31440,
+        14912
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer OR0sxOaBgUkWjAz8g5Ib6LXJwMwAIGSc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"mistral-large-latest\",\n  messages: [\n    {\n      role: \"system\",\n      content: `\nROLE\nYou are a frontend error-fixing specialist operating inside an automated iterative code generation pipeline.\n\nMISSION\nResolve errors for ONE specific execution command so that it succeeds.\n\nSUCCESS CRITERION\nThe provided COMMAND executes successfully with no related errors.\n\n------------------------------------------------\nOPERATING MODEL\n------------------------------------------------\n- You run inside an iterative refinement loop\n- Each iteration addresses ONLY the current COMMAND\n- You must rely strictly on provided inputs (no assumptions)\n- You must converge toward a correct solution across iterations\n\n------------------------------------------------\nINPUTS\n------------------------------------------------\n- COMMAND\n- ERROR_LOG\n- FIRST_COMPILER_ERRORS (first failing compiler lines)\n- PREVIOUS_ATTEMPT_PATCH_PREVIEW (diff-like summary of prior turn)\n- PLAN (allowed file paths)\n- CONTEXT (current file contents)\n- STATE (iteration signals and history)\n- STRATEGY (mode + max files to edit)\n- RECENT_MODEL_RESPONSES (present when STATE.isStuckCycle = true)\n\n------------------------------------------------\nCORE PRINCIPLE\n------------------------------------------------\nAlways fix the ROOT CAUSE of the error.\nNever apply superficial or symptom-level fixes.\n\n------------------------------------------------\nDECISION PROCESS (MANDATORY)\n------------------------------------------------\nBefore applying any change:\n\n1. Identify the exact failure location:\n   - file\n   - line (if available)\n   - component (class, bean, mapper, config)\n\n2. Classify the error type:\n   - syntax\n   - type mismatch\n   - missing symbol/import\n   - dependency/configuration\n   - runtime wiring (Spring)\n   - mapping (MapStruct/Lombok)\n\n3. Validate the cause:\n   - confirm the error using CONTEXT\n   - verify related types, imports, or configurations\n\n4. Select the minimal valid fix:\n   - prefer correcting existing code\n   - avoid introducing new structures unless required\n\n5. Evaluate impact:\n   - ensure consistency across related files\n   - avoid introducing new errors\n\n------------------------------------------------\nITERATION AWARENESS\n------------------------------------------------\n- STATE represents execution memory across iterations\n- You MUST use STATE to guide decisions\n\nIf STATE.isRepeatedError = true:\n- Do NOT repeat the same fix strategy\n- Expand analysis to directly related files\n- Re-evaluate root cause\n\nIf STATE.errorBucketRepeatCount >= 3:\n- Assume current strategy is incorrect\n- Switch to alternative root-cause hypothesis\n\nIf STATE.isStuckCycle = true:\n- Read RECENT_MODEL_RESPONSES before proposing edits\n- Do NOT repeat the same patch pattern or same failing type strategy\n\nIf STATE.useSurgicalMode = true:\n- Edit ONLY files directly referenced by FIRST_COMPILER_ERRORS and allowed scope\n- Respect STRATEGY.maxFilesToEdit as a hard limit\n- Use minimal surgical edits; no broad rewrites\n\nIf STATE.useWideRecoveryMode = true:\n- The loop is stagnating; broaden root-cause analysis across related layers\n- Prefer coordinated edits across interface/impl/mapper/resource chain files in allowed scope\n- Respect STRATEGY.maxFilesToEdit (target 8-12 files when needed)\n\nIf STATE.forceConcreteEdits = true:\n- Return at least ONE real file change in allowed scope\n- Do NOT return an empty \"files\" array\n- Do NOT repeat no-op or cosmetic patches\n\n------------------------------------------------\nGLOBAL CONSTRAINTS (STRICT)\n------------------------------------------------\n- Modify ONLY what is necessary\n- Apply MINIMAL changes\n- Prefer editing existing files over creating new ones\n- Do NOT create files unless strictly required by the error\n- Do NOT refactor or redesign\n- Do NOT remove or weaken business logic\n- Do NOT bypass validations or disable functionality\n- Do NOT introduce hacks\n- Do NOT use files outside PLAN / allowed edit scope\n- Preserve architectural layers and structure\n\n------------------------------------------------\nCOMMAND-SPECIFIC RULES\n------------------------------------------------\n\nCOMPILE\n- Fix syntax, types, imports, missing symbols\n- Resolve references before introducing new code\n- Focus on build stabilization only (no cleanup or style-only edits)\n\nRUN\n- Fix Spring Boot startup issues:\n  - Bean creation failures\n  - Configuration errors\n  - Invalid annotations\n- Prefer fixing configuration over disabling components\n\nTEST\n- Fix application logic FIRST\n- Modify tests ONLY if clearly incorrect\n- Do NOT weaken or delete tests\n\n------------------------------------------------\nTYPE AND SYMBOL ERRORS\n------------------------------------------------\n- For \"cannot find symbol\":\n  ? verify imports, packages, and class existence\n  ? inspect the file where the error is reported\n  ? inspect the missing symbol type file (if present in context)\n  ? inspect nearest interface/impl/mapper/resource chain files before patching\n\n- For \"incompatible types\":\n  ? fix the exact failing assignment or method call\n  ? verify both argument and parameter types\n\nIf repeated:\n  ? avoid superficial edits\n  ? fix underlying type definitions\n\n------------------------------------------------\nDUPLICATE CLASS HANDLING\n------------------------------------------------\nIf ERROR_LOG contains \"duplicate class\":\n- Identify ALL files in CONTEXT that declare that top-level type name\n- Keep ONLY one canonical top-level definition in the file named <TypeName>.java\n- Remove or rename any other duplicate top-level declarations\n- Resolve duplicate class issues before downstream symbol/import fixes\n\nIf ERROR_LOG reports public type/file mismatch:\n- Ensure public class/interface/enum/record name matches filename exactly\n\n------------------------------------------------\nMAPSTRUCT + LOMBOK\n------------------------------------------------\n- Verify DTO/entity structure and accessors\n- Ensure field name alignment\n- If STATE.requiresMapstructCoordinatedFix = true:\n  ? update mapper + DTO/entity together\n- Consider annotation processing configuration only when explicitly required\n\n------------------------------------------------\nDEPENDENCIES & POM.XML\n------------------------------------------------\n- Modify pom.xml ONLY if error clearly requires it\n\nIf STATE.hasJavaCompileIssue = true:\n- Prefer source-code fixes over pom.xml\n\nIf STATE.disablePomEditsForThisTurn = true:\n- Do NOT modify pom.xml\n\nDependency rules:\n- Use only Maven Central dependencies when pom.xml changes are necessary.\n- If a dependency cannot be resolved, remove it first.\n- Replace only with a known Maven Central option.\n- Do NOT try random groupId/artifactId swaps.\n- Remove broken repository entries instead of retrying them.\n- Never introduce org.zalando:problem-throwable.\n\n------------------------------------------------\nANTI-PATTERNS (FORBIDDEN)\n------------------------------------------------\n- Commenting out failing code to pass compilation\n- Returning null or dummy values to bypass logic\n- Removing validations or assertions\n- Disabling failing components without justification\n- Repeating identical fixes across iterations\n\n------------------------------------------------\nOUTPUT FORMAT (STRICT)\n------------------------------------------------\nReturn ONLY valid JSON:\n\n{\n  \"files\": [\n    {\n      \"path\": \"frontend/...\",\n      \"content\": \"...\"\n    }\n  ]\n}\n\nDo not include anything else.\n\n------------------------------------------------\nCODE ENCODING RULES\n------------------------------------------------\n- Return code as raw source text, not JSON-escaped source\n- Do NOT escape every quote in Java files\n- Use plain Java source like @RequestMapping(\"/api\")\n- Only use escaped quotes (\\\") when needed inside Java string literals\n\n------------------------------------------------\nOUTPUT RULES\n------------------------------------------------\n- Include ONLY modified or newly created files\n- Do NOT include unchanged files\n- Do NOT include explanations or comments\n- Ensure output is machine-parseable\n\n------------------------------------------------\nFINAL VALIDATION (MANDATORY)\n------------------------------------------------\nBefore returning:\n- The COMMAND should succeed\n- No remaining related errors exist\n- Changes are minimal and correct\n- No business logic was removed or weakened\n- No forbidden patterns were introduced\n`\n    },\n    {\n      role: \"user\",\n      content: $json.compileFixPrompt\n    }\n  ],\n  temperature: 0.2,\n  max_tokens: 100000,\n  stream: true,\n}) }}",
+        "options": {
+          "timeout": 7200000
+        }
+      },
+      "id": "cad063f9-dcb7-4be5-be73-bf5e9403c1a1",
+      "name": "FEV - Generate Validation Fix",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        31696,
+        14912
+      ],
+      "retryOnFail": false,
+      "maxTries": 4,
+      "waitBetweenTries": 4000
+    },
+    {
+      "parameters": {
+        "jsCode": "function beCleanCompileFixResponse() {\n  function getNodeItemsSafe(nodeName) {\n    if (typeof $items !== 'function') return [];\n    try {\n      return $items(nodeName) || [];\n    } catch (error) {\n      const message = String(error?.message ?? error ?? '');\n      if (message.includes(\"hasn't been executed\") || message.includes('not executed')) {\n        return [];\n      }\n      throw error;\n    }\n  }\n\n  function joinContentBlocks(value) {\n    if (!Array.isArray(value)) return '';\n    const parts = value\n      .map((entry) => {\n        if (typeof entry === 'string') return entry;\n        if (entry && typeof entry.text === 'string') return entry.text;\n        if (entry && typeof entry.content === 'string') return entry.content;\n        return '';\n      })\n      .filter((entry) => entry && entry.trim());\n    return parts.join('\\n').trim();\n  }\n\n  function extractTextFromChunk(chunk) {\n    const candidates = [\n      chunk?.choices?.[0]?.delta?.content,\n      chunk?.choices?.[0]?.message?.content,\n      chunk?.choices?.[0]?.text,\n      chunk?.message?.content,\n      chunk?.delta?.content,\n      chunk?.content,\n      chunk?.data?.choices?.[0]?.delta?.content,\n      chunk?.data?.choices?.[0]?.message?.content,\n      chunk?.data?.choices?.[0]?.text,\n      chunk?.data?.content,\n      chunk?.response,\n      chunk?.output,\n      chunk?.result,\n      chunk?.text,\n    ];\n\n    for (const candidate of candidates) {\n      if (typeof candidate === 'string' && candidate.length) return candidate;\n      if (Array.isArray(candidate)) {\n        const joined = joinContentBlocks(candidate);\n        if (joined) return joined;\n      }\n    }\n\n    return '';\n  }\n\n  function parseStreamChunks(value) {\n    if (typeof value !== 'string') {\n      return { text: '', parsedAny: false, lastChunk: null };\n    }\n\n    const lines = value.split(/\\r?\\n/);\n    if (!lines.length) {\n      return { text: '', parsedAny: false, lastChunk: null };\n    }\n\n    const parts = [];\n    let parsedAny = false;\n    let lastChunk = null;\n\n    for (const rawLine of lines) {\n      const line = rawLine.trim();\n      if (!line) continue;\n\n      let payload = line;\n      if (line.startsWith('data:')) payload = line.slice(5).trim();\n      if (!payload || payload === '[DONE]') continue;\n\n      try {\n        const chunk = JSON.parse(payload);\n        parsedAny = true;\n        lastChunk = chunk;\n\n        const text = extractTextFromChunk(chunk);\n        if (text) parts.push(text);\n      } catch {\n        // Ignore non-JSON lines.\n      }\n    }\n\n    return {\n      text: parts.join(''),\n      parsedAny,\n      lastChunk,\n    };\n  }\n\n  function normalizeStreamingText(text) {\n    const parsed = parseStreamChunks(text);\n    if (parsed.text && parsed.text.trim()) return parsed.text;\n\n    if (parsed.parsedAny && parsed.lastChunk && typeof parsed.lastChunk === 'object') {\n      const fallback = extractTextFromChunk(parsed.lastChunk);\n      if (fallback && fallback.trim()) return fallback;\n    }\n\n    return text;\n  }\n\n  function parseMaybeJson(value) {\n    const text = String(value ?? '').trim();\n    if (!text) return null;\n    if (!text.startsWith('{') && !text.startsWith('[') && !text.startsWith('\"')) return null;\n\n    try {\n      return JSON.parse(text);\n    } catch {\n      if (text.startsWith('\"') && text.endsWith('\"')) {\n        try {\n          const parsed = JSON.parse(text);\n          if (typeof parsed === 'string') return parsed;\n        } catch {}\n      }\n      return null;\n    }\n  }\n\n  function decodeJsonString(value) {\n    const raw = String(value || '');\n    if (!raw) return '';\n\n    try {\n      return JSON.parse('\"' + raw.replace(/\"/g, '\\\\\"').replace(/\\r/g, '\\\\r').replace(/\\n/g, '\\\\n') + '\"');\n    } catch {\n      return raw;\n    }\n  }\n\n  function normalizeFileEntries(value) {\n    const files = Array.isArray(value) ? value : [];\n    const normalized = [];\n\n    for (const entry of files) {\n      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;\n\n      const rawPath = String(entry.path ?? '').trim().replace(/\\\\/g, '/');\n      if (!rawPath) continue;\n\n      const path = rawPath.startsWith('frontend/')\n        ? rawPath\n        : `frontend/${rawPath.replace(/^\\/+/, '')}`;\n\n      let content = '';\n      if (typeof entry.content === 'string') content = entry.content;\n      else if (entry.content === null || typeof entry.content === 'undefined') content = '';\n      else if (typeof entry.content === 'object') content = JSON.stringify(entry.content, null, 2);\n      else content = String(entry.content);\n\n      normalized.push({ path, content });\n    }\n\n    return normalized;\n  }\n\n  function extractFilesFromMalformedPayload(sourceText) {\n    const text = String(sourceText || '');\n    const files = [];\n    const seen = new Set();\n\n    const pairRegex = /\"path\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"\\s*,\\s*\"content\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"/g;\n    const reversePairRegex = /\"content\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"\\s*,\\s*\"path\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"/g;\n\n    for (const match of text.matchAll(pairRegex)) {\n      const path = decodeJsonString(match[1]).trim();\n      const content = decodeJsonString(match[2]);\n      if (!path || seen.has(path)) continue;\n      seen.add(path);\n      files.push({ path, content });\n    }\n\n    for (const match of text.matchAll(reversePairRegex)) {\n      const content = decodeJsonString(match[1]);\n      const path = decodeJsonString(match[2]).trim();\n      if (!path || seen.has(path)) continue;\n      seen.add(path);\n      files.push({ path, content });\n    }\n\n    return normalizeFileEntries(files);\n  }\n\n  function extractFilesFromParsed(parsed, depth = 0) {\n    if (depth > 8 || parsed === null || typeof parsed === 'undefined') return [];\n\n    if (Array.isArray(parsed)) {\n      const direct = normalizeFileEntries(parsed);\n      if (direct.length) return direct;\n\n      for (const entry of parsed) {\n        const nested = extractFilesFromParsed(entry, depth + 1);\n        if (nested.length) return nested;\n      }\n      return [];\n    }\n\n    if (typeof parsed === 'string') {\n      const nestedParsed = parseMaybeJson(parsed);\n      if (nestedParsed !== null) {\n        return extractFilesFromParsed(nestedParsed, depth + 1);\n      }\n      return [];\n    }\n\n    if (typeof parsed === 'object') {\n      if (Array.isArray(parsed.files)) {\n        const fromFiles = normalizeFileEntries(parsed.files);\n        if (fromFiles.length) return fromFiles;\n      }\n\n      if (Array.isArray(parsed.frontendFiles)) {\n        const fromFrontendFiles = normalizeFileEntries(parsed.frontendFiles);\n        if (fromFrontendFiles.length) return fromFrontendFiles;\n      }\n\n      const nestedCandidates = [\n        parsed.response,\n        parsed.output,\n        parsed.result,\n        parsed.text,\n        parsed.data,\n        parsed.body,\n        parsed.message?.content,\n        parsed.choices?.[0]?.message?.content,\n        parsed.choices?.[0]?.delta?.content,\n        parsed.choices?.[0]?.text,\n      ];\n\n      for (const candidate of nestedCandidates) {\n        const nested = extractFilesFromParsed(candidate, depth + 1);\n        if (nested.length) return nested;\n      }\n    }\n\n    return [];\n  }\n\n  function collectFencedCandidates(text) {\n    const candidates = [];\n    const source = String(text || '');\n\n    const tick3 = String.fromCharCode(96, 96, 96);\n    const regexBacktick = new RegExp(`${tick3}(?:json)?\\\\s*([\\\\s\\\\S]*?)\\\\s*${tick3}`, 'gi');\n    for (const match of source.matchAll(regexBacktick)) {\n      const candidate = String(match[1] || '').trim();\n      if (candidate) candidates.push(candidate);\n    }\n\n    const regexTilde = /~~~(?:json)?\\s*([\\s\\S]*?)\\s*~~~/gi;\n    for (const match of source.matchAll(regexTilde)) {\n      const candidate = String(match[1] || '').trim();\n      if (candidate) candidates.push(candidate);\n    }\n\n    return candidates;\n  }\n\n  function parseJsonPayload(rawText) {\n    const raw = String(rawText ?? '');\n    if (!raw.trim()) {\n      return { files: [], parseError: 'Empty model response.' };\n    }\n\n    const streamDecoded = normalizeStreamingText(raw);\n    const text = String(streamDecoded || raw).trim();\n\n    const candidates = [text, raw.trim()];\n    candidates.push(...collectFencedCandidates(text));\n    candidates.push(...collectFencedCandidates(raw));\n\n    for (const source of [text, raw]) {\n      const start = source.indexOf('{');\n      const end = source.lastIndexOf('}');\n      if (start !== -1 && end !== -1 && end > start) {\n        candidates.push(source.slice(start, end + 1));\n      }\n    }\n\n    for (const candidate of candidates) {\n      const parsed = parseMaybeJson(candidate);\n      if (parsed === null) continue;\n\n      const files = extractFilesFromParsed(parsed);\n      if (files.length) {\n        return { files, parseError: '' };\n      }\n    }\n\n    const recovered = extractFilesFromMalformedPayload(text);\n    if (recovered.length) {\n      return { files: recovered, parseError: '' };\n    }\n\n    const recoveredRaw = extractFilesFromMalformedPayload(raw);\n    if (recoveredRaw.length) {\n      return { files: recoveredRaw, parseError: '' };\n    }\n\n    const lower = text.toLowerCase();\n    if (lower.includes('no changes') || lower.includes('cannot fix') || lower.includes('not enough context')) {\n      return { files: [], parseError: '' };\n    }\n\n    return { files: [], parseError: 'Could not parse compile-fix model output as JSON.' };\n  }\n\n  function decodeEscapedContent(rawValue) {\n    const text = String(rawValue || '');\n\n    if (!text.includes('\\n') && /\\\\n|\\\\r/.test(text)) {\n      return text\n        .replace(/\\\\r\\\\n/g, '\\n')\n        .replace(/\\\\n/g, '\\n')\n        .replace(/\\\\r/g, '\\n')\n        .replace(/\\\\t/g, '\\t');\n    }\n\n    return text\n      .replace(/\\r\\n/g, '\\n')\n      .replace(/\\r/g, '\\n');\n  }\n\n  function normalizeGeneratedContent(contentValue) {\n    if (typeof contentValue === 'string') return decodeEscapedContent(contentValue);\n    if (contentValue === null || contentValue === undefined) return '';\n    if (typeof contentValue === 'object') return JSON.stringify(contentValue, null, 2);\n    return String(contentValue);\n  }\n\n  function compactText(value, maxChars) {\n    const text = String(value ?? '');\n    if (!text) return '';\n    if (text.length <= maxChars) return text;\n    return text.slice(0, maxChars);\n  }\n\n  const buildPromptItems = getNodeItemsSafe('FE - Build Validation Fix Prompt');\n\n  return $input.all().map((item) => {\n    const upstreamJson = buildPromptItems[0]?.json || {};\n    const json = {\n      ...upstreamJson,\n      ...(item.json || {}),\n    };\n\n    const rawModelResponse = String(\n      json.text\n      ?? json.response\n      ?? json.output\n      ?? json.result\n      ?? json.choices?.[0]?.message?.content\n      ?? json.choices?.[0]?.delta?.content\n      ?? json.choices?.[0]?.text\n      ?? json.data?.choices?.[0]?.message?.content\n      ?? json.data?.choices?.[0]?.delta?.content\n      ?? json.data?.choices?.[0]?.text\n      ?? json.body?.choices?.[0]?.message?.content\n      ?? json.body?.choices?.[0]?.delta?.content\n      ?? json.body?.choices?.[0]?.text\n      ?? json.body\n      ?? json.data\n      ?? ''\n    );\n\n    const parsed = parseJsonPayload(rawModelResponse);\n    const compileFixByPath = new Map();\n    const ignoredCompileFixPaths = [];\n\n    for (const file of parsed.files) {\n      if (!file || typeof file !== 'object' || Array.isArray(file)) continue;\n      const filePath = String(file.path || '').replace(/\\\\/g, '/').trim();\n      if (!filePath.startsWith('frontend/')) {\n        ignoredCompileFixPaths.push(filePath || '<empty>');\n        continue;\n      }\n      if (compileFixByPath.has(filePath)) {\n        compileFixByPath.delete(filePath);\n      }\n      compileFixByPath.set(filePath, normalizeGeneratedContent(file.content));\n    }\n\n    const compileFixFiles = Array.from(\n      compileFixByPath.entries(),\n      ([path, content]) => ({ path, content }),\n    );\n    const compileFixParsedPaths = compileFixFiles.map((file) => file.path);\n\n    return {\n      json: {\n        ...json,\n        compileFixParseError: parsed.parseError || '',\n        compileFixRawResponse: compactText(rawModelResponse, 50000),\n        compileFixRawResponseLength: rawModelResponse.length,\n        compileFixFiles,\n        compileFixParsedPaths,\n        compileFixFileCount: compileFixFiles.length,\n        compileFixHadChanges: compileFixFiles.length > 0,\n        ignoredCompileFixPaths,\n        ignoredCompileFixPathCount: ignoredCompileFixPaths.length,\n      },\n      binary: item.binary ?? {},\n    };\n  });\n}\n\nreturn beCleanCompileFixResponse();"
+      },
+      "id": "2b22ce93-9b18-4b52-87b8-0a4f25767185",
+      "name": "FEV - Clean Validation Fix Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32032,
+        14912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function beApplyCompileFixes() {\n  function isEditableProjectPath(pathValue) {\n    const path = String(pathValue || '').trim().replace(/\\\\/g, '/');\n    if (!path || !path.startsWith('frontend/')) return false;\n    if (path === 'frontend/target' || path.startsWith('frontend/target/')) return false;\n    if (path === 'frontend/bin' || path.startsWith('frontend/bin/')) return false;\n    return true;\n  }\n\n  function normalizePathArray(value) {\n    if (!Array.isArray(value)) return [];\n    const seen = new Set();\n    const normalized = [];\n    for (const raw of value) {\n      const path = String(raw || '').trim().replace(/\\\\/g, '/');\n      if (!isEditableProjectPath(path)) continue;\n      if (seen.has(path)) continue;\n      seen.add(path);\n      normalized.push(path);\n    }\n    return normalized;\n  }\n\n  function normalizeContent(contentValue) {\n    if (typeof contentValue === 'string') return contentValue;\n    if (contentValue === null || contentValue === undefined) return '';\n    if (typeof contentValue === 'object') return JSON.stringify(contentValue, null, 2);\n    return String(contentValue);\n  }\n\n  function normalizeGeneratedSourceContent(contentValue, filePath) {\n    const path = String(filePath || '');\n    let text = String(contentValue || '').replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n');\n\n    if (/pom\\.xml$/i.test(path) || /\\.xml$/i.test(path)) {\n      const looksEscapedXml =\n        /^\\s*<\\?xml\\s+version=\\\\\"/m.test(text)\n        || /<[^>\\n]+\\s+[A-Za-z_:][A-Za-z0-9_.:-]*=\\\\\"/.test(text)\n        || (text.includes('\\\\\"') && /<\\/?[A-Za-z]/.test(text));\n\n      if (looksEscapedXml) {\n        const ESCAPED_QUOTE_SENTINEL = '__N8N_KEEP_ESCAPED_XML_QUOTE__';\n        text = text\n          .replace(/\\\\\\\\\\\"/g, ESCAPED_QUOTE_SENTINEL)\n          .replace(/\\\\\\\"/g, '\"')\n          .replace(new RegExp(ESCAPED_QUOTE_SENTINEL, 'g'), '\\\\\"');\n      }\n\n      return text;\n    }\n\n    if (!/\\.java$/i.test(path)) {\n      return text;\n    }\n\n    // Important: do NOT globally unescape Java string literals, otherwise\n    // JSON payload strings in tests (e.g. .content(\"{\\\\\\\"x\\\\\\\":...}\")) become invalid Java.\n    // Only unescape escaped quotes inside annotation lines where this issue occurs.\n    if (!/\\\\\\\"/.test(text)) {\n      return text;\n    }\n\n    const lines = text.split('\\n');\n    for (let i = 0; i < lines.length; i += 1) {\n      const line = lines[i];\n      const isAnnotationLine =\n        /^\\s*@\\w+/.test(line)\n        || /\\b(name|value|path|strategy)\\s*=\\s*\\\\\\\"/.test(line);\n      if (!isAnnotationLine) continue;\n      lines[i] = line.replace(/\\\\\\\"/g, '\"');\n    }\n    return lines.join('\\n');\n  }\n\n  function isRuntimeDatasourceConfigPath(filePath) {\n    const path = String(filePath || '').trim().replace(/\\\\/g, '/');\n    return /^frontend\\/src\\/main\\/resources\\/application.*\\.(ya?ml|properties)$/i.test(path);\n  }\n\n  function hasJavaCompileError(errorText) {\n    const text = String(errorText || '');\n    if (!text) return false;\n    return [\n      /compilation error/i,\n      /cannot find symbol/i,\n      /package\\s+[A-Za-z0-9_.]+\\s+does not exist/i,\n      /unknown property/i,\n      /incompatible types\\s*:/i,\n      /illegal character/i,\n      /frontend[\\\\/].*src[\\\\/](main|test)[\\\\/].*\\.(java|kt|groovy)/i,\n    ].some((pattern) => pattern.test(text));\n  }\n\n  function hasCustomRepositoryOutage(errorText) {\n    const text = String(errorText || '').toLowerCase();\n    if (!text) return false;\n    return (\n      text.includes('repo.zalando')\n      || text.includes('zalando (https://repo.zalando')\n      || text.includes('forbidden (403)')\n      || text.includes('name does not resolve')\n      || text.includes('repo.spring.io/milestone')\n      || text.includes('spring-milestones')\n    );\n  }\n\n  function isPomChangeRelevant(errorText) {\n    const rawText = String(errorText || '');\n    const text = rawText.toLowerCase();\n    if (!text) return false;\n\n    const explicitPomOrResolutionMarkers = [\n      'pom.xml',\n      'non-parseable pom',\n      'modelparseexception',\n      'projectbuildingexception',\n      'non-resolvable parent pom',\n      'dependencies.dependency.version',\n      'could not resolve dependencies',\n      'could not collect dependencies',\n      'could not resolve artifact',\n      'failed to read artifact descriptor',\n      'could not transfer artifact',\n      'pluginresolutionexception',\n      'name does not resolve',\n      'forbidden (403)',\n    ];\n\n    if (explicitPomOrResolutionMarkers.some((marker) => text.includes(marker))) {\n      return true;\n    }\n\n    const missingPackages = Array.from(\n      rawText.matchAll(/package\\s+([A-Za-z0-9_.]+)\\s+does not exist/gi),\n      (match) => String(match[1] || '').toLowerCase(),\n    );\n\n    const hasExternalMissingPackage = missingPackages.some((pkg) => {\n      if (!pkg) return false;\n      if (pkg.startsWith('com.example.')) return false;\n      return /^(org|io|com|net|jakarta|javax)\\./.test(pkg);\n    });\n    if (hasExternalMissingPackage) return true;\n\n    const missingClassFiles = Array.from(\n      rawText.matchAll(/class file for\\s+([A-Za-z0-9_.]+)\\s+not found/gi),\n      (match) => String(match[1] || '').toLowerCase(),\n    );\n\n    return missingClassFiles.some((className) => {\n      if (!className) return false;\n      if (className.startsWith('com.example.')) return false;\n      return /^(org|io|com|net|jakarta|javax)\\./.test(className);\n    });\n  }\n\n  function analyzePomPolicy(errorText, json) {\n    const dependencyOrPomError = isPomChangeRelevant(errorText);\n    const javaCompileError = hasJavaCompileError(errorText);\n    const customRepoOutage = hasCustomRepositoryOutage(errorText);\n    const compileErrorBucket = String(json.compileErrorBucket || '').toLowerCase();\n    const errorBucketRepeatCount = Math.max(0, Number(json.errorBucketRepeatCount || 0));\n    const mapstructLoopNeedsPom = Boolean(\n      compileErrorBucket === 'java-mapstruct-unknown-property'\n      && errorBucketRepeatCount >= 2\n    );\n\n    const dependencyDrivenPomChange = dependencyOrPomError;\n    const allowPom = dependencyDrivenPomChange || mapstructLoopNeedsPom;\n\n    return {\n      allowPom,\n      javaCompileError,\n      customRepoOutage,\n      repeatingRepoOutage: customRepoOutage && errorBucketRepeatCount >= 2,\n      pomRetryFlood: false,\n      mapstructLoopNeedsPom,\n    };\n  }\n\n  function hasDisallowedPomPatterns(content) {\n    const text = String(content || '').toLowerCase();\n    if (!text) return false;\n    return (\n      text.includes('repo.zalando')\n      || text.includes('<artifactid>problem-throwable</artifactid>')\n    );\n  }\n\n  function extractMissingDependencies(errorText) {\n    const text = String(errorText || '');\n    const found = [];\n    const seen = new Set();\n\n    const pattern = /dependency:\\s+([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)/gi;\n    for (const match of text.matchAll(pattern)) {\n      const groupId = String(match[1] || '').trim();\n      const artifactId = String(match[2] || '').trim();\n      const version = String(match[4] || '').trim();\n      if (!groupId || !artifactId) continue;\n      const key = `${groupId}:${artifactId}`;\n      if (seen.has(key)) continue;\n      seen.add(key);\n      found.push({ groupId, artifactId, version });\n    }\n\n    return found;\n  }\n\n  function extractHistoricalMissingDependencies(history) {\n    if (!Array.isArray(history)) return [];\n    const merged = [];\n    const seen = new Set();\n    for (const entry of history.slice(-12)) {\n      const text = String(entry?.errorSignature || '');\n      for (const dep of extractMissingDependencies(text)) {\n        const key = `${dep.groupId}:${dep.artifactId}`;\n        if (seen.has(key)) continue;\n        seen.add(key);\n        merged.push(dep);\n      }\n    }\n    return merged;\n  }\n\n  function removeDependencyBlocksByMatcher(pomContent, shouldRemove) {\n    let removed = [];\n    const next = String(pomContent || '').replace(/<dependency>[\\s\\S]*?<\\/dependency>/gi, (block) => {\n      const groupMatch = block.match(/<groupId>\\s*([^<\\s][^<]*)\\s*<\\/groupId>/i);\n      const artifactMatch = block.match(/<artifactId>\\s*([^<\\s][^<]*)\\s*<\\/artifactId>/i);\n      const groupId = String(groupMatch?.[1] || '').trim();\n      const artifactId = String(artifactMatch?.[1] || '').trim();\n      if (!groupId || !artifactId) return block;\n      if (!shouldRemove(groupId, artifactId)) return block;\n      removed.push(`${groupId}:${artifactId}`);\n      return '';\n    });\n\n    removed = Array.from(new Set(removed));\n    return { content: next, removed };\n  }\n\n  function removeBrokenRepositories(pomContent, errorText) {\n    let content = String(pomContent || '');\n    const removed = [];\n    const text = String(errorText || '').toLowerCase();\n\n    const repoPatterns = [\n      { key: 'spring-milestones', marker: 'spring.io/milestone', pattern: /<repository>[\\s\\S]*?<url>\\s*https?:\\/\\/repo\\.spring\\.io\\/milestone\\/?\\s*<\\/url>[\\s\\S]*?<\\/repository>/gi },\n      { key: 'repo.zalando', marker: 'repo.zalando', pattern: /<repository>[\\s\\S]*?<url>\\s*https?:\\/\\/repo\\.zalando[^<]*<\\/url>[\\s\\S]*?<\\/repository>/gi },\n    ];\n\n    for (const cfg of repoPatterns) {\n      if (!text.includes(cfg.marker) && !text.includes('could not resolve dependencies')) continue;\n      const before = content;\n      content = content.replace(cfg.pattern, '');\n      if (content !== before) removed.push(cfg.key);\n    }\n\n    return { content, removed: Array.from(new Set(removed)) };\n  }\n\n  function sanitizePomForDependencyResolution(pomContent, compileErrorContext, compileFixHistory) {\n    const currentMissing = extractMissingDependencies(compileErrorContext);\n    const historicalMissing = extractHistoricalMissingDependencies(compileFixHistory);\n\n    const missingByGA = new Set();\n    const unresolvedArtifactIds = new Set();\n    for (const dep of [...historicalMissing, ...currentMissing]) {\n      const groupId = String(dep.groupId || '').trim();\n      const artifactId = String(dep.artifactId || '').trim();\n      if (!groupId || !artifactId) continue;\n      missingByGA.add(`${groupId}:${artifactId}`);\n      unresolvedArtifactIds.add(artifactId);\n    }\n\n    let content = String(pomContent || '');\n    const removedDependencies = [];\n\n    const removedExact = removeDependencyBlocksByMatcher(content, (groupId, artifactId) => missingByGA.has(`${groupId}:${artifactId}`));\n    content = removedExact.content;\n    removedDependencies.push(...removedExact.removed);\n\n    if (unresolvedArtifactIds.size > 0) {\n      const removedByArtifact = removeDependencyBlocksByMatcher(content, (_groupId, artifactId) => unresolvedArtifactIds.has(artifactId));\n      content = removedByArtifact.content;\n      removedDependencies.push(...removedByArtifact.removed);\n    }\n\n    const removedRepos = removeBrokenRepositories(content, compileErrorContext);\n    content = removedRepos.content;\n\n    return {\n      content,\n      removedDependencies: Array.from(new Set(removedDependencies)),\n      removedRepositories: removedRepos.removed,\n      unresolvedArtifacts: Array.from(unresolvedArtifactIds),\n    };\n  }\n\n  function canCreateNewSourceFile(filePath, compileErrorContext) {\n    if (!/\\.(java|kt|groovy)$/i.test(String(filePath || ''))) return true;\n    const text = String(compileErrorContext || '');\n    if (!text) return false;\n    const basename = String(filePath || '').split('/').pop() || '';\n    const className = basename.replace(/\\.(java|kt|groovy)$/i, '');\n    if (!className) return false;\n\n    const explicitMissingTypeSignals = [\n      /cannot find symbol/i,\n      /class file for\\s+[A-Za-z0-9_.]+\\s+not found/i,\n      /should be declared in file/i,\n      /package\\s+[A-Za-z0-9_.]+\\s+does not exist/i,\n    ];\n    if (!explicitMissingTypeSignals.some((pattern) => pattern.test(text))) return false;\n    return text.toLowerCase().includes(className.toLowerCase());\n  }\n\n  function buildSingleHunkDiff(path, beforeText, afterText) {\n    const beforeLines = String(beforeText || '').replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n');\n    const afterLines = String(afterText || '').replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n');\n\n    let prefix = 0;\n    while (\n      prefix < beforeLines.length\n      && prefix < afterLines.length\n      && beforeLines[prefix] === afterLines[prefix]\n    ) {\n      prefix += 1;\n    }\n\n    let suffix = 0;\n    while (\n      suffix < (beforeLines.length - prefix)\n      && suffix < (afterLines.length - prefix)\n      && beforeLines[beforeLines.length - 1 - suffix] === afterLines[afterLines.length - 1 - suffix]\n    ) {\n      suffix += 1;\n    }\n\n    const beforeChanged = beforeLines.slice(prefix, beforeLines.length - suffix);\n    const afterChanged = afterLines.slice(prefix, afterLines.length - suffix);\n\n    const header = [\n      `--- ${path}`,\n      `+++ ${path}`,\n      `@@ -${prefix + 1},${Math.max(1, beforeChanged.length)} +${prefix + 1},${Math.max(1, afterChanged.length)} @@`,\n    ];\n\n    const removed = beforeChanged.map((line) => `-${line}`);\n    const added = afterChanged.map((line) => `+${line}`);\n    return [...header, ...removed, ...added].join('\\n');\n  }\n\n  function buildPatchPreview(records) {\n    const MAX_FILES = 5;\n    const MAX_CHARS = 16000;\n    const chunks = [];\n    let totalChars = 0;\n    for (const record of records.slice(0, MAX_FILES)) {\n      const diffText = buildSingleHunkDiff(record.path, record.beforeContent, record.afterContent);\n      if (!diffText) continue;\n      if (totalChars + diffText.length > MAX_CHARS) break;\n      chunks.push(diffText);\n      totalChars += diffText.length + 2;\n    }\n    return chunks.join('\\n\\n');\n  }\n\n  return $input.all().map((item) => {\n    const json = item.json || {};\n    const generatedFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const compileFixFiles = Array.isArray(json.compileFixFiles) ? json.compileFixFiles : [];\n    const compileFixAllowedPaths = normalizePathArray(json.compileFixAllowedPaths);\n    const duplicateClassCandidateFiles = normalizePathArray(json.duplicateClassCandidateFiles);\n    const hasDuplicateClassError = Boolean(json.hasDuplicateClassError) || duplicateClassCandidateFiles.length > 0;\n    const duplicateClassCandidateSet = new Set(duplicateClassCandidateFiles);\n    const compileErrorContext = String(json.compileErrorContext || '');\n    const compileErrorBucket = String(json.compileErrorBucket || '').toLowerCase();\n    const compileValidationStage = String(json.compileValidationStage || '').toLowerCase();\n    const runtimeStageFailure = compileValidationStage === 'run' || compileErrorBucket === 'spring-boot-startup-failure';\n    const compileFixHistory = Array.isArray(json.compileFixHistory) ? json.compileFixHistory : [];\n    const compileFixUseSurgicalMode = Boolean(json.compileFixUseSurgicalMode);\n    const compileFixUseWideRecoveryMode = Boolean(json.compileFixUseWideRecoveryMode);\n\n    const pomPolicy = analyzePomPolicy(compileErrorContext, json);\n    const pomChangeAllowed = pomPolicy.allowPom;\n    const allowedScopeSet = new Set(compileFixAllowedPaths);\n\n    const byPath = new Map();\n    for (const file of generatedFiles) {\n      const filePath = String(file?.path || '').trim();\n      if (!filePath) continue;\n      byPath.set(filePath, normalizeContent(file?.content));\n    }\n\n    const changedPaths = [];\n    const changedDuplicateCandidatePaths = [];\n    const ignoredPomFixPaths = [];\n    const ignoredPomFixReasons = [];\n    const ignoredScopeFixPaths = [];\n    const ignoredScopeFixReasons = [];\n    const runtimeConfigBlockedPaths = [];\n    const runtimeConfigBlockedReasons = [];\n    const autoRemovedUnresolvedDependencies = [];\n    const autoRemovedRepositoryEntries = [];\n    const changedRecords = [];\n    let pomSanitizerTouched = false;\n\n    const compileFixIsStuck = Boolean(json.compileFixIsStuck);\n    const maxPatchFilesPerAttempt = hasDuplicateClassError\n      ? 5\n      : (compileFixUseWideRecoveryMode ? 10 : (compileFixUseSurgicalMode ? 3 : (compileFixIsStuck ? 4 : 5)));\n    let acceptedPatchFileCount = 0;\n\n    for (const patchFile of compileFixFiles) {\n      const filePath = String(patchFile?.path || '').replace(/\\\\/g, '/').trim();\n      if (!filePath) continue;\n      if (!isEditableProjectPath(filePath)) {\n        ignoredScopeFixPaths.push(filePath);\n        ignoredScopeFixReasons.push('blocked_outside_frontend');\n        continue;\n      }\n      if (allowedScopeSet.size > 0 && !allowedScopeSet.has(filePath)) {\n        ignoredScopeFixPaths.push(filePath);\n        ignoredScopeFixReasons.push('blocked_outside_allowed_scope');\n        continue;\n      }\n      if (acceptedPatchFileCount >= maxPatchFilesPerAttempt) {\n        ignoredScopeFixPaths.push(filePath);\n        ignoredScopeFixReasons.push('blocked_patch_limit');\n        continue;\n      }\n\n      const fileExists = byPath.has(filePath);\n      if (!fileExists && !canCreateNewSourceFile(filePath, compileErrorContext)) {\n        ignoredScopeFixPaths.push(filePath);\n        ignoredScopeFixReasons.push('blocked_new_source_file_without_explicit_missing_type_error');\n        continue;\n      }\n\n      let nextContent = normalizeContent(patchFile?.content);\n      nextContent = normalizeGeneratedSourceContent(nextContent, filePath);\n\n      if (runtimeStageFailure && isRuntimeDatasourceConfigPath(filePath)) {\n        runtimeConfigBlockedPaths.push(filePath);\n        runtimeConfigBlockedReasons.push('blocked_runtime_datasource_config_drift');\n        ignoredScopeFixPaths.push(filePath);\n        ignoredScopeFixReasons.push('blocked_runtime_datasource_config_drift');\n        continue;\n      }\n\n      if (filePath === 'frontend/pom.xml') {\n        if (!pomChangeAllowed) {\n          ignoredPomFixPaths.push(filePath);\n          ignoredPomFixReasons.push(\n            (pomPolicy.javaCompileError && !pomPolicy.mapstructLoopNeedsPom)\n              ? 'blocked_pom_change_due_to_java_compile_error'\n              : 'blocked_pom_change_policy'\n          );\n          continue;\n        }\n\n        const shouldSanitizePom = compileErrorBucket === 'dependency-resolution' || compileErrorBucket.startsWith('dependency-');\n        if (shouldSanitizePom) {\n          const sanitized = sanitizePomForDependencyResolution(nextContent, compileErrorContext, compileFixHistory);\n          nextContent = sanitized.content;\n          if (sanitized.removedDependencies.length > 0 || sanitized.removedRepositories.length > 0) {\n            pomSanitizerTouched = true;\n          }\n          autoRemovedUnresolvedDependencies.push(...sanitized.removedDependencies);\n          autoRemovedRepositoryEntries.push(...sanitized.removedRepositories);\n        }\n\n        if (pomPolicy.customRepoOutage && hasDisallowedPomPatterns(nextContent)) {\n          ignoredPomFixPaths.push(filePath);\n          ignoredPomFixReasons.push(\n            pomPolicy.repeatingRepoOutage\n              ? 'blocked_pom_change_due_to_repeating_repo_outage'\n              : 'blocked_pom_change_due_to_disallowed_repo_or_dependency'\n          );\n          continue;\n        }\n      }\n\n      const previousContent = byPath.has(filePath) ? byPath.get(filePath) : null;\n      if (previousContent !== nextContent) {\n        changedPaths.push(filePath);\n        changedRecords.push({\n          path: filePath,\n          beforeContent: previousContent == null ? '' : String(previousContent),\n          afterContent: String(nextContent),\n        });\n        if (duplicateClassCandidateSet.has(filePath)) {\n          changedDuplicateCandidatePaths.push(filePath);\n        }\n      }\n      byPath.set(filePath, nextContent);\n      acceptedPatchFileCount += 1;\n    }\n\n    const duplicateClassFixRejected = hasDuplicateClassError\n      && duplicateClassCandidateSet.size > 0\n      && changedDuplicateCandidatePaths.length === 0;\n\n    const mergedGeneratedFiles = Array.from(byPath.entries()).map(([path, content]) => ({ path, content }));\n    const mergedPlannedFiles = mergedGeneratedFiles.map((file) => ({ path: file.path }));\n    const compileFixNoChangeCount = changedPaths.length\n      ? 0\n      : Number(json.compileFixNoChangeCount || 0) + 1;\n    const compileFixLastPatchPreview = changedRecords.length ? buildPatchPreview(changedRecords) : '';\n\n    return {\n      json: {\n        ...json,\n        generatedFiles: mergedGeneratedFiles,\n        generatedFilePaths: mergedGeneratedFiles.map((file) => file.path),\n        generatedFileCountTotal: mergedGeneratedFiles.length,\n        allPlannedFiles: mergedPlannedFiles,\n        compileFixAppliedPaths: changedPaths,\n        compileFixAppliedPathCount: changedPaths.length,\n        ignoredPomFixPaths,\n        ignoredPomFixCount: ignoredPomFixPaths.length,\n        ignoredPomFixReasons,\n        ignoredScopeFixPaths,\n        ignoredScopeFixCount: ignoredScopeFixPaths.length,\n        ignoredScopeFixReasons,\n        runtimeConfigBlockedPaths,\n        runtimeConfigBlockedCount: runtimeConfigBlockedPaths.length,\n        runtimeConfigBlockedReasons,\n        duplicateClassCandidateFiles,\n        hasDuplicateClassError,\n        changedDuplicateCandidatePaths,\n        duplicateClassFixRejected,\n        duplicateClassFixRejectedReason: duplicateClassFixRejected\n          ? 'no_duplicate_candidate_file_changed'\n          : '',\n        pomChangeAllowed,\n        pomSanitizerTouched,\n        autoRemovedUnresolvedDependencies: Array.from(new Set(autoRemovedUnresolvedDependencies)),\n        autoRemovedUnresolvedDependencyCount: Array.from(new Set(autoRemovedUnresolvedDependencies)).length,\n        autoRemovedRepositoryEntries: Array.from(new Set(autoRemovedRepositoryEntries)),\n        autoRemovedRepositoryEntryCount: Array.from(new Set(autoRemovedRepositoryEntries)).length,\n        mapstructLoopNeedsPom: pomPolicy.mapstructLoopNeedsPom,\n        compileFixIsStuck,\n        compileFixUseSurgicalMode,\n        compileFixUseWideRecoveryMode,\n        maxPatchFilesPerAttempt,\n        acceptedPatchFileCount,\n        compileFixNoChangeCount,\n        compileFixLastPatchPreview,\n        compileFixLastPatchChangedFiles: changedRecords.map((entry) => entry.path),\n      },\n      binary: item.binary ?? {},\n    };\n  });\n}\n\nreturn beApplyCompileFixes();\r\n\r\n"
+      },
+      "id": "492e5218-76cf-44aa-91b5-c9e05cd09e2e",
+      "name": "FEV - Apply Validation Fixes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32272,
+        14912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function beAssembleFrontendZipInputs() {\n    function getExtension(filePath) {\n      const fileName = String(filePath || '').split('/').pop() || '';\n      if (fileName === 'pom.xml') return 'xml';\n      if (fileName === '.gitignore') return 'gitignore';\n      const match = fileName.match(/\\.([A-Za-z0-9]+)$/);\n      return match ? match[1].toLowerCase() : 'txt';\n    }\n    function getMimeType(filePath) {\n      const ext = getExtension(filePath);\n      const mimeByExtension = {\n        java: 'text/x-java-source',\n        xml: 'application/xml',\n        yaml: 'text/yaml',\n        yml: 'text/yaml',\n        json: 'application/json',\n        properties: 'text/plain',\n        md: 'text/markdown',\n        txt: 'text/plain',\n        sql: 'application/sql',\n        csv: 'text/csv',\n        gitignore: 'text/plain',\n      };\n      return mimeByExtension[ext] || 'text/plain';\n    }\n    function isIntentionallyEmptyFile(filePath) {\n      const lower = String(filePath || '').toLowerCase();\n      return lower.endsWith('/.gitkeep') || lower.endsWith('/.keep') || lower.endsWith('/.placeholder');\n    }\n    function normalizeContent(contentValue) {\n      if (typeof contentValue === 'string') {\n        return contentValue;\n      }\n      if (contentValue === null || contentValue === undefined) {\n        return '';\n      }\n      if (typeof contentValue === 'object') {\n        return JSON.stringify(contentValue, null, 2);\n      }\n      return String(contentValue);\n    }\n    const item = $input.first();\n    if (!item) {\n      throw new Error('No frontend generation state available for ZIP assembly.');\n    }\n    const json = item.json || {};\n    const generatedFiles = Array.isArray(json.generatedFiles) ? json.generatedFiles : [];\n    const remainingFiles = Array.isArray(json.remainingFiles) ? json.remainingFiles : [];\n    if (remainingFiles.length > 0) {\n      throw new Error('Cannot assemble frontend ZIP while files are still remaining.');\n    }\n    if (!generatedFiles.length) {\n      throw new Error('No generated frontend files available to assemble ZIP.');\n    }\n    const binary = {};\n    const manifest = [];\n    generatedFiles.forEach((file, index) => {\n      const filePath = String(file?.path || '').trim();\n      const content = normalizeContent(file?.content);\n      if (!filePath.startsWith('frontend/')) {\n        throw new Error(`Generated frontend file path must start with \"frontend/\": ${filePath || '<empty>'}`);\n      }\n      // Empty files are allowed and must still be included in the assembled ZIP.\n      const key = `file_${index}`;\n      binary[key] = {\n        data: Buffer.from(content, 'utf8').toString('base64'),\n        mimeType: getMimeType(filePath),\n        fileExtension: getExtension(filePath),\n        fileName: filePath,\n      };\n      manifest.push({ path: filePath });\n    });\n    // Build structure from the actual ZIP payload (single source of truth).\n    const zipManifestPaths = Object.values(binary)\n      .map((entry) => String(entry?.fileName || '').trim())\n      .filter((path) => path.startsWith('frontend/'));\n    const structureManifest = Array.from(new Set(zipManifestPaths))\n      .map((path) => ({ path }))\n      .sort((a, b) => a.path.localeCompare(b.path));\n    const frontendStructureObject = { files: structureManifest };\n    const frontendStructure = JSON.stringify(frontendStructureObject);\n\n    return [{\n      json: {\n        frontendRoot: 'frontend',\n        fileCount: manifest.length,\n        files: manifest,\n        frontendStructure,\n        frontendStructureObject,\n        zipBinaryFields: Object.keys(binary).join(','),\n      },\n      binary,\n    }];\n  }\nreturn beAssembleFrontendZipInputs();\n"
+      },
+      "id": "ce38f510-b864-4deb-9f6c-0ea47a651599",
+      "name": "FEV - Assemble Frontend Zip Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        30880,
+        14624
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ $json.zipBinaryFields }}",
+        "fileName": "frontend.zip",
+        "binaryPropertyOutput": "frontendZip"
+      },
+      "id": "e3009a12-4fe1-460a-8243-098abbd5e1da",
+      "name": "FEV - Frontend Zip",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        31072,
+        14720
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "frontendStructure",
+        "binaryPropertyName": "frontendStructure",
+        "options": {
+          "fileName": "frontend-structure.json"
+        }
+      },
+      "id": "007f8e9e-b95a-4df6-9e07-9a377e56dae1",
+      "name": "FEV - Final Structure File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        31072,
+        14528
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "42b1a487-1091-4f0a-8803-bae404e26b20",
+      "name": "FEV - Zip and Structure",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        31312,
+        14624
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst json = { ...(item.json ?? {}) };\nconst binary = { ...(item.binary ?? {}) };\n\nconst frontendZip = binary.frontendZip;\nif (!frontendZip) {\n  throw new Error('Missing frontendZip binary for review link.');\n}\n\nbinary.reviewZip = frontendZip;\n\nreturn [{\n  json,\n  binary,\n}];"
+      },
+      "id": "574b6195-ec05-4422-b7e8-bb6c0e5c10cb",
+      "name": "FEV - Create Zip",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        31536,
+        14624
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pQM23J0BoE8iVhNc",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pQM23J0BoE8iVhNc",
+          "cachedResultName": "zip link"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "revisionNumber": "={{ $json.revisionNumber }}",
+            "archiveMimeType": "={{ $binary.frontendZip ? $binary.frontendZip.mimeType : \"application/zip\" }}",
+            "archiveFileName": "={{ $binary.frontendZip ? $binary.frontendZip.fileName : \"frontend.zip\" }}",
+            "response": "={{ $json.response }}",
+            "archiveData": "={{ $binary.frontendZip ? ($binary.frontendZip.data || ($binary.frontendZip.id ? \"filesystem-v2\" : \"\")) : \"\" }}",
+            "archiveId": "={{ $binary.frontendZip ? ($binary.frontendZip.id || \"\") : \"\" }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "archiveMimeType",
+              "displayName": "archiveMimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveFileName",
+              "displayName": "archiveFileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "revisionNumber",
+              "displayName": "revisionNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "response",
+              "displayName": "response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveData",
+              "displayName": "archiveData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveId",
+              "displayName": "archiveId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "archiveBinaryProperty",
+              "canBeUsedToMatch": true,
+              "required": false,
+              "displayName": "archiveBinaryProperty",
+              "type": "string",
+              "removed": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "bde6ce23-2ba9-4d98-8ec1-df7436c3c384",
+      "name": "FEV - Create Zip Link",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        31776,
+        14736
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "d6173a91-2e94-4813-bfe6-2f5f0f3b4703",
+      "name": "FEV - Link and Zip",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        31968,
+        14640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst json = item?.json ?? {};\nconst revisionNumber = Math.max(0, Math.trunc(Number(json.revisionNumber ?? 0) || 0));\nconst fileCount = Math.max(0, Math.trunc(Number(json.fileCount ?? 0) || 0));\nconst zipDownloadUrl = String(json.zipDownloadUrl ?? '').trim();\nif (!zipDownloadUrl) throw new Error('Review ZIP download URL is missing.');\nconst zipDownloadToken = String(json.zipDownloadToken ?? '').trim();\nif (!zipDownloadToken) throw new Error('Review ZIP download token is missing.');\nconst downloadLinkHtml = '<p><a href=\"' + zipDownloadUrl + '\" download target=\"_blank\" rel=\"noopener noreferrer\">Download current Frontend ZIP</a></p>';\nconst output = {\n  json: { ...json, revisionNumber, fileCount, zipDownloadUrl, zipDownloadToken, downloadLinkHtml },\n};\nif (item.binary && Object.keys(item.binary).length > 0) {\n  output.binary = item.binary;\n}\nreturn [output];"
+      },
+      "id": "3265b439-2fae-4537-bfb7-f2bdcb117f5e",
+      "name": "FEV - Prepare Information",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32208,
+        14640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first() ?? { json: {}, binary: {} };\nconst currentJson = item.json ?? {};\nconst rawBinary = item.binary ?? {};\n\nfunction getNodeItemSafe(nodeName) {\n  if (typeof $items !== 'function') return null;\n  try {\n    return ($items(nodeName) || [])[0] || null;\n  } catch {\n    return null;\n  }\n}\n\nfunction cleanJson(source) {\n  const json = { ...(source ?? {}) };\n  delete json.feedback;\n  delete json.Feedback;\n  delete json.Approved;\n  delete json['Start Again'];\n  delete json.reviewMode;\n  return json;\n}\n\nfunction cleanBinary(source) {\n  return Object.fromEntries(\n    Object.entries(source ?? {})\n      .filter(([key]) => !/^attachments?(?:_|$)/i.test(String(key)))\n      .filter(([key]) => !String(key).endsWith('_firstIteration')),\n  );\n}\n\nfunction normalizeFiles(value) {\n  const files = Array.isArray(value) ? value : [];\n  return files\n    .map((entry) => {\n      if (typeof entry === 'string') return { path: entry.trim() };\n      if (entry && typeof entry === 'object') return { path: String(entry.path ?? '').trim() };\n      return { path: '' };\n    })\n    .filter((entry) => entry.path);\n}\n\nconst firstNode = getNodeItemSafe('FE - Prepare Information for First Iteration');\nconst firstJson = cleanJson(firstNode?.json ?? {});\nconst baseJson = cleanJson(currentJson);\nconst cleanCurrentBinary = cleanBinary(rawBinary);\nconst firstFiles = normalizeFiles(firstJson.files).length\n  ? normalizeFiles(firstJson.files)\n  : normalizeFiles(baseJson.firstIterationFiles);\nconst reviewerFeedback = [\n  currentJson.reviewerFeedback,\n  currentJson.feedback,\n  currentJson.Feedback,\n  baseJson.reviewerFeedback,\n].map((value) => String(value ?? '').trim()).find((value) => value.length > 0) || '';\n\nconst outputJson = {\n  ...baseJson,\n  reviewerFeedback,\n  reviewMode: '',\n  firstIterationFiles: firstFiles,\n  firstIterationFrontendStructure: String(firstJson.frontendStructure ?? baseJson.firstIterationFrontendStructure ?? '').trim(),\n  firstIterationReviewRevisionNumber: Number(firstJson.revisionNumber ?? baseJson.firstIterationReviewRevisionNumber ?? baseJson.revisionNumber ?? 0) || 0,\n  firstIterationReviewZipDownloadUrl: String(firstJson.zipDownloadUrl ?? baseJson.firstIterationReviewZipDownloadUrl ?? baseJson.zipDownloadUrl ?? '').trim(),\n  firstIterationReviewZipDownloadToken: String(firstJson.zipDownloadToken ?? baseJson.firstIterationReviewZipDownloadToken ?? baseJson.zipDownloadToken ?? '').trim(),\n  firstIterationReviewDownloadLinkHtml: String(firstJson.downloadLinkHtml ?? baseJson.firstIterationReviewDownloadLinkHtml ?? baseJson.downloadLinkHtml ?? '').trim(),\n};\n\nreturn [{\n  json: outputJson,\n  ...(Object.keys(cleanCurrentBinary).length ? { binary: cleanCurrentBinary } : {}),\n}];"
+      },
+      "id": "ca410145-b377-4568-a6b6-c50d1b0f55d8",
+      "name": "FEV - Review Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32448,
+        14640
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "FEV - Input Config": {
+      "main": [
+        [
+          {
+            "node": "FEV - Extract Frontend ZIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Extract Frontend ZIP": {
+      "main": [
+        [
+          {
+            "node": "FEV - Load Frontend ZIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FE - Validation Passed?": {
+      "main": [
+        [
+          {
+            "node": "FEV - Assemble Frontend Zip Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FEV - Prepare Validation Fix State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Load Frontend ZIP": {
+      "main": [
+        [
+          {
+            "node": "FEV - Validate Generated Frontend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Start  Validation Trigger": {
+      "main": [
+        [
+          {
+            "node": "FEV - Input Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Start Validation Form": {
+      "main": [
+        [
+          {
+            "node": "FEV - Input Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Validate Generated Frontend": {
+      "main": [
+        [
+          {
+            "node": "FE - Validation Passed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Prepare Validation Fix State": {
+      "main": [
+        [
+          {
+            "node": "FEV - Build Validation Fix Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Build Validation Fix Prompt": {
+      "main": [
+        [
+          {
+            "node": "FEV - Generate Validation Fix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Generate Validation Fix": {
+      "main": [
+        [
+          {
+            "node": "FEV - Clean Validation Fix Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Clean Validation Fix Response": {
+      "main": [
+        [
+          {
+            "node": "FEV - Apply Validation Fixes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Apply Validation Fixes": {
+      "main": [
+        [
+          {
+            "node": "FEV - Validate Generated Frontend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Assemble Frontend Zip Inputs": {
+      "main": [
+        [
+          {
+            "node": "FEV - Frontend Zip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FEV - Final Structure File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Frontend Zip": {
+      "main": [
+        [
+          {
+            "node": "FEV - Zip and Structure",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FEV - Final Structure File": {
+      "main": [
+        [
+          {
+            "node": "FEV - Zip and Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Zip and Structure": {
+      "main": [
+        [
+          {
+            "node": "FEV - Create Zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Create Zip": {
+      "main": [
+        [
+          {
+            "node": "FEV - Link and Zip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FEV - Create Zip Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Create Zip Link": {
+      "main": [
+        [
+          {
+            "node": "FEV - Link and Zip",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "FEV - Link and Zip": {
+      "main": [
+        [
+          {
+            "node": "FEV - Prepare Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Prepare Information": {
+      "main": [
+        [
+          {
+            "node": "FEV - Review Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FEV - Review Output": {
+      "main": [
+        [
+          {
+            "node": "FEV - Validation Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "c3979082-f05f-4839-8d5f-944cf2a2797e",
+  "meta": {
+    "instanceId": "b8db71e6cd806cd646e3036d735235b01787ac6bf74adc87afc57bddf23e92c7"
+  },
+  "id": "vutop8z8cHVHFMlN",
+  "tags": []
+}

@@ -15,8 +15,12 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {2.1}{\ignorespaces Comparação entre os modelos Waterfall e modelos Iterativos}}{5}{figure.2.1}%
 \contentsline {figure}{\numberline {2.2}{\ignorespaces Pipeline de especialização do Code Llama\cite {CodeLlama}.}}{7}{figure.2.2}%
-\contentsline {figure}{\numberline {2.3}{\ignorespaces Linha temporal de alguns dos modelos e ferramentas de geração de código analisados nesta secção.}}{10}{figure.2.3}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Linha temporal de alguns dos modelos e ferramentas de geração de código analisados nesta secção.}}{9}{figure.2.3}%
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Processo de análise de negócio na Trust Systems.}}{14}{figure.3.1}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Vistas arquiteturais de um monólito modular e de uma arquitetura baseada em serviços.}}{15}{figure.3.2}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Fluxo típico de implementação de um endpoint no backend.}}{16}{figure.3.3}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Fluxo de interação entre componente, serviço e API no frontend.}}{17}{figure.3.4}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
